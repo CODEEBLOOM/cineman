@@ -20,7 +20,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "ticket")
+@Table(name = "tickets")
 public class TicketEntity implements Serializable{
 	 @Id
 	    @GeneratedValue(strategy = GenerationType.IDENTITY)
