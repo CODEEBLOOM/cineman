@@ -35,11 +35,19 @@ public class TicketEntity implements Serializable{
 
 
 	    @ManyToOne
+
 	    @JoinColumn(name = "show_time_id", nullable = false)
 	    private ShowTimeEntity showTime;
 
 	    @ManyToOne
 	    @JoinColumn(name = "ticket_type_id", nullable = false)
+
+	    @JoinColumn(name = "id_show_time", nullable = false)
+	    private ShowTimeEntity showTime;
+
+	    @ManyToOne
+	    @JoinColumn(name = "id_ticket_type", nullable = false)
+
 	    private TicketTypeEntity ticketType;
 
 	    @ManyToOne

@@ -28,6 +28,7 @@ public class SeatEntity implements Serializable {
 	    private Integer row;
 
 	    @ManyToOne
+      BranchOfTuan
 	    @JoinColumn(name = "seat_type_id" ,nullable = false )
 	    private SeatTypeEntity seatType;
 
