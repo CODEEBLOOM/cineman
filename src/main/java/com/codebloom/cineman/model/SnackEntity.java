@@ -30,7 +30,7 @@ public class SnackEntity implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "id_type", nullable = false)
-    private Snack_TypeEntity snackType;
+    private SnackTypeEntity snackType;
 
     @Column(name = "snack_name", columnDefinition = "NVARCHAR(100)")
     private String snackName;

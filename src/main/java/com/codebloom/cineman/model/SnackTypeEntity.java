@@ -19,7 +19,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "snack_types")
-public class Snack_TypeEntity implements Serializable {
+public class SnackTypeEntity implements Serializable {
 	    @Id
 	    @GeneratedValue(strategy = GenerationType.IDENTITY)
 	    @Column(name = "id_snack_type")
