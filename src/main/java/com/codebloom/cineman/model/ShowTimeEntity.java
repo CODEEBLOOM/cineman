@@ -1,6 +1,12 @@
 package com.codebloom.cineman.model;
 
 import java.io.Serializable;
+
+import java.util.Date;
+import java.util.List;
+
+import jakarta.persistence.*;
+
 import java.sql.Date;
 
 import jakarta.persistence.Column;
@@ -13,6 +19,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,8 +34,20 @@ import lombok.Setter;
 public class ShowTimeEntity implements Serializable {
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Column(name = "show_time_id")
+    private Long id;
+
+
+    @ManyToOne
+    @JoinColumn(name = "movie_theater_id", nullable = false)
+    private MovieTheatersEntity movieTheater;
+
+
+
     @Column(name = "id_show_time")
     private Long id;
+
 
     @Column(name = "origin_price")
     private Integer originPrice;
@@ -46,10 +65,19 @@ public class ShowTimeEntity implements Serializable {
     private Date endTime;
     
     @ManyToOne
+
+    @JoinColumn(name = "movie_id", nullable = false)
+
     @JoinColumn(name = "id_movie", nullable = false)
+
     private MovieEntity movie;
 
 //    @ManyToOne
 //    @JoinColumn(name = "id_cinema", nullable = false)
 //    private CinemaTheater cinema;
+
+
+    @OneToMany(mappedBy = "showTime")
+    private List<TicketEntity> tickets;
+
 }

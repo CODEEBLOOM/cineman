@@ -24,7 +24,7 @@ import lombok.Setter;
 public class TicketEntity implements Serializable{
 	 @Id
 	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    @Column(name = "id_ticket")
+	    @Column(name = "ticket_id")
 	    private Long id;
 	 
 	    @Column(name = "status")
@@ -33,19 +33,30 @@ public class TicketEntity implements Serializable{
 	    @Column(name = "price")
 	    private Double price;
 
-//	    @ManyToOne
-//	    @JoinColumn(name = "id_invoice", nullable = false)
-//	    private Invoice invoice;
 
 	    @ManyToOne
+
+	    @JoinColumn(name = "show_time_id", nullable = false)
+	    private ShowTimeEntity showTime;
+
+	    @ManyToOne
+	    @JoinColumn(name = "ticket_type_id", nullable = false)
+
 	    @JoinColumn(name = "id_show_time", nullable = false)
 	    private ShowTimeEntity showTime;
 
 	    @ManyToOne
 	    @JoinColumn(name = "id_ticket_type", nullable = false)
+
 	    private TicketTypeEntity ticketType;
 
 	    @ManyToOne
-	    @JoinColumn(name = "id_seat", nullable = false)
+	    @JoinColumn(name = "seat_id", nullable = false)
 	    private SeatEntity seat;
+
+	@ManyToOne
+	@JoinColumn(name = "invoice_id")
+	private InvoiceEntity invoice;
+
+
 }

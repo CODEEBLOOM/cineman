@@ -2,17 +2,9 @@ package com.codebloom.cineman.model;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,7 +21,7 @@ public class PromotionEntity implements Serializable  {
 	
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_promotion")
+    @Column(name = "promotion_id")
     private Long promotionId;
 
     @Column(name = "name_promotion", columnDefinition = "NVARCHAR(100)")
@@ -38,7 +30,7 @@ public class PromotionEntity implements Serializable  {
     @Column(name = "promotion_content", columnDefinition = "NVARCHAR(1000)")
     private String content;
 
-    @Column(name = "id_code", columnDefinition = "VARCHAR(100)")
+    @Column(name = "code_id", columnDefinition = "VARCHAR(100)")
     private String code;
 
     @Column(name = "start_day")
@@ -56,8 +48,11 @@ public class PromotionEntity implements Serializable  {
     private Integer status;
 
     @ManyToOne
-    @JoinColumn(name = "id_staff", referencedColumnName = "id_account")
+    @JoinColumn(name = "staff_id", nullable = false)
     private UserEntity staff;
+
+    @OneToMany(mappedBy = "promotion")
+    private List<InvoiceEntity> invoices;
 
 
 }
