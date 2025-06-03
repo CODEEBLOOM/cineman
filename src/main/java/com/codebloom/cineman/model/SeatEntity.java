@@ -35,7 +35,7 @@ public class SeatEntity implements Serializable {
 
 	    @ManyToOne
 	    @JoinColumn(name = "id_seat_type" ,nullable = false )
-	    private Seat_TypeEntity seatType;
+	    private SeatTypeEntity seatType;
 
 //	    @ManyToOne
 //	    @JoinColumn(name = "id_room", nullable = false )
