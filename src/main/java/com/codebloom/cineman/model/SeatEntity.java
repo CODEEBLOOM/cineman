@@ -1,15 +1,9 @@
 package com.codebloom.cineman.model;
 
 import java.io.Serializable;
+import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,7 +18,7 @@ import lombok.Setter;
 public class SeatEntity implements Serializable {
 	 @Id
 	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    @Column(name = "id_seat")
+	    @Column(name = "seat_id")
 	    private Long id;
 
 	    @Column(name = "seat_number")
@@ -34,9 +28,12 @@ public class SeatEntity implements Serializable {
 	    private Integer row;
 
 	    @ManyToOne
-	    @JoinColumn(name = "id_seat_type" ,nullable = false )
-	    private Seat_TypeEntity seatType;
+	    @JoinColumn(name = "seat_type_id" ,nullable = false )
+	    private SeatTypeEntity seatType;
 
+
+	@OneToMany(mappedBy = "seat")
+	private List<TicketEntity> tickets;
 //	    @ManyToOne
 //	    @JoinColumn(name = "id_room", nullable = false )
 //	    private CinemaTheater room;

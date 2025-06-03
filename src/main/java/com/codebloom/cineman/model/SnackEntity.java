@@ -1,15 +1,9 @@
 package com.codebloom.cineman.model;
 
 import java.io.Serializable;
+import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,12 +19,14 @@ import lombok.Setter;
 public class SnackEntity implements Serializable {
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_snack")
+    @Column(name = "snack_id")
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "id_type", nullable = false)
-    private Snack_TypeEntity snackType;
+    @JoinColumn(name = "snack_type_id", nullable = false)
+    private SnackTypeEntity snackType;
+
+
 
     @Column(name = "snack_name", columnDefinition = "NVARCHAR(100)")
     private String snackName;
@@ -43,4 +39,7 @@ public class SnackEntity implements Serializable {
 
     @Column(name = "description", columnDefinition = "VARCHAR(200)")
     private String description;
+
+    @OneToMany(mappedBy = "snack")
+    private List<DetailBookingSnackEntity> detailBookingSnacks;
 }

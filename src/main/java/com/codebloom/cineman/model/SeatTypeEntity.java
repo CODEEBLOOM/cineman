@@ -1,13 +1,9 @@
 package com.codebloom.cineman.model;
 
 import java.io.Serializable;
+import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +15,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "seat_types")
-public class Seat_TypeEntity implements Serializable {
+public class SeatTypeEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "seat_type_id")
@@ -30,4 +26,7 @@ public class Seat_TypeEntity implements Serializable {
 
     @Column(name = "price")
     private Double price;
+
+    @OneToMany(mappedBy = "seatType")
+    private List<SeatEntity> seats;
 }
