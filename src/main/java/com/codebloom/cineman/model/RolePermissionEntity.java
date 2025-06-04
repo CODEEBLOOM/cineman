@@ -16,7 +16,7 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RolePermissionEntity {
+public class RolePermissionEntity implements Serializable{
 
     @Id
     @Column(name = "role_id", length = 25)
