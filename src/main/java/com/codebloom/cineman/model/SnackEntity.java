@@ -23,9 +23,13 @@ public class SnackEntity implements Serializable {
     private Integer id;
 
     @ManyToOne
+
     @JoinColumn(name = "snack_type_id", nullable = false)
     private SnackTypeEntity snackType;
 
+
+    @JoinColumn(name = "id_type", nullable = false)
+    private SnackTypeEntity snackType;
 
 
     @Column(name = "snack_name", columnDefinition = "NVARCHAR(100)")
