@@ -13,6 +13,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -76,5 +77,24 @@ public class UserEntity implements Serializable {
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
     private UserStatus status;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<UserRoleEntity> userRoles; //
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<FeedbacksEntity> feedbacks;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<SocialAccountEntity> socialAccounts;
+
+
+    @OneToMany(mappedBy = "staff", cascade = CascadeType.ALL)
+    private List<PromotionEntity> promotions;
+
+    @OneToMany(mappedBy = "customer")
+    private List<InvoiceEntity> customerInvoices;
+
+    @OneToMany(mappedBy = "staff")
+    private List<InvoiceEntity> staffInvoices;
 
 }

@@ -21,10 +21,14 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "social_accounts")
-public class Social_AccountEntity implements Serializable {
+public class SocialAccountEntity implements Serializable {
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Column(name = "social_account_id")
+
     @Column(name = "id_social_account")
+
     private Integer id;
 
 
@@ -41,6 +45,12 @@ public class Social_AccountEntity implements Serializable {
     private String name;
 
     @ManyToOne
+
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
+
+
     @JoinColumn(name = "account_id", nullable = false)
     private UserEntity user;
+
 }

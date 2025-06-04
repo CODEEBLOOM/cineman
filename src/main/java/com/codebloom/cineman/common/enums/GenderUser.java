@@ -7,6 +7,7 @@ public enum GenderUser {
     OTHER(2);
 
     private int value;
+
     private GenderUser(int value) {
         this.value = value;
     }

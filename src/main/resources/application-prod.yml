@@ -6,9 +6,9 @@ spring:
     add-properties: true
   # kêt nối database
   datasource:
-    url: jdbc:sqlserver://localhost:1433;databaseName=cinema_management_system_db;encrypt=true;trustServerCertificate=true;
+    url: jdbc:sqlserver://localhost:1433;databaseName=cineman_system;encrypt=true;trustServerCertificate=true;
     username: sa
-    password: son15@2
+    password: 123456
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   jpa:
     database-platform: org.hibernate.dialect.SQLServer2012Dialect
@@ -25,3 +25,4 @@ springdoc:
     enabled: false
 jwt:
   secretKey: sonProduct15@2
+
