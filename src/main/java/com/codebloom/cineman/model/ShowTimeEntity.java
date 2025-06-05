@@ -7,7 +7,6 @@ import java.util.List;
 
 import jakarta.persistence.*;
 
-import java.sql.Date;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -44,11 +43,6 @@ public class ShowTimeEntity implements Serializable {
     private MovieTheatersEntity movieTheater;
 
 
-
-    @Column(name = "id_show_time")
-    private Long id;
-
-
     @Column(name = "origin_price")
     private Integer originPrice;
 
@@ -67,15 +61,7 @@ public class ShowTimeEntity implements Serializable {
     @ManyToOne
 
     @JoinColumn(name = "movie_id", nullable = false)
-
-    @JoinColumn(name = "id_movie", nullable = false)
-
     private MovieEntity movie;
-
-//    @ManyToOne
-//    @JoinColumn(name = "id_cinema", nullable = false)
-//    private CinemaTheater cinema;
-
 
     @OneToMany(mappedBy = "showTime")
     private List<TicketEntity> tickets;

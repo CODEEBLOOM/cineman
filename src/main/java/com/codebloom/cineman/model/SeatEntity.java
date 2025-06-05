@@ -34,8 +34,4 @@ public class SeatEntity implements Serializable {
 
 	@OneToMany(mappedBy = "seat")
 	private List<TicketEntity> tickets;
-//	    @ManyToOne
-//	    @JoinColumn(name = "id_room", nullable = false )
-//	    private CinemaTheater room;
-
 }

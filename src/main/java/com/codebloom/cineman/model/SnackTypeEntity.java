@@ -29,9 +29,6 @@ public class SnackTypeEntity implements Serializable {
 	    @GeneratedValue(strategy = GenerationType.IDENTITY)
 
 	    @Column(name = "snack_type_id")
-
-	    @Column(name = "id_snack_type")
-
 	    private Integer id;
 
 	    @Column(name = "name_type", columnDefinition = "NVARCHAR(100)")

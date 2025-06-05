@@ -78,6 +78,9 @@ public class UserEntity implements Serializable {
     @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
     private UserStatus status;
 
+    @Column(name = "is_active", columnDefinition = "BIT")
+    private boolean IsActive ;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserRoleEntity> userRoles; //
 

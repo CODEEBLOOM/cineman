@@ -26,9 +26,6 @@ public class SocialAccountEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     @Column(name = "social_account_id")
-
-    @Column(name = "id_social_account")
-
     private Integer id;
 
 
@@ -49,8 +46,5 @@ public class SocialAccountEntity implements Serializable {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-
-    @JoinColumn(name = "account_id", nullable = false)
-    private UserEntity user;
 
 }

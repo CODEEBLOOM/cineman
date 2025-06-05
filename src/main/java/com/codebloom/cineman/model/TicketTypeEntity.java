@@ -30,9 +30,6 @@ public class TicketTypeEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     @Column(name = "ticket_type_id")
-
-    @Column(name = "id_ticket_type")
-
     private Integer id;
 
     @Column(name = "name_type", columnDefinition = "NVARCHAR(100)")
@@ -47,7 +44,6 @@ public class TicketTypeEntity implements Serializable {
 
     @OneToMany(mappedBy = "ticketType")
     private List<TicketEntity> tickets;
-
 
 
 }

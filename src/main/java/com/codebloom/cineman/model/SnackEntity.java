@@ -17,18 +17,13 @@ import lombok.Setter;
 @Entity
 @Table(name = "snacks")
 public class SnackEntity implements Serializable {
-	@Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "snack_id")
     private Integer id;
 
     @ManyToOne
-
     @JoinColumn(name = "snack_type_id", nullable = false)
-    private SnackTypeEntity snackType;
-
-
-    @JoinColumn(name = "id_type", nullable = false)
     private SnackTypeEntity snackType;
 
 

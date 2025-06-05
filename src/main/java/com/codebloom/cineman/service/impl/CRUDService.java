@@ -15,7 +15,7 @@ public interface CRUDService<T, KeyType> {
 
      void delete(KeyType key);
 
-     T findById(KeyType key);
+      T findById(KeyType key);
 
      List<T> findAll();
 

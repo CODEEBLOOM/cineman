@@ -51,6 +51,8 @@ public class InvoiceEntity implements Serializable {
     @Column(name = "updated_at", columnDefinition = "DATETIME")
     private Date updatedAt;
 
+    @Column(name = "is_active", columnDefinition = "BIT")
+    private boolean IsActive ;
 
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
@@ -63,6 +65,7 @@ public class InvoiceEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name = "promotion_id")
     private PromotionEntity promotion;
+
 
     @OneToMany(mappedBy = "invoice")
     private List<DetailBookingSnackEntity> detailBookingSnacks;

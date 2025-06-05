@@ -21,7 +21,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 @RestController
 @RequestMapping("/user")
 @Tag(name = "User Controller ( User api )")
-@RequiredArgsConstructor
+@RequiredArgsConstructor // no giup minh khong can viet @Autowired
 public class UserController {
     private final UserService userService;
 

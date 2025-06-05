@@ -73,6 +73,9 @@ public class MovieEntity implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
 
+    @Column(name = "is_active", columnDefinition = "BIT")
+    private boolean IsActive ;
+
     @OneToMany(mappedBy = "movie")
     private List<ShowTimeEntity> showTimes;
 
