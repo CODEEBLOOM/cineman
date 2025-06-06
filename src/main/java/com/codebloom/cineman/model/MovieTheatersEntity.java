@@ -2,10 +2,9 @@ package com.codebloom.cineman.model;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.Check;
 
 import java.io.Serializable;
 import java.util.List;
@@ -14,35 +13,41 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
 @Table(name = "movie_theaters")
+@Check(constraints = "total_cinema_theater > 0")
 public class MovieTheatersEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "movie_theater_id")
-    private Integer movieTheaterId;
+    Integer movieTheaterId;
 
-    @Column(name = "name", columnDefinition = "nvarchar(500)")
-    private String name;
+    @Column(columnDefinition = "nvarchar(500)")
+    String name;
 
-    @Column(name = "address", columnDefinition = "nvarchar(200)")
-    private String address;
+    @Column(columnDefinition = "nvarchar(200)")
+    String address;
 
-    @Column(name = "numbers_of_cinema_theater")
-    private Integer numbersOfCinemaTheater;
+    @Column(name = "total_cinema_theater")
+    Integer numbersOfCinemaTheater;
 
-    @Column(name = "hotline", columnDefinition = "varchar(20)")
-    private String hotline;
+    @Column(name = "hotline", length = 20)
+    String hotline;
 
-    @Column(name = "status", columnDefinition = "varchar(25)")
-    private String status;
+    @Column(name = "status")
+    Boolean status;
 
+    @Column(name = "iframe_code", length = 300)
+    String iframeCode;
 
-    @Column(name = "iframe_code", columnDefinition = "varchar(300)")
-    private String iframeCode;
+    @ManyToOne
+    @JoinColumn(name = "province_id", nullable = false)
+    ProvinceEntity province;
 
-    @OneToMany(mappedBy = "movieTheater", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<CinemaTheatersEntity> cinemaTheaters;
+    @OneToMany(mappedBy = "movieTheater")
+    List<CinemaTheatersEntity> cinemaTheaters;
 }
 

@@ -1,62 +1,62 @@
 package com.codebloom.cineman.model;
 
 import java.io.Serializable;
+import java.util.Date;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.codebloom.cineman.common.enums.TicketStatus;
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.Check;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
 @Table(name = "tickets")
-public class TicketEntity implements Serializable{
-	 @Id
-	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    @Column(name = "ticket_id")
-	    private Long id;
-	 
-	    @Column(name = "status")
-	    private Byte status;
+@Check(constraints = "price >= 0 and limit_time > 0 ")
+public class TicketEntity implements Serializable {
 
-	    @Column(name = "price")
-	    private Double price;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ticket_id")
+    private Long id;
 
+    @Column(name = "status", columnDefinition = "TINYINT")
+    private TicketStatus status;
 
-	    @ManyToOne
+    @Column(name = "price")
+    private Double price;
 
-	    @JoinColumn(name = "show_time_id", nullable = false)
-	    private ShowTimeEntity showTime;
+    @Column(name = "create_booking")
+    @Temporal(TemporalType.TIMESTAMP)
+    @CreationTimestamp
+    Date createBooking;
 
-	    @ManyToOne
-	    @JoinColumn(name = "ticket_type_id", nullable = false)
+    @Column(name = "limit_time", nullable = false)
+    Integer limitTime;
 
-	    @JoinColumn(name = "id_show_time", nullable = false)
-	    private ShowTimeEntity showTime;
+    Boolean expired;
 
-	    @ManyToOne
-	    @JoinColumn(name = "id_ticket_type", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "show_time_id", nullable = false)
+    private ShowTimeEntity showTime;
 
-	    private TicketTypeEntity ticketType;
+    @ManyToOne
+    @JoinColumn(name = "ticket_type_id", nullable = false)
+    private TicketTypeEntity ticketType;
 
-	    @ManyToOne
-	    @JoinColumn(name = "seat_id", nullable = false)
-	    private SeatEntity seat;
+    @ManyToOne
+    @JoinColumn(name = "seat_id", nullable = false)
+    private SeatEntity seat;
 
-	@ManyToOne
-	@JoinColumn(name = "invoice_id")
-	private InvoiceEntity invoice;
+    @ManyToOne
+    @JoinColumn(name = "invoice_id")
+    private InvoiceEntity invoice;
 
 
 }

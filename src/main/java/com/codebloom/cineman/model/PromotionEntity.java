@@ -4,17 +4,19 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
+import com.codebloom.cineman.common.enums.StatusPromotion;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
 
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
 @Table(name = "promotions")
 public class PromotionEntity implements Serializable  {
@@ -24,28 +26,30 @@ public class PromotionEntity implements Serializable  {
     @Column(name = "promotion_id")
     private Long promotionId;
 
-    @Column(name = "name_promotion", columnDefinition = "NVARCHAR(100)")
+    @Column(columnDefinition = "NVARCHAR(100)")
     private String name;
 
-    @Column(name = "promotion_content", columnDefinition = "NVARCHAR(1000)")
+    @Column( columnDefinition = "NVARCHAR(500)")
     private String content;
 
-    @Column(name = "code_id", columnDefinition = "VARCHAR(100)")
+    @Column(name = "code", length=100)
     private String code;
 
     @Column(name = "start_day")
     @Temporal(TemporalType.TIMESTAMP)
+    @CreationTimestamp
     private Date startDay;
 
     @Column(name = "end_day")
     @Temporal(TemporalType.TIMESTAMP)
+    @CreationTimestamp
     private Date endDay;
 
     @Column(name = "discount")
     private Double discount;
 
     @Column(name = "status", columnDefinition = "TINYINT")
-    private Integer status;
+    private StatusPromotion status;
 
     @ManyToOne
     @JoinColumn(name = "staff_id", nullable = false)
