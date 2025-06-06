@@ -14,18 +14,21 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.Check;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
 @Table(name = "seat_types")
+@Check(constraints = "price >= 0")
 public class SeatTypeEntity implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "seat_type_id")
@@ -36,7 +39,6 @@ public class SeatTypeEntity implements Serializable {
 
     @Column(name = "price")
     private Double price;
-
 
     @OneToMany(mappedBy = "seatType")
     private List<SeatEntity> seats;

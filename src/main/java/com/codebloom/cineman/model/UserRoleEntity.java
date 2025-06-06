@@ -1,7 +1,6 @@
 package com.codebloom.cineman.model;
 
 
-import com.codebloom.cineman.model.Id.UserRoleId;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,23 +14,24 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "user_roles")
+@Table(name = "user_roles", uniqueConstraints = { @UniqueConstraint(columnNames = {"role_id", "user_id"})})
 public class UserRoleEntity implements Serializable {
 
-    @EmbeddedId
-    private UserRoleId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "name", columnDefinition = "NVARCHAR(50)")
     private String name;
 
-    @Column(name = "description", columnDefinition = "NVARCHAR(500)")
+    @Column(name = "description", columnDefinition = "NVARCHAR(200)")
     private String description;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JoinColumn(name = "user_id")
     private UserEntity user;
 
     @ManyToOne
-    @JoinColumn(name = "role_id", insertable = false, updatable = false)
-    private RoleEntity role; // map đến bảng role
+    @JoinColumn(name = "role_id")
+    private RoleEntity role;
 }

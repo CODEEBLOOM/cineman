@@ -2,10 +2,8 @@ package com.codebloom.cineman.model;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.io.Serializable;
 import java.util.List;
@@ -14,13 +12,15 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
 @Table(name = "feedback_topics")
 public class FeedbackTopicEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "topic_id", columnDefinition = "INT")
+    @Column(name = "topic_id")
     private Integer topicId;
 
     @Column(name = "topic_name", columnDefinition = "NVARCHAR(100)")
@@ -30,5 +30,5 @@ public class FeedbackTopicEntity implements Serializable {
     private String description;
 
     @OneToMany(mappedBy = "topic")
-    private List<FeedbacksEntity> feedbacks;
+    private List<FeedbackEntity> feedbacks;
 }

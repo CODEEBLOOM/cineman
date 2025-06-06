@@ -1,10 +1,9 @@
 package com.codebloom.cineman.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.io.Serializable;
 import java.util.List;
@@ -13,22 +12,24 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
 @Table(name = "cinema_types")
 public class CinemaTypesEntity implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cinema_type_id")
-    private Integer cinemaTypeId;
+    String cinemaTypeId;
 
-    @Column(name = "code_type", columnDefinition = "NVARCHAR(200)")
-    private String codeType;
+    @Column(columnDefinition = "NVARCHAR(200)")
+    String name;
 
-    @Column(name = "description", columnDefinition = "NVARCHAR(255)")
-    private String description;
+    @Column(columnDefinition = "NVARCHAR(250)")
+    String description;
 
-    @OneToMany(mappedBy = "cinemaType", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<CinemaTheatersEntity> cinemaTheaters;
+    @OneToMany(mappedBy = "cinemaType")
+    @JsonBackReference
+    List<CinemaTheatersEntity> cinemaTheaters;
 
 }

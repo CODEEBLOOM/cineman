@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import jakarta.persistence.Column;
@@ -13,36 +14,33 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
 @Table(name = "snack_types")
 public class SnackTypeEntity implements Serializable {
-	    @Id
-	    @GeneratedValue(strategy = GenerationType.IDENTITY)
 
-	    @Column(name = "snack_type_id")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "snack_type_id")
+    Integer id;
 
-	    @Column(name = "id_snack_type")
+    @Column(name = "name", columnDefinition = "NVARCHAR(100)")
+    String name;
 
-	    private Integer id;
+    @Column(name = "description", columnDefinition = "NVARCHAR(200)")
+    String description;
 
-	    @Column(name = "name_type", columnDefinition = "NVARCHAR(100)")
-	    private String nameType;
-
-	    @Column(name = "description", columnDefinition = "NVARCHAR(200)")
-	    private String description;
-
-
-	@OneToMany(mappedBy = "snackType")
-	private List<SnackEntity> snacks;
+    @OneToMany(mappedBy = "snackType")
+    @JsonBackReference
+    List<SnackEntity> snacks;
 
 
 }
