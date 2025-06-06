@@ -24,5 +24,5 @@ public class MovieCreationRequest {
     private String bannerImage;
     private Date createdAt;
     private Date updatedAt;
-    private boolean IsActive ;
+    private Boolean IsActive ;
 }

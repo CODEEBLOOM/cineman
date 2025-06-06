@@ -8,6 +8,7 @@ import java.util.Set;
 
 import com.codebloom.cineman.common.enums.Rating;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -74,7 +75,7 @@ public class MovieEntity implements Serializable {
     private Date updatedAt;
 
     @Column(name = "is_active", columnDefinition = "BIT")
-    private boolean IsActive ;
+    private Boolean IsActive  ;
 
     @OneToMany(mappedBy = "movie")
     private List<ShowTimeEntity> showTimes;

@@ -3,10 +3,14 @@ package com.codebloom.cineman.controller.request;
 
 import com.codebloom.cineman.common.enums.Rating;
 import com.codebloom.cineman.model.MovieStatusEntity;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
-
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 public class MovieUpdateRequest {
     private MovieStatusEntity status;
@@ -23,6 +27,7 @@ public class MovieUpdateRequest {
     private String bannerImage;
     private Date createdAt;
     private Date updatedAt;
-    private boolean IsActive ;
+    @NotNull(message = "isActive không được null")
+    private Boolean isActive ;
 
 }

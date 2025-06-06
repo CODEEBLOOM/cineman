@@ -23,10 +23,10 @@
         private Integer statusId;
 
 
-        @Column(name = "name")
+        @Column(name = "name" , columnDefinition = "NVARCHAR(100)")
         private String name;
 
-        @Column(name = "description")
+        @Column(name = "description" , columnDefinition = "NVARCHAR(200)")
         private String description;
 
     }

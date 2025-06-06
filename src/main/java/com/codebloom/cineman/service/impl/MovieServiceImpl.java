@@ -8,6 +8,7 @@ import com.codebloom.cineman.model.MovieStatusEntity;
 import com.codebloom.cineman.repository.MovieRepository;
 import com.codebloom.cineman.repository.MovieStatusRepository;
 import com.codebloom.cineman.service.MovieService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -17,10 +18,12 @@ import java.util.List;
 @Service
 public class MovieServiceImpl implements MovieService {
     @Autowired
-   private MovieRepository movieRepository;
+    private MovieRepository movieRepository;
 
     @Autowired
     private MovieStatusRepository movieStatusRepository;
+    @Autowired
+    private ModelMapper modelMapper;
 
 
     @Override
@@ -29,14 +32,55 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public List<MovieEntity> findAll() {
-        return List.of();
+    public List<MovieResponse> findAll() {
+        List<MovieEntity> movies = movieRepository.findAll();
+
+        return movies.stream()
+                .map(movie -> {
+                    MovieResponse response = new MovieResponse();
+                    response.setMovieId(movie.getMovieId());
+                    response.setStatus(movie.getStatus());
+                    response.setTitle(movie.getTitle());
+                    response.setSynopsis(movie.getSynopsis());
+                    response.setDetailDescription(movie.getDetailDescription());
+                    response.setReleaseDate(movie.getReleaseDate());
+                    response.setLanguage(movie.getLanguage());
+                    response.setDuration(movie.getDuration());
+                    response.setRating(movie.getRating());
+                    response.setAge(movie.getAge());
+                    response.setTrailerLink(movie.getTrailerLink());
+                    response.setPosterImage(movie.getPosterImage());
+                    response.setBannerImage(movie.getBannerImage());
+                    response.setIsActive(movie.getIsActive());
+                    return response;
+                })
+                .toList();
     }
+
 
     @Override
     public MovieResponse findById(Integer id) {
-        return null;
+        MovieEntity movie = movieRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phim có ID: " + id));
+
+        MovieResponse response = new MovieResponse();
+        response.setMovieId(movie.getMovieId());
+        response.setStatus(movie.getStatus());
+        response.setTitle(movie.getTitle());
+        response.setSynopsis(movie.getSynopsis());
+        response.setDetailDescription(movie.getDetailDescription());
+        response.setReleaseDate(movie.getReleaseDate());
+        response.setLanguage(movie.getLanguage());
+        response.setDuration(movie.getDuration());
+        response.setRating(movie.getRating());
+        response.setAge(movie.getAge());
+        response.setTrailerLink(movie.getTrailerLink());
+        response.setPosterImage(movie.getPosterImage());
+        response.setBannerImage(movie.getBannerImage());
+        response.setIsActive(movie.getIsActive());
+        return response;
     }
+
 
     @Override
     public Integer save(MovieCreationRequest request) {
@@ -73,11 +117,11 @@ public class MovieServiceImpl implements MovieService {
     }
 
 
-    @Override
-    public void update(MovieUpdateRequest request) {
-        MovieEntity movie = new MovieEntity();
+    public MovieResponse update(Integer movieId, MovieUpdateRequest request) {
+        MovieEntity movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new RuntimeException("Movie not found"));
+
         movie.setTitle(request.getTitle());
-        movie.setStatus(request.getStatus());
         movie.setSynopsis(request.getSynopsis());
         movie.setDetailDescription(request.getDetailDescription());
         movie.setReleaseDate(request.getReleaseDate());
@@ -88,9 +132,21 @@ public class MovieServiceImpl implements MovieService {
         movie.setTrailerLink(request.getTrailerLink());
         movie.setPosterImage(request.getPosterImage());
         movie.setBannerImage(request.getBannerImage());
-        movieRepository.save(movie);
+        movie.setCreatedAt(request.getCreatedAt());
+        movie.setUpdatedAt(request.getUpdatedAt());
+        //movie.setIsActive(request.getIsActive());
 
+        if (request.getIsActive() != null) {
+            movie.setIsActive(request.getIsActive());
+        } else {
+            throw new IllegalArgumentException("isActive không được null");
+        }
+
+        MovieEntity updated = movieRepository.save(movie);
+        return modelMapper.map(updated, MovieResponse.class);
     }
+
+
 
     @Override
     public void delete(Integer id) {

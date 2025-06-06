@@ -20,11 +20,11 @@ import java.util.List;
 public interface MovieService  {
 
     Page<MovieEntity> findAllByPage(int page, int size, String sortBy, String sortDir, String searchTerm);
-    List<MovieEntity> findAll();
+    List<MovieResponse> findAll();
     MovieResponse findById(Integer id);
 
     Integer save(MovieCreationRequest movie);
-    void update(MovieUpdateRequest movie);
+    MovieResponse update(Integer movieId,MovieUpdateRequest movie);
     void delete(Integer id );
 
 }
