@@ -42,7 +42,7 @@ public class MovieTheatersEntity implements Serializable {
     @Column(name = "iframe_code", columnDefinition = "varchar(300)")
     private String iframeCode;
 
-    @OneToMany(mappedBy = "movieTheater", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "movieTheater", fetch = FetchType.LAZY)
     private List<CinemaTheatersEntity> cinemaTheaters;
 }
 

@@ -26,6 +26,6 @@ public class RoleEntity implements Serializable {
 	@OneToMany(mappedBy = "role") // Tên biến trong UserRoleEntity
 	private List<UserRoleEntity> userRoles; // cái này thì map đến  userroles
 
-	@OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "role")
 	private List<RolePermissionEntity> rolePermissions;
 }

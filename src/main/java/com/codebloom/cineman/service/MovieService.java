@@ -26,4 +26,5 @@ public interface MovieService  {
     Integer save(MovieCreationRequest movie);
     void update(MovieUpdateRequest movie);
     void delete(Integer id );
+
 }

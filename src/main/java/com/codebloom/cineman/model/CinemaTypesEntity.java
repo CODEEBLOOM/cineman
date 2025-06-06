@@ -28,7 +28,7 @@ public class CinemaTypesEntity implements Serializable {
     @Column(name = "description", columnDefinition = "NVARCHAR(255)")
     private String description;
 
-    @OneToMany(mappedBy = "cinemaType", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "cinemaType", fetch = FetchType.LAZY)
     private List<CinemaTheatersEntity> cinemaTheaters;
 
 }

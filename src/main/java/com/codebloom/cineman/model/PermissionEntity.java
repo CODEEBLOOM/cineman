@@ -44,6 +44,6 @@ public class PermissionEntity implements Serializable {
     private Date updatedAt;
 
 
-	@OneToMany(mappedBy = "permission", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "permission")
 	private List<RolePermissionEntity> rolePermissions;
 }

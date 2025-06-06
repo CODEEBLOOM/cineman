@@ -70,7 +70,7 @@ public class InvoiceEntity implements Serializable {
     @OneToMany(mappedBy = "invoice")
     private List<DetailBookingSnackEntity> detailBookingSnacks;
 
-    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "invoice")
     private List<TicketEntity> tickets;
 }
 

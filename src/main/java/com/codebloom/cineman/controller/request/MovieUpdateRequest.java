@@ -21,4 +21,8 @@ public class MovieUpdateRequest {
     private String trailerLink;
     private String posterImage;
     private String bannerImage;
+    private Date createdAt;
+    private Date updatedAt;
+    private boolean IsActive ;
+
 }

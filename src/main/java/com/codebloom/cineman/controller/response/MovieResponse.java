@@ -11,7 +11,7 @@ import java.util.Date;
 @Getter
 @Setter
 public class MovieResponse {
-
+    private Integer movieId;
     private MovieStatusEntity status;
     private String title;
     private String synopsis;

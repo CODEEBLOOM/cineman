@@ -33,7 +33,7 @@ public class DirectorEntity implements Serializable {
     private String nationality;
 
 
-    @OneToMany(mappedBy = "director", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "director", orphanRemoval = true)
     private Set<MovieDirectorEntity> movieDirectors = new HashSet<>();
 }
 

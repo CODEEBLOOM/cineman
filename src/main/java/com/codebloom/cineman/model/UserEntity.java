@@ -81,17 +81,17 @@ public class UserEntity implements Serializable {
     @Column(name = "is_active", columnDefinition = "BIT")
     private boolean IsActive ;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user")
     private List<UserRoleEntity> userRoles; //
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user")
     private List<FeedbacksEntity> feedbacks;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user")
     private List<SocialAccountEntity> socialAccounts;
 
 
-    @OneToMany(mappedBy = "staff", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "staff")
     private List<PromotionEntity> promotions;
 
     @OneToMany(mappedBy = "customer")

@@ -80,7 +80,7 @@ public class MovieEntity implements Serializable {
     private List<ShowTimeEntity> showTimes;
 
 
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "movie", orphanRemoval = true)
     private Set<MovieDirectorEntity> movieDirectors ;
 
     @OneToMany(mappedBy = "movie")
