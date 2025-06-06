@@ -44,7 +44,6 @@ public class MovieController {
         movieResponse1.setTrailerLink("https://example.com/trailer1.mp4");
         movieResponse1.setReleaseDate(new Date());
         List<MovieResponse> movieList = List.of(movieResponse1);
-
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("data", movieList);
         result.put("message", "Movie List");
