@@ -1,32 +1,30 @@
 package com.codebloom.cineman.model;
 
-
-import com.codebloom.cineman.model.Id.MovieGenresId;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.io.Serializable;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
-@Table(name = "movie_genres")
+@Table(name = "movie_genres", uniqueConstraints = { @UniqueConstraint(columnNames = {"movie_id", "movie_genre_id"})})
 public class MovieGenresEntity implements Serializable {
 
-    @EmbeddedId
-    private MovieGenresId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Integer id;
 
     @ManyToOne
-    @MapsId("movieId")
     @JoinColumn(name = "movie_id")
     private MovieEntity movie;
 
     @ManyToOne
-    @MapsId("movieGenreId")
     @JoinColumn(name = "movie_genre_id")
     private GenresEntity genres;
 

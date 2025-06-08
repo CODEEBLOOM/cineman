@@ -1,11 +1,10 @@
 package com.codebloom.cineman.model;
 
 import com.codebloom.cineman.common.enums.GenderUser;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.io.Serializable;
 import java.util.List;
@@ -14,31 +13,38 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
 @Table(name = "casts")
 public class CastEntity implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cast_id")
-    private Integer castId;
+    Integer castId;
 
     @Column(name = "birth_name", columnDefinition = "NVARCHAR(100)")
-    private String birthName;
+    String birthName;
 
     @Column(name = "nickname", columnDefinition = "NVARCHAR(100)")
-    private String nickname;
+    String nickname;
 
     @Column(name = "gender", columnDefinition = "TINYINT")
     @Enumerated(EnumType.ORDINAL)
-    private GenderUser gender; // giới tính của diễn viên, sử dụng enum GenderUser
+    GenderUser gender;
 
     @Column(name = "nationality", columnDefinition = "NVARCHAR(100)")
-    private String nationality;
+    String nationality;
 
     @Column(name = "mini_bio", columnDefinition = "NVARCHAR(500)")
-    private String miniBio;
+    String miniBio;
+
+    @Column(length = 200)
+    String avatar;
 
     @OneToMany(mappedBy = "cast")
-    private List<MovieCastEntity> movieCasts; // danh sách các bộ phim mà diễn viên tham gia
+    @JsonBackReference
+    List<MovieCastEntity> movieCasts;
 
 }

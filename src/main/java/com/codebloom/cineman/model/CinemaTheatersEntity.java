@@ -1,53 +1,54 @@
 package com.codebloom.cineman.model;
 
 
-import com.codebloom.cineman.common.enums.UserStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.Check;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
 @Table(name = "cinema_theaters")
+@Check(constraints = "total_seats > 0 and number_of_rows >= 0 and number_of_columns>0")
 public class CinemaTheatersEntity implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cinema_theater_id")
-    private Integer cinemaTheaterId;
-
-
-
+    Integer cinemaTheaterId;
 
     @Column(name = "room_number")
-    private Integer roomNumber;
+    Integer roomNumber;
 
-    @Column(name = "status", columnDefinition = "TINYINT")
-    @Enumerated(EnumType.ORDINAL)
-    private UserStatus status; // trạng thái phòng chiếu có thể sử enum của statusUser
+    Boolean status;
 
     @Column(name = "total_seats")
-    private Integer totalSeats;
+    Integer totalSeats;
 
     @Column(name = "number_of_rows")
-    private Integer numberOfRows;
+    Integer numberOfRows;
 
     @Column(name = "number_of_columns")
-    private Integer numberOfColumns;
+    Integer numberOfColumns;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "movie_theater_id")
-    private MovieTheatersEntity movieTheater;
+    MovieTheatersEntity movieTheater;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type", referencedColumnName = "cinema_type_id") // cột type là FK
-    private CinemaTypesEntity cinemaType;
+    @ManyToOne
+    @JoinColumn(name = "cinema_type_id")
+    CinemaTypesEntity cinemaType;
+
+    @OneToMany(mappedBy = "CinemaTheater")
+    List<SeatEntity> seats;
 
 }

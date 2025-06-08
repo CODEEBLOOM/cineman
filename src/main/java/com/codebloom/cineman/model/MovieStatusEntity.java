@@ -1,33 +1,38 @@
-    package com.codebloom.cineman.model;
+package com.codebloom.cineman.model;
 
 
-    import jakarta.persistence.*;
-    import lombok.AllArgsConstructor;
-    import lombok.Getter;
-    import lombok.NoArgsConstructor;
-    import lombok.Setter;
+import com.codebloom.cineman.common.enums.MovieStatus;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-    import java.io.Serializable;
+import java.io.Serializable;
+import java.util.List;
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Entity
-    @Table(name = "movie_status")
-    public class MovieStatusEntity implements Serializable {
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "movie_status")
+public class MovieStatusEntity implements Serializable {
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(name = "status_id", columnDefinition = "INT")
-        private Integer statusId;
+    @Id
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status_id", length = 25)
+    private MovieStatus statusId;
+
+    @Column(name = "name", columnDefinition = "NVARCHAR(100)")
+    private String name;
+
+    @Column(name = "description", columnDefinition = "NVARCHAR(250)")
+    private String description;
+
+    @OneToMany(mappedBy = "status")
+    private List<MovieEntity> movies;
 
 
-        @Column(name = "name" , columnDefinition = "NVARCHAR(100)")
-        private String name;
-
-        @Column(name = "description" , columnDefinition = "NVARCHAR(200)")
-        private String description;
-
-    }
+}
 

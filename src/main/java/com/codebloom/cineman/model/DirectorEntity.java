@@ -1,39 +1,48 @@
 package com.codebloom.cineman.model;
 
+import com.codebloom.cineman.common.enums.GenderUser;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Set;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
 @Table(name = "directors")
 public class DirectorEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "director_id", columnDefinition = "INT")
-    private Integer directorId;
+    @Column(name = "director_id")
+    Integer directorId;
 
-    @Column(name = "name", columnDefinition = "NVARCHAR(100)")
-    private String name;
+    @Column(name = "fullname", columnDefinition = "NVARCHAR(100)")
+    String fullname;
 
-    @Column(name = "gender", columnDefinition = "BIT")
-    private Boolean gender; // bởi vì trong database có kiểu dữ liệu là BIT rồi nên bên java phải gắn boolean
+    @Column(name = "nickname", columnDefinition = "NVARCHAR(100)")
+    String nickname;
+
+    @Column(name = "gender", columnDefinition = "TINYINT")
+    @Enumerated(EnumType.ORDINAL)
+    GenderUser gender;
 
     @Column(name = "nationality", columnDefinition = "NVARCHAR(100)")
-    private String nationality;
+    String nationality;
 
+    @Column(name = "mini_bio", columnDefinition = "NVARCHAR(500)")
+    String miniBio;
 
-    @OneToMany(mappedBy = "director", orphanRemoval = true)
-    private Set<MovieDirectorEntity> movieDirectors = new HashSet<>();
+    @Column(length = 200)
+    String avatar;
+
+    @OneToMany(mappedBy = "director", cascade = CascadeType.ALL)
+    Set<MovieDirectorEntity> movieDirectors;
 }
 

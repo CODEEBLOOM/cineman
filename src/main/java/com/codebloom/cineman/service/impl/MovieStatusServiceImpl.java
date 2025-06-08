@@ -1,5 +1,6 @@
 package com.codebloom.cineman.service.impl;
 
+import com.codebloom.cineman.common.enums.MovieStatus;
 import com.codebloom.cineman.controller.response.MovieStatusResponse;
 import com.codebloom.cineman.model.MovieStatusEntity;
 import com.codebloom.cineman.repository.MovieStatusRepository;
@@ -16,7 +17,7 @@ public class MovieStatusServiceImpl implements MovieStatusService {
     }
 
     @Override
-    public MovieStatusEntity findById(Integer movieStatusId) {
+    public MovieStatusEntity findById(MovieStatus movieStatusId) {
         return movieStatusRepository.findById(movieStatusId)
                 .orElseThrow(() -> new RuntimeException("Status not found with ID: " + movieStatusId));
     }

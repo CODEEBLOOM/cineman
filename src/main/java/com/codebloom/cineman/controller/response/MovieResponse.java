@@ -1,6 +1,7 @@
 package com.codebloom.cineman.controller.response;
 
 
+import com.codebloom.cineman.common.enums.MovieStatus;
 import com.codebloom.cineman.common.enums.Rating;
 import com.codebloom.cineman.model.MovieStatusEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -15,7 +16,8 @@ import java.util.Date;
 public class MovieResponse {
      @JsonIgnore
     private Integer movieId;
-    private MovieStatusEntity status;
+   private String status; // hiển thị tên của status
+
   //  @JsonIgnore // cái này nó giúp mình ẩn 1 số thông tin mà mình không muốn cho người ta ở clinent biết
     private String title;
     private String synopsis;
@@ -28,6 +30,4 @@ public class MovieResponse {
     private String trailerLink;
     private String posterImage;
     private String bannerImage;
-
-    private Boolean isActive;
 }

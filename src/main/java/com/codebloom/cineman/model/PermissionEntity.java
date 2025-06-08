@@ -1,49 +1,51 @@
 package com.codebloom.cineman.model;
 
 
+import com.codebloom.cineman.common.enums.Method;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
-
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.util.Set;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "permission")
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Table(name = "permissions")
 public class PermissionEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "permission_id")
-    private Integer permissionId;
+    Integer permissionId;
 
     @Column(name = "title", columnDefinition = "NVARCHAR(100)")
-    private String title;
+    String title;
 
     @Column(name = "description", columnDefinition = "NVARCHAR(500)")
-    private String description;
+    String description;
 
-    @Column(name = "method", columnDefinition = "VARCHAR(10)")
-    private String method;
+    @Enumerated(EnumType.ORDINAL)
+    @Column(name = "method", columnDefinition = "TINYINT")
+    Method method;
 
     @Column(name = "url", columnDefinition = "VARCHAR(200)")
-    private String url;
+    String url;
 
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date createdAt;
+    Date createdAt;
 
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date updatedAt;
+    Date updatedAt;
 
-
-	@OneToMany(mappedBy = "permission")
-	private List<RolePermissionEntity> rolePermissions;
+	@ManyToMany(mappedBy = "permissions")
+    @JsonBackReference
+    Set<RoleEntity> roles;
 }

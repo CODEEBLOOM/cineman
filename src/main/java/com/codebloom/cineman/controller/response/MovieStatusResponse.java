@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 public class MovieStatusResponse {
-    private Integer statusId;
+    private String statusId;
     private String name;
     private String description;
 }

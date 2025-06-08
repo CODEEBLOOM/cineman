@@ -1,31 +1,39 @@
 package com.codebloom.cineman.model;
 
-import java.io.Serializable;
-import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+import java.io.Serializable;
+import java.util.Set;
 
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "roles")
 public class RoleEntity implements Serializable {
-	@Id
-	@Column(name = "role_id", length = 25, columnDefinition = "VARCHAR(25)")
-	private String roleId;
+    @Id
+    @Column(name = "role_id", length = 25)
+    String roleId;
 
-	    @Column(name = "name_role", columnDefinition = "NVARCHAR(100)")
-	    private String name;
-	@OneToMany(mappedBy = "role") // Tên biến trong UserRoleEntity
-	private List<UserRoleEntity> userRoles; // cái này thì map đến  userroles
+    @Column(name = "name_role", columnDefinition = "NVARCHAR(100)")
+    String name;
 
-	@OneToMany(mappedBy = "role")
-	private List<RolePermissionEntity> rolePermissions;
+
+	@ManyToMany(cascade = CascadeType.ALL)
+	@JoinTable(
+            name= "role_permissions",
+            joinColumns = @JoinColumn(name = "role_id"),
+			inverseJoinColumns = @JoinColumn(name = "permission_id"))
+	@JsonManagedReference
+    Set<PermissionEntity> permissions;
+
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
+    Set<UserRoleEntity> userRoles;
 }

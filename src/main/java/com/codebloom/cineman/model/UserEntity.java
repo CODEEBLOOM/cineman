@@ -3,22 +3,24 @@ package com.codebloom.cineman.model;
 import com.codebloom.cineman.common.enums.GenderUser;
 import com.codebloom.cineman.common.enums.UserStatus;
 import com.codebloom.cineman.common.enums.UserType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
 @Table(name = "users")
 public class UserEntity implements Serializable {
@@ -26,78 +28,78 @@ public class UserEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Long userId;
+    Long userId;
 
-    @Column(name = "email", unique = true, nullable = false, columnDefinition = "VARCHAR(150)")
-    private String email;
+    @Column(name = "email", unique = true, nullable = false, length = 150)
+    String email;
 
-    @Column(name = "password", columnDefinition = "VARCHAR(100)")
-    private String password;
+    @Column(name = "password", length = 100)
+    String password;
 
     @Column(name = "fullname", columnDefinition = "NVARCHAR(100)")
-    private String fullName;
+    String fullName;
 
-    @Column(name = "phone_number", nullable = false, columnDefinition = "VARCHAR(20)")
-    private String phoneNumber;
+    @Column(name = "phone_number", length = 20, nullable = false, unique = true)
+    String phoneNumber;
 
     @Column(name = "address", columnDefinition = "NVARCHAR(200)")
-    private String address;
+    String address;
 
     @Column(name = "date_of_birth")
     @Temporal(TemporalType.DATE)
-    private Date dateOfBirth;
+    Date dateOfBirth;
 
     @Column(name = "gender", columnDefinition = "TINYINT")
     @Enumerated(EnumType.ORDINAL)
-    private GenderUser gender;
+    GenderUser gender;
 
     @Column(name = "save_point")
-    private Integer savePoint;
+    Integer savePoint;
 
     @Column(name = "facebook_id")
-    private Integer facebookId;
+    Integer facebookId;
 
     @Column(name = "google_id")
-    private Integer googleId;
+    Integer googleId;
 
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
-    private Date createdAt;
+    Date createdAt;
 
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
     @UpdateTimestamp
-    private Date updatedAt;
+    Date updatedAt;
 
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "type", nullable = false, columnDefinition = "TINYINT")
-    private UserType userType;
+    UserType userType;
 
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
-    private UserStatus status;
+    UserStatus status;
 
-    @Column(name = "is_active", columnDefinition = "BIT")
-    private boolean IsActive ;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonBackReference
+    Set<UserRoleEntity> userRoles;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonBackReference
+    List<FeedbackEntity> feedbacks;
 
     @OneToMany(mappedBy = "user")
-    private List<UserRoleEntity> userRoles; //
+    @JsonBackReference
+    List<SocialAccountEntity> socialAccounts;
 
-    @OneToMany(mappedBy = "user")
-    private List<FeedbacksEntity> feedbacks;
-
-    @OneToMany(mappedBy = "user")
-    private List<SocialAccountEntity> socialAccounts;
-
-
-    @OneToMany(mappedBy = "staff")
-    private List<PromotionEntity> promotions;
+    @OneToMany(mappedBy = "staff", cascade = CascadeType.ALL)
+    @JsonBackReference
+    List<PromotionEntity> promotions;
 
     @OneToMany(mappedBy = "customer")
-    private List<InvoiceEntity> customerInvoices;
+    List<InvoiceEntity> customerInvoices;
 
     @OneToMany(mappedBy = "staff")
-    private List<InvoiceEntity> staffInvoices;
+    List<InvoiceEntity> staffInvoices;
 
 }

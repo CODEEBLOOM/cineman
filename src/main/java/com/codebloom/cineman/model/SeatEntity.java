@@ -1,37 +1,42 @@
 package com.codebloom.cineman.model;
 
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
 import java.io.Serializable;
 import java.util.List;
-
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
 @Table(name = "seats")
 public class SeatEntity implements Serializable {
-	 @Id
-	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    @Column(name = "seat_id")
-	    private Long id;
 
-	    @Column(name = "seat_number")
-	    private Integer seatNumber;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "seat_id")
+    Long id;
 
-	    @Column(name = "row")
-	    private Integer row;
+    @Column(name = "seat_number")
+    Integer seatNumber;
 
-	    @ManyToOne
-	    @JoinColumn(name = "seat_type_id" ,nullable = false )
-	    private SeatTypeEntity seatType;
+    @Column(name = "row")
+    Integer row;
 
+    @ManyToOne
+    @JoinColumn(name = "seat_type_id", nullable = false)
+    SeatTypeEntity seatType;
 
-	@OneToMany(mappedBy = "seat")
-	private List<TicketEntity> tickets;
+    @OneToMany(mappedBy = "seat")
+    List<TicketEntity> tickets;
+
+    @ManyToOne
+    @JoinColumn(name = "room_id", nullable = false)
+    CinemaTheatersEntity CinemaTheater;
+
 }

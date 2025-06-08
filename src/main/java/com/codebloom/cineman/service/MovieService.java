@@ -1,10 +1,7 @@
 package com.codebloom.cineman.service;
 
 
-import com.codebloom.cineman.controller.request.MovieCreationRequest;
-import com.codebloom.cineman.controller.request.MovieUpdateRequest;
-import com.codebloom.cineman.controller.request.UserCreationRequest;
-import com.codebloom.cineman.controller.request.UserUpdateRequest;
+import com.codebloom.cineman.controller.request.*;
 import com.codebloom.cineman.controller.response.MovieResponse;
 import com.codebloom.cineman.controller.response.MovieResponse;
 import com.codebloom.cineman.model.MovieEntity;
@@ -19,7 +16,7 @@ import java.util.List;
 @Service
 public interface MovieService  {
 
-    Page<MovieEntity> findAllByPage(int page, int size, String sortBy, String sortDir, String searchTerm);
+    Page<MovieResponse> findAllByPage(PageQueryRequest request);
     List<MovieResponse> findAll();
     MovieResponse findById(Integer id);
 
