@@ -1,5 +1,6 @@
 package com.codebloom.cineman.service.impl;
 
+import com.codebloom.cineman.Exception.NotFoundException;
 import com.codebloom.cineman.common.enums.MovieStatus;
 import com.codebloom.cineman.controller.request.MovieCreationRequest;
 import com.codebloom.cineman.controller.request.MovieUpdateRequest;
@@ -158,20 +159,21 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public void delete(Integer id) {
-        MovieEntity movie = movieRepository.findById(id).orElse(null);
-        if (movie != null) {
-            MovieStatusEntity cancelledStatus = movieStatusRepository.findById(MovieStatus.CANCELLED)
-                    .orElseGet(() -> {
-                        MovieStatusEntity newStatus = new MovieStatusEntity();
-                        newStatus.setStatusId(MovieStatus.CANCELLED);
-                        newStatus.setName("Đã hủy");
-                        newStatus.setDescription("Phim đã bị hủy khỏi lịch chiếu");
-                        return movieStatusRepository.save(newStatus);
-                    });
+        MovieEntity movie = movieRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy phim với ID = " + id));
 
-            movie.setStatus(cancelledStatus);
-            movieRepository.save(movie);
-        }
+        MovieStatusEntity cancelledStatus = movieStatusRepository.findById(MovieStatus.CANCELLED)
+                .orElseGet(() -> {
+                    MovieStatusEntity newStatus = new MovieStatusEntity();
+                    newStatus.setStatusId(MovieStatus.CANCELLED);
+                    newStatus.setName("Đã hủy");
+                    newStatus.setDescription("Phim đã bị hủy ");
+                    return movieStatusRepository.save(newStatus);
+                });
+
+        movie.setStatus(cancelledStatus);
+        movieRepository.save(movie);
     }
+
 
 }

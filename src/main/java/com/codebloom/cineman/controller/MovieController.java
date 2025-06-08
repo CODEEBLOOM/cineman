@@ -47,7 +47,7 @@ public class MovieController {
 
     @Operation(summary = "Find Movie By Movie_id", description = "API dùng để lấy ra phim theo movie_id")
     @GetMapping("/movies/{id}")
-    public ResponseEntity<MovieResponse> getMovieById(@PathVariable @Min(1) /* @Min là dùng để xác định giá trị phải lớn hơn hoặc bằng giá trị được chỉ định*/ Integer id) {
+    public ResponseEntity<MovieResponse> getMovieById(@PathVariable @Min(value =1, message = "ID phải lớn hơn 0") /* @Min là dùng để xác định giá trị phải lớn hơn hoặc bằng giá trị được chỉ định*/ Integer id) {
         MovieResponse movie = movieService.findById(id);
         return ResponseEntity.ok(movie);
     }
@@ -61,25 +61,36 @@ public class MovieController {
         result.put("status", HttpStatus.CREATED.value());
         result.put("message", "Movie Created Successfully");
         result.put("data", movieId);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
     @Operation(summary = "Delete movie by ID",description = "API dùng để xóa  một Movie")
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> deleteMovie(@PathVariable Integer id) {
+    public ResponseEntity<Map<String,Object>> deleteMovie(@PathVariable @Min(value =1, message = "ID phải lớn hơn 0") Integer id) {
         movieService.delete(id);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("status", 200);
+        response.put("message", "Xóa thành công");
         return ResponseEntity.noContent().build();
     }
 
 
     @Operation(summary = "Update movie by ID" ,description = "API dùng để  update một Movie")
     @PutMapping("/update/{id}")
-    public ResponseEntity<MovieResponse> updateMovie(
+    public ResponseEntity<Map<String, Object>> updateMovie(
             @PathVariable Integer id,
             @RequestBody MovieUpdateRequest request) {
+
         MovieResponse updated = movieService.update(id, request);
-        return ResponseEntity.ok(updated);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("status", 200);
+        response.put("message", "Cập nhật thành công");
+        response.put("data", updated);
+
+        return ResponseEntity.ok(response);
     }
+
 }
 
