@@ -1,16 +1,14 @@
 package com.codebloom.cineman.model;
 
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Getter
 @Setter
@@ -24,12 +22,15 @@ public class MovieStatusEntity implements Serializable {
     @Column(name = "status_id", length = 25)
     private String statusId;
 
-
-    @Column(name = "name")
+    @Column(name = "name", columnDefinition = "NVARCHAR(100)")
     private String name;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "NVARCHAR(250)")
     private String description;
+
+    @OneToMany(mappedBy = "status")
+    private List<MovieEntity> movies;
+
 
 }
 

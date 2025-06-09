@@ -14,40 +14,36 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.Check;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
 @Table(name = "ticket_types")
+@Check(constraints = "price >= 0")
 public class TicketTypeEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     @Column(name = "ticket_type_id")
+    Integer id;
 
-    @Column(name = "id_ticket_type")
-
-    private Integer id;
-
-    @Column(name = "name_type", columnDefinition = "NVARCHAR(100)")
-    private String nameType;
+    @Column(name = "name", columnDefinition = "NVARCHAR(100)")
+    String nameType;
 
     @Column(name = "description", columnDefinition = "NVARCHAR(200)")
-    private String description;
+    String description;
 
     @Column(name = "price")
-    private Double price;
-
+    Double price;
 
     @OneToMany(mappedBy = "ticketType")
-    private List<TicketEntity> tickets;
-
+    List<TicketEntity> tickets;
 
 
 }

@@ -1,12 +1,10 @@
 package com.codebloom.cineman.model;
 
 
-import com.codebloom.cineman.model.Id.DetailBookingSnackId;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.Check;
 
 import java.io.Serializable;
 
@@ -14,32 +12,28 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
-@Table(name = "detail_booking_snacks")
+@Table(name = "detail_booking_snacks", uniqueConstraints = { @UniqueConstraint(columnNames = {"invoice_id", "snack_id"})})
+@Check(constraints = "total_money >=0 AND total_snack >= 0")
 public class DetailBookingSnackEntity implements Serializable {
 
-    @EmbeddedId
-    private DetailBookingSnackId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
 
-    @Column(name = "total_money", columnDefinition = "INT")
+    @Column(name = "total_money")
     private Integer totalMoney;
 
-    @Column(name = "total_snack", columnDefinition = "INT")
+    @Column(name = "total_snack")
     private Integer totalSnack;
 
     @ManyToOne
-    @MapsId("invoiceId")
     @JoinColumn(name = "invoice_id")
     private InvoiceEntity invoice;
 
     @ManyToOne
-    @MapsId("snackId")
-    @JoinColumn(name = "snack_id")
+    @JoinColumn(name =  "snack_id")
     private SnackEntity snack;
 }
-
-
-/*
-* đây là 1 Entity có 1 khóa chính mà có 2 thuooc
-* tính vì vậy nên sử dụng @IdClass để chỉ định khóa chính phức hợp
-* */

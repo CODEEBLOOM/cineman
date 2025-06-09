@@ -3,47 +3,48 @@ package com.codebloom.cineman.model;
 import java.io.Serializable;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.Check;
 
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @Entity
 @Table(name = "snacks")
+@Check(constraints = "unit_price >=0")
 public class SnackEntity implements Serializable {
-	@Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "snack_id")
-    private Integer id;
+    Integer id;
 
-    @ManyToOne
+    @Column(name = "name", columnDefinition = "NVARCHAR(100)")
+    String snackName;
 
-    @JoinColumn(name = "snack_type_id", nullable = false)
-    private SnackTypeEntity snackType;
-
-
-    @JoinColumn(name = "id_type", nullable = false)
-    private SnackTypeEntity snackType;
-
-
-    @Column(name = "snack_name", columnDefinition = "NVARCHAR(100)")
-    private String snackName;
-
-    @Column(name = "price")
-    private Double price;
+    @Column(name = "unit_price")
+    Double unitPrice;
 
     @Column(name = "image", columnDefinition = "VARCHAR(100)")
-    private String image;
+    String image;
 
     @Column(name = "description", columnDefinition = "VARCHAR(200)")
-    private String description;
+    String description;
+
+    @Column(name = "is_active")
+    Boolean isActive;
+
+    @ManyToOne
+    @JoinColumn(name = "snack_type_id", nullable = false)
+    SnackTypeEntity snackType;
 
     @OneToMany(mappedBy = "snack")
-    private List<DetailBookingSnackEntity> detailBookingSnacks;
+    @JsonBackReference
+    List<DetailBookingSnackEntity> detailBookingSnacks;
 }
