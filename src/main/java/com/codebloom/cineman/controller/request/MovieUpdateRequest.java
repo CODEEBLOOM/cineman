@@ -15,7 +15,7 @@ import java.util.Date;
 @Getter
 public class MovieUpdateRequest {
     @NotNull(message = "Trạng thái không được để trống")
-    private MovieStatus status;
+    private String status;
 
     @NotBlank(message = "Tiêu đề không được để trống")
     @Size(max = 100, message = "Tiêu đề không được vượt quá 100 ký tự")

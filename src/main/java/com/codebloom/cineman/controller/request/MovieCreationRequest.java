@@ -13,8 +13,6 @@ import java.util.Date;
 @Getter
 public class MovieCreationRequest {
 
-    @NotNull(message = "Trạng thái không được để trống")
-    private MovieStatus status;
 
     @NotBlank(message = "Tiêu đề không được để trống")
     @Size(max = 100, message = "Tiêu đề không được vượt quá 100 ký tự")
@@ -39,6 +37,7 @@ public class MovieCreationRequest {
     private Integer duration;
 
     @NotNull(message = "Đánh giá không được để trống")
+
     private Rating rating;
 
     @NotNull(message = "Độ tuổi không được để trống")

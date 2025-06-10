@@ -7,14 +7,14 @@ import com.codebloom.cineman.repository.MovieStatusRepository;
 import com.codebloom.cineman.service.MovieStatusService;
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
 @Service
+@RequiredArgsConstructor
 public class MovieStatusServiceImpl implements MovieStatusService {
 
     private final MovieStatusRepository movieStatusRepository;
-
-    public MovieStatusServiceImpl(MovieStatusRepository movieStatusRepository) {
-        this.movieStatusRepository = movieStatusRepository;
-    }
 
     @Override
     public MovieStatusEntity findById(MovieStatus movieStatusId) {
@@ -22,3 +22,4 @@ public class MovieStatusServiceImpl implements MovieStatusService {
                 .orElseThrow(() -> new RuntimeException("Status not found with ID: " + movieStatusId));
     }
 }
+
