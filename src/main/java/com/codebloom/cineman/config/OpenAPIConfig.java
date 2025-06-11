@@ -22,7 +22,7 @@ public class OpenAPIConfig {
     @Bean
     public GroupedOpenApi publicApi(@Value("${openapi.service.api-docs}") String apiDocs) {
         return GroupedOpenApi.builder()
-                .group(apiDocs) // /v3/api-docs/cineman
+                .group(apiDocs)
                 .packagesToScan("com.codebloom.cineman.controller")
                 .build();
     }

@@ -1,7 +1,6 @@
 package com.codebloom.cineman.model;
 
 
-import com.codebloom.cineman.common.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

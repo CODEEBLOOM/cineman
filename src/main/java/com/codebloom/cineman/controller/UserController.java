@@ -1,19 +1,22 @@
 package com.codebloom.cineman.controller;
 
 import com.codebloom.cineman.controller.request.ChangePasswordRequest;
+import com.codebloom.cineman.controller.request.PageQueryRequest;
 import com.codebloom.cineman.controller.request.UserCreationRequest;
 import com.codebloom.cineman.controller.request.UserUpdateRequest;
+import com.codebloom.cineman.controller.response.UserPaginationResponse;
 import com.codebloom.cineman.controller.response.UserResponse;
 import com.codebloom.cineman.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.springframework.http.HttpStatus.CREATED;
@@ -23,50 +26,26 @@ import static org.springframework.http.HttpStatus.CREATED;
 @Tag(name = "User Controller ( User api )")
 @RequiredArgsConstructor
 public class UserController {
+
     private final UserService userService;
 
     @Operation(summary = "Get all users", description = "API dùng để lấy ra toàn bộ users có trong hệ thống.")
     @GetMapping("/list")
-    public Map<String, Object> getList(@RequestParam(required = false) String keyword,
-                                      @RequestParam(defaultValue = "0") int page,
-                                      @RequestParam(defaultValue = "20") int size) {
-        UserResponse userResponse1 = new UserResponse();
-        userResponse1.setUserId(1L);
-        userResponse1.setEmail("admin@codebloom.com");
-        userResponse1.setPassword("admin");
-        userResponse1.setFullName("Admin");
-        userResponse1.setPhoneNumber("0446354437");
-        userResponse1.setAddress("District 12 - Ho Chi Minh");
-        UserResponse userResponse2 = new UserResponse();
-        userResponse2.setUserId(2L);
-        userResponse2.setEmail("admin01@codebloom.com");
-        userResponse2.setPassword("admin01");
-        userResponse2.setFullName("Admin01");
-        userResponse2.setPhoneNumber("0446354473");
-        userResponse2.setAddress("District 12 - Ho Chi Minh");
-
-        List<UserResponse> userList = List.of(userResponse1, userResponse2);
-
+    public Map<String, Object> getList(@RequestBody PageQueryRequest request) {
+        UserPaginationResponse userList = userService.findAll(request);
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("data", userList);
         result.put("message", "User List");
         result.put("status", HttpStatus.OK.value());
-
         return result;
     }
 
     @Operation(summary = "Find User By User Id", description = "API dùng để lấy ra user theo user_id")
     @GetMapping("/{userId}")
-    public Map<String, Object> getUserDetail(@PathVariable Long userId) {
-        UserResponse userDetail = new UserResponse();
-        userDetail.setUserId(1L);
-        userDetail.setEmail("admin@codebloom.com");
-        userDetail.setPassword("admin");
-        userDetail.setFullName("Admin");
-        userDetail.setPhoneNumber("0446354437");
-        userDetail.setAddress("District 12 - Ho Chi Minh");
+    public Map<String, Object> getUserDetail(@PathVariable @Min(1) Long userId) {
+        UserResponse userRes = userService.findById(userId);
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("data", userDetail);
+        result.put("data", userRes);
         result.put("message", "User List");
         result.put("status", HttpStatus.OK.value());
         return result;
@@ -74,7 +53,7 @@ public class UserController {
 
     @Operation(summary = "Create New User", description = "API dùng để tạo mới một User")
     @PostMapping("/add")
-    public ResponseEntity<Map<String, Object>> createUser(@RequestBody UserCreationRequest request) {
+    public ResponseEntity<Map<String, Object>> createUser(@RequestBody @Valid UserCreationRequest request) {
         Long userId = userService.save(request);
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("status", CREATED.value());

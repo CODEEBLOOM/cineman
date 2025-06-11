@@ -4,10 +4,8 @@ import com.codebloom.cineman.controller.request.ChangePasswordRequest;
 import com.codebloom.cineman.controller.request.UserCreationRequest;
 import com.codebloom.cineman.controller.request.UserUpdateRequest;
 import com.codebloom.cineman.controller.response.UserResponse;
-import com.codebloom.cineman.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,14 +26,14 @@ public class MockupUserController {
         UserResponse userResponse1 = new UserResponse();
         userResponse1.setUserId(1L);
         userResponse1.setEmail("admin@codebloom.com");
-        userResponse1.setPassword("admin");
+//        userResponse1.setPassword("admin");
         userResponse1.setFullName("Admin");
         userResponse1.setPhoneNumber("0446354437");
         userResponse1.setAddress("District 12 - Ho Chi Minh");
         UserResponse userResponse2 = new UserResponse();
         userResponse2.setUserId(2L);
         userResponse2.setEmail("admin01@codebloom.com");
-        userResponse2.setPassword("admin01");
+//        userResponse2.setPassword("admin01");
         userResponse2.setFullName("Admin01");
         userResponse2.setPhoneNumber("0446354473");
         userResponse2.setAddress("District 12 - Ho Chi Minh");
@@ -56,7 +54,7 @@ public class MockupUserController {
         UserResponse userDetail = new UserResponse();
         userDetail.setUserId(1L);
         userDetail.setEmail("admin@codebloom.com");
-        userDetail.setPassword("admin");
+//        userDetail.setPassword("admin");
         userDetail.setFullName("Admin");
         userDetail.setPhoneNumber("0446354437");
         userDetail.setAddress("District 12 - Ho Chi Minh");

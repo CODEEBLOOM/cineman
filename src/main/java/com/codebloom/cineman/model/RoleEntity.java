@@ -26,7 +26,7 @@ public class RoleEntity implements Serializable {
     String name;
 
 
-	@ManyToMany(cascade = CascadeType.ALL)
+	@ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
 	@JoinTable(
             name= "role_permissions",
             joinColumns = @JoinColumn(name = "role_id"),
