@@ -6,14 +6,14 @@ spring:
     add-properties: true
 # kêt nối database
   datasource:
-    url: jdbc:sqlserver://localhost:1433;databaseName=cineman;encrypt=true;trustServerCertificate=true;
+    url: jdbc:sqlserver://localhost:1433;databaseName=cinema_app_db;encrypt=true;trustServerCertificate=true;
     username: sa
-    password: Son15@2
+    password: 123456
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   jpa:
     database-platform: org.hibernate.dialect.SQLServer2012Dialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
@@ -32,8 +32,13 @@ openapi:
 
 jwt:
   secretKey: son15@2
+  accessKey: CnqL6dU1T1mWMd6O1ltlO4HtD7IvjPMjNvsJTK2FcOg=
+  refreshKey: zZQbpaqG2bzY2MJ2BD4uIoyC4cRs2jgpAxg38o9LT00=
+  expiryHours: 24
+  expiryMinute: 5
 
   spring:
     jpa:
       hibernate:
         ddl-auto=none:
+
