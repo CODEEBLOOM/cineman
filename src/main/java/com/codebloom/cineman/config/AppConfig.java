@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -54,7 +55,8 @@ public class AppConfig {
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userServiceDetail.userDetailsService());
-        provider.setPasswordEncoder(passwordEncoder());
+//        provider.setPasswordEncoder(passwordEncoder());
+        provider.setPasswordEncoder(NoOpPasswordEncoder.getInstance());
         return provider;
     }
 
@@ -78,10 +80,10 @@ public class AppConfig {
         };
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+//    @Bean
+//    public PasswordEncoder passwordEncoder() {
+//        return new BCryptPasswordEncoder();
+//    }
 
 //    @Bean
 //    public SendGrid sendGrid(@Value("${spring.sendGrid.apiKey}") String apiKey) {

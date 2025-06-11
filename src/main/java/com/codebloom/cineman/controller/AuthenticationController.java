@@ -2,6 +2,7 @@ package com.codebloom.cineman.controller;
 
 
 
+import com.codebloom.cineman.controller.request.RefreshTokenRequest;
 import com.codebloom.cineman.controller.request.SignInRequest;
 import com.codebloom.cineman.controller.response.TokenResponse;
 import com.codebloom.cineman.service.AuthenticationService;
@@ -26,7 +27,9 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
 
-    @Operation(summary = "Access token", description = "Get access token and refresh token by email and password")
+
+    // đăng nhập để lấy token (phoneNumber và password)
+    @Operation(summary = "Access token", description = "Get access token and refresh token by phoneNumber and password")
     @PostMapping("/access-token")
     public TokenResponse accessToken(@RequestBody SignInRequest request) throws AccessDeniedException {
         log.info("Access token request");
@@ -36,8 +39,9 @@ public class AuthenticationController {
 
     @Operation(summary = "Refresh token", description = "Get access token by refresh token")
     @PostMapping("/refresh-token")
-    public TokenResponse refreshToken(@RequestBody String refreshToken) {
+    public TokenResponse refreshToken(@RequestBody RefreshTokenRequest request) throws AccessDeniedException {
         log.info("Refresh token request");
-        return TokenResponse.builder().accessToken("DUMMY-NEW-ACCESS-TOKEN").refreshToken("DUMMY-REFRESH-TOKEN").build();
+//        return TokenResponse.builder().accessToken("DUMMY-NEW-ACCESS-TOKEN").refreshToken("DUMMY-REFRESH-TOKEN").build();
+        return authenticationService.getRefreshToken(request.getRefreshToken());
     }
 }

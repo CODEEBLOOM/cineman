@@ -7,5 +7,5 @@ import java.nio.file.AccessDeniedException;
 
 public interface AuthenticationService {
     TokenResponse getAccessToken(SignInRequest request) throws AccessDeniedException;
-    TokenResponse getRefreshToken(String request);
+    TokenResponse getRefreshToken(String refreshToken) throws AccessDeniedException;
 }
