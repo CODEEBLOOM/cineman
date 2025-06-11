@@ -1,12 +1,12 @@
 package com.codebloom.cineman.model;
 
-import java.io.Serializable;
-import java.util.Set;
-
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.io.Serializable;
+import java.util.Set;
 
 
 @Getter
@@ -26,7 +26,7 @@ public class RoleEntity implements Serializable {
     String name;
 
 
-	@ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(
             name= "role_permissions",
             joinColumns = @JoinColumn(name = "role_id"),

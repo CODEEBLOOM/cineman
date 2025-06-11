@@ -5,7 +5,7 @@ import lombok.Getter;
 import java.util.Date;
 
 @Getter
-public class UserUpdateRequest {
+public class    UserUpdateRequest {
 
     private Long userId;
     private String email;

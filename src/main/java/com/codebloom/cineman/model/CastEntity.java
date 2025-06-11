@@ -18,6 +18,7 @@ import java.util.List;
 @Entity
 @Table(name = "casts")
 public class CastEntity implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cast_id")

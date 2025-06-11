@@ -1,11 +1,11 @@
 package com.codebloom.cineman.model;
 
-import java.io.Serializable;
-import java.util.List;
-
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.io.Serializable;
+import java.util.List;
 
 @Getter
 @Setter

@@ -6,13 +6,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Builder
 public class PageQueryRequest {
-
-    @Builder.Default
-    private int page = 0;
-    @Builder.Default
-    private int size = 20;
+    private Integer page = 0;
+    private Integer size = 20;
     private String query;
-
 }

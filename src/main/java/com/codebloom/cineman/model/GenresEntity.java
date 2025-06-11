@@ -1,5 +1,6 @@
 package com.codebloom.cineman.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -29,5 +30,6 @@ public class GenresEntity implements Serializable {
     private String description;
 
     @OneToMany(mappedBy = "genres")
+    @JsonBackReference
     private List<MovieGenresEntity> movieGenres ;
 }

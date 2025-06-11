@@ -1,14 +1,14 @@
 package com.codebloom.cineman.model;
 
-import java.io.Serializable;
-import java.util.Date;
-
 import com.codebloom.cineman.common.enums.TicketStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.Check;
 import org.hibernate.annotations.CreationTimestamp;
+
+import java.io.Serializable;
+import java.util.Date;
 
 @Getter
 @Setter

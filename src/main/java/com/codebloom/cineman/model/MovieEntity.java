@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.codebloom.cineman.common.enums.Rating;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -75,14 +76,17 @@ public class MovieEntity implements Serializable {
     Date updatedAt;
 
     @OneToMany(mappedBy = "movie")
+    @JsonBackReference
     List<ShowTimeEntity> showTimes;
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
+    @JsonBackReference
     Set<MovieDirectorEntity> movieDirectors;
 
-    @OneToMany(mappedBy = "movie")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "movie")
     Set<MovieGenresEntity> movieGenres;
 
     @OneToMany(mappedBy = "movie")
+    @JsonBackReference
     List<MovieCastEntity> movieCastEntities;
 }

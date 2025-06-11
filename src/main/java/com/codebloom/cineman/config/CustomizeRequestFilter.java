@@ -16,7 +16,7 @@ public class CustomizeRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        log.info("{} {}", request.getMethod(), request.getRequestURI());
+//        log.info("{} {}", request.getMethod(), request.getRequestURI());
 
         // TODO verify token
 
