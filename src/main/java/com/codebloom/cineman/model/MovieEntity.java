@@ -9,15 +9,12 @@ import com.codebloom.cineman.common.enums.Rating;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
-@Builder
 @Entity
 @Table(name = "movies")
 public class MovieEntity implements Serializable {
@@ -25,68 +22,68 @@ public class MovieEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "movie_id")
-    Integer movieId;
+    private Integer movieId;
 
     @ManyToOne
     @JoinColumn(name = "status_id", nullable = false)
-    MovieStatusEntity status;
+    private MovieStatusEntity status;
 
     @Column(name = "title", columnDefinition = "NVARCHAR(100)")
-    String title;
+    private String title;
 
     @Column(name = "synopsis", columnDefinition = "NVARCHAR(500)")
-    String synopsis;
+    private String synopsis;
 
     @Column(name = "detail_description", columnDefinition = "NVARCHAR(500)")
-    String detailDescription;
+    private String detailDescription;
 
     @Column(name = "release_date")
     @Temporal(TemporalType.DATE)
-    Date releaseDate;
+    private Date releaseDate;
 
     @Column(name = "language", columnDefinition = "NVARCHAR(50)")
-    String language;
+    private String language;
 
     @Column(name = "duration")
-    Integer duration;
+    private Integer duration;
 
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "rating")
-    Rating rating;
+    private Rating rating;
 
-    Integer age;
+    private Integer age;
 
     @Column(name = "trailer_link", length = 200)
-    String trailerLink;
+    private String trailerLink;
 
     @Column(name = "poster_image", length = 200)
-    String posterImage;
+    private String posterImage;
 
     @Column(name = "banner_image", length = 200)
-    String bannerImage;
+    private String bannerImage;
 
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
-    Date createdAt;
+    private Date createdAt;
 
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
-    Date updatedAt;
-
-    @OneToMany(mappedBy = "movie")
-    @JsonBackReference
-    List<ShowTimeEntity> showTimes;
-
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
-    @JsonBackReference
-    Set<MovieDirectorEntity> movieDirectors;
+    private Date updatedAt;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "movie")
-    Set<MovieGenresEntity> movieGenres;
+    private List<ShowTimeEntity> showTimes;
 
-    @OneToMany(mappedBy = "movie")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "movie", cascade = CascadeType.ALL)
     @JsonBackReference
-    List<MovieCastEntity> movieCastEntities;
+    private Set<MovieDirectorEntity> movieDirectors;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "movie")
+    @JsonBackReference
+    private Set<MovieGenresEntity> movieGenres;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "movie")
+    @JsonBackReference
+    private List<MovieCastEntity> movieCasts;
 }

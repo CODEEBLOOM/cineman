@@ -6,7 +6,7 @@ spring:
     add-properties: true
 # kêt nối database
   datasource:
-    url: jdbc:sqlserver://localhost:1433;databaseName=cinema_app_db;encrypt=true;trustServerCertificate=true;
+    url: jdbc:sqlserver://localhost:1433;databaseName=cineman;encrypt=true;trustServerCertificate=true;
     username: sa
     password: Son15@2
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver

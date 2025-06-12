@@ -2,19 +2,19 @@ package com.codebloom.cineman.common.enums;
 
 
 public enum MovieStatus {
-    COMING_SOON("Sắp chiếu"),
-    NOW_SHOWING("Đang chiếu"),
-    ENDED("Đã chiếu"),
-    CANCELLED("Đã hủy"),
-    POSTPONED("Hoãn chiếu");
+    SC("Sắp chiếu"),
+    DC("Đang chiếu"),
+    NC("Ngưng chiếu"),
+    DB("Đặc biệt"),
+    CNS("Đã hủy");
 
-    private final String displayName;
+    private final String name;
 
     MovieStatus(String displayName) {
-        this.displayName = displayName;
+        this.name = displayName;
     }
 
     public String getDisplayName() {
-        return displayName;
+        return name;
     }
 }

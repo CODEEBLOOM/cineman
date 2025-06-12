@@ -14,6 +14,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Getter
 public class MovieUpdateRequest {
+
     @NotNull(message = "Trạng thái không được để trống")
     private String status;
 

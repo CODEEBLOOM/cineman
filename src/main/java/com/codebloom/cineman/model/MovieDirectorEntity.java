@@ -1,18 +1,19 @@
 package com.codebloom.cineman.model;
 
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.Serializable;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"movie"})
 @Entity
-@Table( name = "movie_directors")
+@Table( name = "movie_directors",uniqueConstraints = { @UniqueConstraint(columnNames = {"movie_id", "director_id"})})
 public class MovieDirectorEntity implements Serializable {
 
     @Id
@@ -21,9 +22,11 @@ public class MovieDirectorEntity implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "movie_id", nullable = false)
+    @JsonBackReference
     private MovieEntity movie;
 
     @ManyToOne
-    @JoinColumn(name = "director_id")
+    @JoinColumn(name = "director_id", nullable = false)
+    @JsonBackReference
     private DirectorEntity director;
 }

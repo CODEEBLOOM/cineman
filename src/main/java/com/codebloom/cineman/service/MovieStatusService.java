@@ -1,8 +1,17 @@
 package com.codebloom.cineman.service;
 
-import com.codebloom.cineman.common.enums.MovieStatus;
+
+import com.codebloom.cineman.controller.request.MovieStatusRequest;
 import com.codebloom.cineman.model.MovieStatusEntity;
 
+import java.util.List;
+
 public interface MovieStatusService {
-    MovieStatusEntity findById(MovieStatus movieStatusId);
+
+    List<MovieStatusEntity> findAll();
+    MovieStatusEntity findById(String id);
+    MovieStatusEntity save(MovieStatusRequest request);
+    MovieStatusEntity update(MovieStatusRequest request);
+    void deleteById(String id);
+
 }

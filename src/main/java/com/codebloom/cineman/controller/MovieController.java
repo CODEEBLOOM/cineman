@@ -29,7 +29,7 @@ public class MovieController {
     private final MovieService movieService;
 
     @Operation(summary = "Get all movies", description = "API dùng để lấy ra toàn bộ phim có trong hệ thống.")
-    @GetMapping("/list") //http://localhost:8081/movie/all?page=0&size=20
+    @GetMapping("/list")
     public ResponseEntity<Map<String, Object>> getAllMovies(PageQueryRequest request) {
         MoviePageableResponse response = movieService.findAllByPage(request);
         Map<String, Object> result = new LinkedHashMap<>();
@@ -40,12 +40,15 @@ public class MovieController {
     }
 
 
-    @Operation(summary = "Find Movie By Movie_id", description = "API dùng để lấy ra phim theo movie_id")
-
+    @Operation(summary = "Find Movie By Movie_id", description = "API dùng để lấy ra chi tiết của một bộ phim theo movie_id")
     @GetMapping("/{id}")
-    public ResponseEntity<MovieResponse> getMovieById(@PathVariable @Min(value = 1, message = "ID phải lớn hơn 0") /* @Min là dùng để xác định giá trị phải lớn hơn hoặc bằng giá trị được chỉ định*/ Integer id) {
+    public ResponseEntity<Map<String, Object>> getMovieById(@PathVariable @Min(value = 1, message = "ID phải lớn hơn 0") /* @Min là dùng để xác định giá trị phải lớn hơn hoặc bằng giá trị được chỉ định*/ Integer id) {
         MovieResponse movie = movieService.findById(id);
-        return ResponseEntity.status(HttpStatus.OK).body(movie);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("status", HttpStatus.CREATED.value());
+        result.put("message", "Movie Created Successfully");
+        result.put("data", movie);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @Operation(summary = "Create New Movie", description = "API dùng để tạo mới một Movie")

@@ -19,7 +19,7 @@ import java.util.List;
 public class CinemaTypesEntity implements Serializable {
 
     @Id
-    @Column(name = "cinema_type_id", length = 50)
+    @Column(name = "cinema_type_id")
     String cinemaTypeId;
 
     @Column(columnDefinition = "NVARCHAR(200)")
