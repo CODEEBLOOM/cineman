@@ -1,6 +1,6 @@
 package com.codebloom.cineman.service.impl;
 
-import com.codebloom.cineman.common.enums.MovieStatus;
+import com.codebloom.cineman.common.constant.MovieStatus;
 import com.codebloom.cineman.controller.request.MovieCreationRequest;
 import com.codebloom.cineman.controller.request.MovieUpdateRequest;
 import com.codebloom.cineman.controller.request.PageQueryRequest;
@@ -12,6 +12,8 @@ import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.MovieRepository;
 import com.codebloom.cineman.repository.MovieStatusRepository;
 import com.codebloom.cineman.service.MovieService;
+import com.codebloom.cineman.service.MovieStatusService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -21,7 +23,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +34,7 @@ public class MovieServiceImpl implements MovieService {
 
     private final MovieRepository movieRepository;
     private final  MovieStatusRepository movieStatusRepository;
+    private final MovieStatusService movieStatusService;
     private final ModelMapper modelMapper;
 
 
@@ -58,59 +63,50 @@ public class MovieServiceImpl implements MovieService {
         return movieToMovieResponse(movie);
     }
 
-
     @Override
-    public Integer save(MovieCreationRequest request) {
-        // Enum đại diện cho status
-        MovieStatus enumStatus = MovieStatus.SC;
-        String statusName = "Sắp chiếu";
-
-        // Tìm status theo ID (enum)
-        MovieStatusEntity status = movieStatusRepository.findById(enumStatus.toString())
-                .orElseGet(() -> {
-                    MovieStatusEntity newStatus = new MovieStatusEntity();
-                    newStatus.setStatusId(enumStatus.toString()); // enum, ví dụ COMING_SOON
-                    newStatus.setName(statusName);     // hiển thị: Sắp chiếu
-                    newStatus.setDescription("Phim sẽ chiếu trong thời gian tới");
-                    return movieStatusRepository.save(newStatus);
-                });
-
-        /* Tạo phim mới và gán status */
-        MovieEntity movie = new MovieEntity();
-        movie.setTitle(request.getTitle());
-        movie.setStatus(status);
-        movie.setSynopsis(request.getSynopsis());
-        movie.setDetailDescription(request.getDetailDescription());
-        movie.setReleaseDate(request.getReleaseDate());
-        movie.setLanguage(request.getLanguage());
-        movie.setDuration(request.getDuration());
-        movie.setAge(request.getAge());
-        movie.setTrailerLink(request.getTrailerLink());
-        movie.setPosterImage(request.getPosterImage());
-        movie.setBannerImage(request.getBannerImage());
-
-        movieRepository.save(movie);
-        return movie.getMovieId();
+    public MovieEntity findById(Integer id, boolean isEntity) {
+        return movieRepository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("Movie not found with id: " + id));
     }
 
 
     @Override
-    public MovieResponse update(Integer movieId, MovieUpdateRequest request) {
-        MovieEntity movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new RuntimeException("Movie not found"));
-
-        modelMapper.map(request, movie);
-
-        if (request.getStatus() != null) {
-            MovieStatusEntity status = movieStatusRepository.findById(request.getStatus())
-                    .orElseThrow(() -> new RuntimeException("Trạng thái không hợp lệ"));
-            movie.setStatus(status);
+    @Transactional
+    public MovieEntity save(MovieCreationRequest request) {
+        MovieStatusEntity status = null;
+        Optional<MovieStatusEntity> movieStatus = movieStatusRepository.findById(MovieStatus.MOVIE_STATUS_SC);
+        if(!movieStatus.isPresent()){
+            MovieStatusEntity movieStatusEntity = new MovieStatusEntity();
+            movieStatusEntity.setStatusId(MovieStatus.MOVIE_STATUS_SC);
+            movieStatusEntity.setName("Sắp chiếu");
+            movieStatusEntity.setDescription("Trạng thái dành cho các bộ phim sắp được chiếu tại rạp");
+            status = movieStatusRepository.save(movieStatusEntity);
         }
+        status = movieStatus.get();
+        Date now = new Date();
+        MovieEntity movie = modelMapper.map(request, MovieEntity.class);
+        movie.setStatus(status);
+        movie.setCreatedAt(now);
+        movie.setUpdatedAt(now);
+        log.info("Movie saved: {}", movie);
+        return movieRepository.save(movie);
 
-        MovieEntity updated = movieRepository.save(movie);
-        MovieResponse response = modelMapper.map(updated, MovieResponse.class);
-        response.setStatus(updated.getStatus().getName());
-        return response;
+    }
+
+
+    @Override
+    public MovieResponse update(MovieUpdateRequest request) {
+        MovieEntity movie = movieRepository.findById(request.getMovieId())
+                .orElseThrow(() -> new DataNotFoundException("Movie not found with id: " + request.getMovieId()));
+        MovieStatusEntity movieStatus = movieStatusService.findById(request.getStatus());
+
+        MovieEntity updateMovie = modelMapper.map(request, MovieEntity.class);
+        updateMovie.setCreatedAt(movie.getCreatedAt());
+        updateMovie.setUpdatedAt(new Date());
+        updateMovie.setStatus(movieStatus);
+
+        updateMovie = movieRepository.save(updateMovie);
+        return movieToMovieResponse(updateMovie);
     }
 
 
@@ -119,10 +115,10 @@ public class MovieServiceImpl implements MovieService {
         MovieEntity movie = movieRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Movie not found with id: " + id));
 
-        MovieStatusEntity cancelledStatus = movieStatusRepository.findById(MovieStatus.CNS.toString())
+        MovieStatusEntity cancelledStatus = movieStatusRepository.findById(MovieStatus.MOVIE_STATUS_CNS)
                 .orElseGet(() -> {
                     MovieStatusEntity newStatus = new MovieStatusEntity();
-                    newStatus.setStatusId(MovieStatus.CNS.toString());
+                    newStatus.setStatusId(MovieStatus.MOVIE_STATUS_CNS);
                     newStatus.setName("Đã hủy");
                     newStatus.setDescription("Phim đã bị hủy ");
                     return movieStatusRepository.save(newStatus);

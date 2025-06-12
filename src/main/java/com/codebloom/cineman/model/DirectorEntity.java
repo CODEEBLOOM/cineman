@@ -1,6 +1,7 @@
 package com.codebloom.cineman.model;
 
 import com.codebloom.cineman.common.enums.GenderUser;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -42,7 +43,8 @@ public class DirectorEntity implements Serializable {
     @Column(length = 200)
     String avatar;
 
-    @OneToMany(mappedBy = "director", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "director")
+    @JsonIgnore
     Set<MovieDirectorEntity> movieDirectors;
 }
 

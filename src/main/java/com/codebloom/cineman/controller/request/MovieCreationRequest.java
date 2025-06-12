@@ -28,7 +28,7 @@ public class MovieCreationRequest {
     private String language;
 
     @NotNull(message = "")
-    @Min(value = 1, message = "Thời lượng phải lớn hơn 0")
+    @Min(value = 1, message = "Duration's movie is must be greater than 1 !")
     private Integer duration;
 
     @NotNull(message = "Age limit of movie is not null !")

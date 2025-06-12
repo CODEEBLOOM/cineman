@@ -147,6 +147,43 @@ public class GlobalExceptionHandler {
         return errorResponse;
     }
 
+    /**
+     * Handle exception when internal server error
+     *
+     * @param e
+     * @param request
+     * @return error
+     */
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(INTERNAL_SERVER_ERROR)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = {@Content(mediaType = APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    name = "500 Response",
+                                    summary = "Handle exception when internal server error",
+                                    value = """
+                                            {
+                                              "timestamp": "2025-06-01T06:35:52.333+00:00",
+                                              "status": 500,
+                                              "path": "/api/v1/...",
+//                                              "error": "Internal Server Error",
+                                              "message": "Connection timeout, please try again"
+                                            }
+                                            """
+                            ))})
+    })
+    public ErrorResponse handleException(Exception e, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        errorResponse.setStatus(INTERNAL_SERVER_ERROR.value());
+        errorResponse.setError(INTERNAL_SERVER_ERROR.getReasonPhrase());
+        errorResponse.setMessage(e.getMessage());
+
+        return errorResponse;
+    }
+
 
 
 

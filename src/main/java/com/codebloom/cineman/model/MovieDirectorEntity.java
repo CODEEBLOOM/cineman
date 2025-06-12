@@ -11,7 +11,6 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"movie"})
 @Entity
 @Table( name = "movie_directors",uniqueConstraints = { @UniqueConstraint(columnNames = {"movie_id", "director_id"})})
 public class MovieDirectorEntity implements Serializable {

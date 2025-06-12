@@ -1,4 +1,4 @@
-package com.codebloom.cineman.controller;
+package com.codebloom.cineman.controller.auth;
 
 
 import com.codebloom.cineman.controller.request.SignInRequest;

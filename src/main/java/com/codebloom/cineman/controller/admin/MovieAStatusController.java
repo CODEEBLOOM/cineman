@@ -3,6 +3,7 @@ package com.codebloom.cineman.controller.admin;
 import com.codebloom.cineman.controller.request.MovieStatusRequest;
 import com.codebloom.cineman.model.MovieStatusEntity;
 import com.codebloom.cineman.service.MovieStatusService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,7 +19,8 @@ import static org.springframework.http.HttpStatus.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/movie-status")
-public class MovieStatusController {
+@Tag(name = "Movie Status Controller ( Admin Role )")
+public class MovieAStatusController {
 
     private final MovieStatusService movieStatusService;
     private Map<String, Object> response;
