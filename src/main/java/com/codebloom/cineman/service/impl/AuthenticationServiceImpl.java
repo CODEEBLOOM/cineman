@@ -38,22 +38,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         // xac thực người dùng có trong DB hay ko
         try{
-            // xác thực thông tin người dùng (phoneNumber và password)
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getPhoneNumber(), request.getPassword()));
+            // xác thực thông tin người dùng (Email và password)
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
             // đúng thì lưu vào hệ thống
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }catch (AuthenticationException e){
             // sai báo lỗi
             log.info("login Failed, mesage {}", e.getMessage());
-            throw new BadCredentialsException("Số điện thoại hoặc mật khẩu không đúng");        }
+            throw new BadCredentialsException("Email or password incorrect");        }
         // lấy thông tin người dùng từ DB
-        var user = userRepository.findByPhoneNumber(request.getPhoneNumber());
+        UserEntity user = userRepository.findByEmail(request.getEmail());
         log.info("User Info {}", user);
 
         // sinh access token và refresh token
-        String accessToken = jwtService.generateAccessToken(user.getUserId(),request.getPhoneNumber(),user.getAuthorities());
+        String accessToken = jwtService.generateAccessToken(user.getUserId(),request.getEmail(),user.getAuthorities());
 
-        String refreshToken = jwtService.generateRefreshToken(user.getUserId(),request.getPhoneNumber(),user.getAuthorities());
+        String refreshToken = jwtService.generateRefreshToken(user.getUserId(),request.getEmail(),user.getAuthorities());
         log.info("ACCESS TOKEN {}", accessToken);
         log.info("REFRESH TOKEN {}", refreshToken);
 
@@ -75,20 +75,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         try {
-            // giải mã để lấy số điện thoại từ refresh token
-            String phoneNumber = jwtService.extractUsername(refreshToken, TokenType.REFRESH_TOKEN);
-            log.info("Phone number extracted from refresh token: {}", phoneNumber);
+            // giải mã để lấy số email từ refresh token
+            String email = jwtService.extractUsername(refreshToken, TokenType.REFRESH_TOKEN);
+            log.info("email extracted from refresh token: {}", email);
 
             // kiểm tra người dùng tồn tại trong DB
-            UserEntity user = userRepository.findByPhoneNumber(phoneNumber);
+            UserEntity user = userRepository.findByEmail(email);
             if (user == null) {
-                throw new IllegalArgumentException("User not found for phone number: " + phoneNumber);
+                throw new IllegalArgumentException("User not found for email: " + email);
             }
 
             // tạo access token mới
             String newAccessToken = jwtService.generateAccessToken(
                     user.getUserId(),
-                    user.getPhoneNumber(),
+                    user.getEmail(),
                     user.getAuthorities()
             );
 

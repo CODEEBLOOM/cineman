@@ -31,11 +31,11 @@ public class CustomizeRequestFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("{} {}", request.getMethod(), request.getRequestURI());
-// lấy jwt từ header
 
+        // lấy jwt từ header
         final String authHeader = request.getHeader("Authorization");
         final String token;
-        final String phoneNumber = "";
+        final String email;
 
         if (authHeader == null) {
             System.out.println("Authorization header is missing");
@@ -52,33 +52,33 @@ public class CustomizeRequestFilter extends OncePerRequestFilter {
         // cắt token -> "Bearer <token>"
         token = authHeader.substring(7);
 
-        if (phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userServiceDetail.userDetailsService().loadUserByUsername(phoneNumber);
-            if (jwtService.isTokenValid(token, userDetails, TokenType.ACCESS_TOKEN )) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
+//        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+//            UserDetails userDetails = userServiceDetail.userDetailsService().loadUserByUsername(email);
+//            if (jwtService.isTokenValid(token, userDetails, TokenType.ACCESS_TOKEN )) {
+//                UsernamePasswordAuthenticationToken authToken =
+//                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+//                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//                SecurityContextHolder.getContext().setAuthentication(authToken);
+//            }
+//        }
+
+        try {
+            email = jwtService.extractUsername(token, TokenType.ACCESS_TOKEN);
+            log.info("Email from token: {}", email);
+        } catch (Exception e) {
+            log.error("Failed to extract email from token", e);
+            throw new RuntimeException("Invalid or expired token");
         }
 
-//        try {
-//            phoneNumber = jwtService.extractUsername(token, TokenType.ACCESS_TOKEN);
-//            log.info("Phone number from token: {}", phoneNumber);
-//        } catch (Exception e) {
-//            log.error("Failed to extract phone number from token", e);
-//            throw new RuntimeException("Invalid or expired token");
-//        }
-//
-//        // lấy thông tin người dùng từ DB
-//        UserDetails userDetails = userServiceDetail.userDetailsService().loadUserByUsername(phoneNumber);
-//
-//        // tạo UsernamePasswordAuthenticationToken lưu vào hệ thổng để hệ thống biết user này đã được xác thực
-//        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-//        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-//        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-//        securityContext.setAuthentication(authentication);
-//        SecurityContextHolder.setContext(securityContext);
+        // lấy thông tin người dùng từ DB
+        UserDetails userDetails = userServiceDetail.userDetailsService().loadUserByUsername(email);
+
+        // tạo UsernamePasswordAuthenticationToken lưu vào hệ thổng để hệ thống biết user này đã được xác thực
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        securityContext.setAuthentication(authentication);
+        SecurityContextHolder.setContext(securityContext);
 
         filterChain.doFilter(request, response);
     }

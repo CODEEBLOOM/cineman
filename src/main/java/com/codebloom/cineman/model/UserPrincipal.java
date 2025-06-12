@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
-public class UserApply implements UserDetails, Serializable {
+public class UserPrincipal implements UserDetails, Serializable {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();

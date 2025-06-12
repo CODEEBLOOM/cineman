@@ -42,3 +42,11 @@ jwt:
       hibernate:
         ddl-auto=none:
 
+#  đăng nhập
+#  kieemr tra DB co chwua
+#  -> username password đúng chưa
+#  -> khi đăng nhập
+#  -> quyền user
+#  -> tạo access token , refresh token
+#  -> refresh token lưu xuống DB
+#  -> access token và rf token gửi chung request

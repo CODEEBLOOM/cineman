@@ -4,6 +4,6 @@
 
  @Getter
 public class SignInRequest {
-     private String phoneNumber;
+     private String email;
      private String password;
 }

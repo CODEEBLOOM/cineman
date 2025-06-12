@@ -9,10 +9,10 @@ import java.util.Collection;
 
 public interface JwtService {
     // tạo access token
-    String generateAccessToken(Long id, String phoneNumber, Collection<? extends GrantedAuthority> authorities);
+    String generateAccessToken(Long id, String email, Collection<? extends GrantedAuthority> authorities);
 
     // tạo refresh token
-    String generateRefreshToken(Long id, String phoneNumber, Collection<? extends GrantedAuthority> authorities);
+    String generateRefreshToken(Long id, String email, Collection<? extends GrantedAuthority> authorities);
 
     //kiểm tra token
     String extractUsername(String token, TokenType tokenType) throws AccessDeniedException;

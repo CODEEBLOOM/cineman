@@ -42,6 +42,6 @@ public class AuthenticationController {
     public TokenResponse refreshToken(@RequestBody RefreshTokenRequest request) throws AccessDeniedException {
         log.info("Refresh token request");
 //        return TokenResponse.builder().accessToken("DUMMY-NEW-ACCESS-TOKEN").refreshToken("DUMMY-REFRESH-TOKEN").build();
-        return authenticationService.getRefreshToken(request.getRefreshToken());
+                return authenticationService.getRefreshToken(request.getRefreshToken());
     }
 }

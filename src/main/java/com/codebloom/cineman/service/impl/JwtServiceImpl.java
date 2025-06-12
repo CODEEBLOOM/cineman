@@ -45,25 +45,25 @@ public class JwtServiceImpl implements JwtService {
 
     // sinh access token
     @Override
-    public String generateAccessToken(Long id, String phoneNumber, Collection<? extends GrantedAuthority> authorities) {
+    public String generateAccessToken(Long id, String email, Collection<? extends GrantedAuthority> authorities) {
         log.info("generateAccessToken {} with authorities {} ", id, authorities);
         //tạo claims bao gồm userId và role
         Map<String,Object> claims = new HashMap<>();
         claims.put("UserId",id);
         claims.put("role",authorities);
-        return generateAccessToken(claims, phoneNumber);
+        return generateAccessToken(claims, email);
     }
 
     @Override
-    public String generateRefreshToken(Long id, String phoneNumber, Collection<? extends GrantedAuthority> authorities) {
+    public String generateRefreshToken(Long id, String email, Collection<? extends GrantedAuthority> authorities) {
         log.info("generateRefreshToken {} with authorities {} ", id, authorities);
         Map<String,Object> claims = new HashMap<>();
         claims.put("UserId",id);
         claims.put("role",authorities);
-        return generateRefreshToken(claims, phoneNumber);
+        return generateRefreshToken(claims, email);
     }
 
-    //trích xuất SDT tù token
+    //trích xuất email tù token
     @Override
     public String extractUsername(String token, TokenType tokenType) throws AccessDeniedException {
         log.info("extractUsername token {} with type {}", token, tokenType);
@@ -93,29 +93,29 @@ public class JwtServiceImpl implements JwtService {
     private Claims extractAllClaims(String token, TokenType type) throws AccessDeniedException {
         try {
             //giải mã và xác minh chữ ký
-            return Jwts.parser().setSigningKey(accessKey).parseClaimsJws(token).getBody();
+            return Jwts.parser().setSigningKey(getKey(type)).parseClaimsJws(token).getBody();
         }catch (SignatureException | ExpiredJwtException e){
             throw new AccessDeniedException("Access denied, error :" +  e.getMessage());
         }
     }
 
     // tạo access token đã ký với ACCESS_KEY chứa claims và tồn tại trong expiry minute
-    private String generateAccessToken(Map<String,Object> claims, String phoneNumber) {
-        log.info("generateToken {} with phoneNumber {}", phoneNumber, claims);
+    private String generateAccessToken(Map<String,Object> claims, String email) {
+        log.info("generateToken {} with email {}", email, claims);
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(phoneNumber) // subject là username -> cinema : phoneNumber
+                .setSubject(email) // subject là username -> cinema : email
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 60 * 1000 * expiryMinute))
                 .signWith(SignatureAlgorithm.HS256, getKey(TokenType.ACCESS_TOKEN))
                 .compact();
     }
     // tạo refresh token đã ký với REFRESH_KEY chứa claims và tồn tại trong expiry hours
-    private String generateRefreshToken(Map<String,Object> claims, String phoneNumber) {
-        log.info("generateToken {} with phoneNumber {}", phoneNumber, claims);
+    private String generateRefreshToken(Map<String,Object> claims, String email) {
+        log.info("generateToken {} with email {}", email, claims);
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(phoneNumber) // subject là username -> cinema : phoneNumber
+                .setSubject(email) // subject là username -> cinema : email
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 3600 * 1000 * expiryHours))
                 .signWith(SignatureAlgorithm.HS256, getKey(TokenType.REFRESH_TOKEN))

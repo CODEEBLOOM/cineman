@@ -12,6 +12,6 @@ public class UserServiceDetail{
     private final UserRepository userRepository;
 
     public UserDetailsService userDetailsService() {
-        return userRepository::findByPhoneNumber;
+        return userRepository::findByEmail;
     }
 }
