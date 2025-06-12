@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse findByUsername(String username) {
+    public UserResponse findByPhoneNumber(String phoneNumber) {
         return null;
     }
 

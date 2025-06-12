@@ -13,7 +13,7 @@ public interface UserService {
     List<UserEntity> findAll();
     UserResponse findById(Long userId);
     UserResponse findByEmail(String email);
-    UserResponse findByUsername(String username);
+    UserResponse findByPhoneNumber(String phoneNumber);
     Long save(UserCreationRequest user);
     void update(UserUpdateRequest user);
     void changePassword(ChangePasswordRequest changePasswordRequest);
