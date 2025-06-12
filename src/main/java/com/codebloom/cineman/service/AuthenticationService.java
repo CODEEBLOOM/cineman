@@ -1,5 +1,6 @@
 package com.codebloom.cineman.service;
 
+import com.codebloom.cineman.controller.request.RefreshTokenCreationRequest;
 import com.codebloom.cineman.controller.request.SignInRequest;
 import com.codebloom.cineman.controller.response.TokenResponse;
 

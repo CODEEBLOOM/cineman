@@ -1,14 +1,19 @@
 package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.common.enums.TokenType;
+import com.codebloom.cineman.controller.request.RefreshTokenCreationRequest;
 import com.codebloom.cineman.controller.request.SignInRequest;
 import com.codebloom.cineman.controller.response.TokenResponse;
+import com.codebloom.cineman.model.RefreshTokenEntity;
 import com.codebloom.cineman.model.UserEntity;
+import com.codebloom.cineman.repository.TokenRepositoty;
 import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.service.AuthenticationService;
 import com.codebloom.cineman.service.JwtService;
+import com.codebloom.cineman.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,20 +21,28 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.token.TokenService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.nio.file.AccessDeniedException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "AUTHENTICATION-SERVICE")
 public class AuthenticationServiceImpl implements AuthenticationService {
 
+    @Value("${jwt.expiryHours}")
+    private long expiryHours;
+
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final TokenService tokenService;
+    private final TokenRepositoty tokenRepositoty;
 
     // xác thực đăng nhập và tạo token
     @Override
@@ -56,6 +69,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String refreshToken = jwtService.generateRefreshToken(user.getUserId(),request.getEmail(),user.getAuthorities());
         log.info("ACCESS TOKEN {}", accessToken);
         log.info("REFRESH TOKEN {}", refreshToken);
+
+        //lưu refresh token vào DB
+        RefreshTokenEntity token = new RefreshTokenEntity();
+        token.setToken(refreshToken);
+        token.setUser(user);
+        token.setCreatedByIp("");
+        token.setDeviceInfo("");
+        // chuyển kiểu localDate -> Date
+        Date expiryDate = Date.from(LocalDateTime.now().plusHours(expiryHours)
+                .atZone(ZoneId.systemDefault()).toInstant());
+        token.setExpiryDate(expiryDate);
+        token.setCreatedAt(new Date());
+        token.setRevoked(false);
+        tokenService.saveOrUpdate(token);
 
         return TokenResponse
                 .builder()
@@ -84,6 +111,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             if (user == null) {
                 throw new IllegalArgumentException("User not found for email: " + email);
             }
+
+            // Tìm token trong DB (để kiểm tra revoked và expiry)
+            RefreshTokenEntity tokenEntity = tokenRepositoty.findByToken(refreshToken)
+                    .orElseThrow(() -> new IllegalArgumentException("Refresh token not found in DB"));
+
+            // Kiểm tra token đã bị thu hồi chưa
+            if (tokenEntity.isRevoked()) {
+                throw new RuntimeException("Refresh token has been revoked");
+            }
+
+            // Kiểm tra token đã hết hạn chưa
+            if (tokenEntity.getExpiryDate().before(new Date())) {
+                throw new RuntimeException("Refresh token has expired");
+            }
+
 
             // tạo access token mới
             String newAccessToken = jwtService.generateAccessToken(
