@@ -1,6 +1,5 @@
 package com.codebloom.cineman.model;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,26 +10,27 @@ import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @Entity
-@Table(name = "genres")
-public class GenresEntity implements Serializable {
+@Table(name = "movie_roles")
+public class MovieRoleEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "genres_id")
-    private Integer genresId;
+    @Column(name = "movie_role_id")
+    Integer movieRoleId;
 
     @Column(name = "name", columnDefinition = "NVARCHAR(100)")
-    private String name;
+    String name;
 
     @Column(name = "description", columnDefinition = "NVARCHAR(250)")
-    private String description;
+    String description;
 
-    @OneToMany(mappedBy = "genres")
+    @OneToMany(mappedBy = "movieRole")
     @JsonIgnore
-    private List<MovieGenresEntity> movieGenres ;
+    List<MovieParticipantEntity> movieParticipants;
+
 }

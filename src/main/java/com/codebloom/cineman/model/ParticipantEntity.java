@@ -1,28 +1,28 @@
 package com.codebloom.cineman.model;
 
 import com.codebloom.cineman.common.enums.GenderUser;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @Entity
-@Table(name = "casts")
-public class CastEntity implements Serializable {
+@Table(name = "participants")
+public class ParticipantEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "cast_id")
-    Integer castId;
+    @Column(name = "participant_id")
+    Integer participantId;
 
     @Column(name = "birth_name", columnDefinition = "NVARCHAR(100)")
     String birthName;
@@ -43,8 +43,8 @@ public class CastEntity implements Serializable {
     @Column(length = 200)
     String avatar;
 
-    @OneToMany(mappedBy = "cast")
-    @JsonBackReference
-    List<MovieCastEntity> movieCasts;
-
+    @OneToMany(mappedBy = "participant")
+    @JsonIgnore
+    Set<MovieParticipantEntity> movieParticipants;
 }
+

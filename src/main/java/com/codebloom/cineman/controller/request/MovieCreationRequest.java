@@ -1,5 +1,7 @@
 package com.codebloom.cineman.controller.request;
 
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -21,7 +23,7 @@ public class MovieCreationRequest {
     private String detailDescription;
 
     @NotNull(message = "Release date of movie is not null !")
-    @FutureOrPresent(message = "Release date of movie must be a date in the future or present!")
+    @Temporal(TemporalType.DATE)
     private Date releaseDate;
 
     @NotBlank(message = "Language's movie is not blank !")

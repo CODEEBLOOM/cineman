@@ -59,7 +59,7 @@ public class MovieServiceImpl implements MovieService {
         log.info("Movie found: {}", id);
         MovieEntity movie = movieRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Movie not found with id: " + id));
-        log.info("Movie director found: {}", movie.getMovieDirectors());
+        log.info("Movie director found: {}", movie.getMovieParticipants());
         return movieToMovieResponse(movie);
     }
 
@@ -81,8 +81,9 @@ public class MovieServiceImpl implements MovieService {
             movieStatusEntity.setName("Sắp chiếu");
             movieStatusEntity.setDescription("Trạng thái dành cho các bộ phim sắp được chiếu tại rạp");
             status = movieStatusRepository.save(movieStatusEntity);
+        }else {
+            status = movieStatus.get();
         }
-        status = movieStatus.get();
         Date now = new Date();
         MovieEntity movie = modelMapper.map(request, MovieEntity.class);
         movie.setStatus(status);
@@ -138,11 +139,16 @@ public class MovieServiceImpl implements MovieService {
 
     private MovieResponse movieToMovieResponse(MovieEntity movie) {
         List<GenresEntity> genres = new ArrayList<>();
-        List<DirectorEntity> directors = new ArrayList<>();
-        List<CastEntity> casts = new ArrayList<>();
+        List<ParticipantEntity> directors = new ArrayList<>();
+        List<ParticipantEntity> casts = new ArrayList<>();
         movie.getMovieGenres().forEach(movieGenre -> genres.add(movieGenre.getGenres()));
-        movie.getMovieDirectors().forEach(movieDirector -> directors.add(movieDirector.getDirector()));
-        movie.getMovieCasts().forEach(castEntity -> casts.add(castEntity.getCast()));
+        movie.getMovieParticipants().forEach((movieParticipant) -> {
+            if(movieParticipant.getMovieRole().getName().trim().equalsIgnoreCase("director")){
+                directors.add(movieParticipant.getParticipant());
+            }else if (movieParticipant.getMovieRole().getName().trim().equalsIgnoreCase("cast")){
+                casts.add(movieParticipant.getParticipant());
+            }
+        });
         MovieResponse movieResponse = new MovieResponse();
         movieResponse.setMovieId(movie.getMovieId());
         movieResponse.setStatus(movie.getStatus().getName());

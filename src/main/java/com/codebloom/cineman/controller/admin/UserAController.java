@@ -28,68 +28,69 @@ import static org.springframework.http.HttpStatus.CREATED;
 public class UserAController {
 
     private final UserService userService;
+    Map<String, Object> response;
 
     @Operation(summary = "Get all users", description = "API dùng để lấy ra toàn bộ users có trong hệ thống.")
     @GetMapping("/list")
     public Map<String, Object> getList(@RequestBody PageQueryRequest request) {
         UserPaginationResponse userList = userService.findAll(request);
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("data", userList);
-        result.put("message", "User List");
-        result.put("status", HttpStatus.OK.value());
-        return result;
+        response = new LinkedHashMap<>();
+        response.put("data", userList);
+        response.put("message", "User List");
+        response.put("status", HttpStatus.OK.value());
+        return response;
     }
 
     @Operation(summary = "Find User By User Id", description = "API dùng để lấy ra user theo user_id")
     @GetMapping("/{userId}")
     public Map<String, Object> getUserDetail(@PathVariable @Min(1) Long userId) {
         UserResponse userRes = userService.findById(userId);
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("data", userRes);
-        result.put("message", "User List");
-        result.put("status", HttpStatus.OK.value());
-        return result;
+        response = new LinkedHashMap<>();
+        response.put("data", userRes);
+        response.put("message", "User List");
+        response.put("status", HttpStatus.OK.value());
+        return response;
     }
 
     @Operation(summary = "Create New User", description = "API dùng để tạo mới một User")
     @PostMapping("/add")
     public ResponseEntity<Map<String, Object>> createUser(@RequestBody @Valid UserCreationRequest request) {
         Long userId = userService.save(request);
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("status", CREATED.value());
-        result.put("message", "User Created Success");
-        result.put("data", userId);
-        return ResponseEntity.status(CREATED).body(result);
+        response = new LinkedHashMap<>();
+        response.put("status", CREATED.value());
+        response.put("message", "User Created Success");
+        response.put("data", userId);
+        return ResponseEntity.status(CREATED).body(response);
     }
 
     @Operation(summary = "Update User", description = "API dùng để cập nhật một User")
     @PutMapping("/update")
     public Map<String, Object> updateUser(@RequestBody UserUpdateRequest request) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("status", HttpStatus.ACCEPTED.value());
-        result.put("message", "User Updated Success");
-        result.put("data", "");
-        return result;
+        response = new LinkedHashMap<>();
+        response.put("status", HttpStatus.ACCEPTED.value());
+        response.put("message", "User Updated Success");
+        response.put("data", "");
+        return response;
     }
 
     @Operation(summary = "Change Password", description = "API dùng để thay đổi mật khẩu của User")
     @PutMapping("/change-pwd")
     public Map<String, Object> changePassword(@RequestBody ChangePasswordRequest request) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("status", HttpStatus.NO_CONTENT.value());
-        result.put("message", "Change Password Success");
-        result.put("data", "");
-        return result;
+        response = new LinkedHashMap<>();
+        response.put("status", HttpStatus.NO_CONTENT.value());
+        response.put("message", "Change Password Success");
+        response.put("data", "");
+        return response;
     }
 
     @Operation(summary = "Disable User", description = "API dùng để chuyển isActive thành false")
     @DeleteMapping("/{userId}/del")
     public Map<String, Object> delete(@PathVariable Long userId) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("status", HttpStatus.NO_CONTENT.value());
-        result.put("message", "Disable User Success");
-        result.put("data", "");
-        return result;
+        response = new LinkedHashMap<>();
+        response.put("status", HttpStatus.NO_CONTENT.value());
+        response.put("message", "Disable User Success");
+        response.put("data", "");
+        return response;
     }
 
 }
