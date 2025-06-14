@@ -22,6 +22,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private ErrorResponse errorResponse;
+
     /**
      * Handle exception when validate data
      *
@@ -50,7 +52,7 @@ public class GlobalExceptionHandler {
                             ))})
     })
     public ErrorResponse handleValidationException(Exception e, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setStatus(BAD_REQUEST.value());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
@@ -76,6 +78,13 @@ public class GlobalExceptionHandler {
         return errorResponse;
     }
 
+
+
+    /**
+     * Hàm xử lý bắt ngoại lệ dữ liệu đã không được tìm thấy trong hệ thống
+     * @param request: để lấy ra URI đích
+     * @return errorResponse
+     */
     @ExceptionHandler(DataNotFoundException.class)
     @ResponseStatus(NOT_FOUND)
     @ApiResponses(value = {
@@ -95,15 +104,8 @@ public class GlobalExceptionHandler {
                                             """
                             ))})
     })
-
-
-    /**
-     * Hàm xử lý bắt ngoại lệ dữ liệu đã không được tìm thấy trong hệ thống
-     * @param request: để lấy ra URI đích
-     * @return errorResponse
-     */
     public ErrorResponse handleDataNotFoundException(DataNotFoundException e, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
         errorResponse.setStatus(NOT_FOUND.value());
@@ -118,17 +120,17 @@ public class GlobalExceptionHandler {
      * @return errorResponse
      */
     @ExceptionHandler(DataExistingException.class)
-    @ResponseStatus(CONFLICT)
+    @ResponseStatus(BAD_REQUEST)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "409", description = "Conflict",
+            @ApiResponse(responseCode = "400", description = "Conflict",
                     content = {@Content(mediaType = APPLICATION_JSON_VALUE,
                             examples = @ExampleObject(
-                                    name = "409 Response",
+                                    name = "400 Response",
                                     summary = "Handle exception when input data is conflicted",
                                     value = """
                                             {
                                               "timestamp": "2025-06-01 T06:07:35.321+00:00",
-                                              "status": 409,
+                                              "status": 400,
                                               "path": "/api/v1/...",
                                               "error": "Conflict",
                                               "message": "{data} exists, Please try again!"
@@ -137,11 +139,11 @@ public class GlobalExceptionHandler {
                             ))})
     })
     public ErrorResponse handleDuplicateKeyException(DataExistingException e, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
-        errorResponse.setStatus(CONFLICT.value());
-        errorResponse.setError(CONFLICT.getReasonPhrase());
+        errorResponse.setStatus(BAD_REQUEST.value());
+        errorResponse.setError(BAD_REQUEST.getReasonPhrase());
         errorResponse.setMessage(e.getMessage());
 
         return errorResponse;
@@ -150,9 +152,9 @@ public class GlobalExceptionHandler {
     /**
      * Handle exception when internal server error
      *
-     * @param e
-     * @param request
-     * @return error
+     * @param e Exception
+     * @param request request
+     * @return errorResponse
      */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(INTERNAL_SERVER_ERROR)
@@ -185,6 +187,91 @@ public class GlobalExceptionHandler {
     }
 
 
+    @ExceptionHandler(ConfirmPasswordException.class)
+    @ResponseStatus(BAD_REQUEST)
+    public ErrorResponse handleConfirmPasswordException(ConfirmPasswordException e, WebRequest request) {
+        errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        errorResponse.setStatus(BAD_REQUEST.value());
+        errorResponse.setError(BAD_REQUEST.getReasonPhrase());
+        errorResponse.setMessage(e.getMessage());
+        return errorResponse;
+    }
+
+    /**
+     * Handle exception when the data is conflicted
+     *
+     * @param e InvalidDataException
+     * @param request request
+     * @return errorResponse
+     */
+    @ExceptionHandler(InvalidDataException.class)
+    @ResponseStatus(CONFLICT)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "409", description = "Conflict",
+                    content = {@Content(mediaType = APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    name = "409 Response",
+                                    summary = "Handle exception when input data is conflicted",
+                                    value = """
+                                            {
+                                              "timestamp": "2023-10-19T06:07:35.321+00:00",
+                                              "status": 409,
+                                              "path": "/api/v1/...",
+                                              "error": "Conflict",
+                                              "message": "{data} exists, Please try again!"
+                                            }
+                                            """
+                            ))})
+    })
+    public ErrorResponse handleDuplicateKeyException(InvalidDataException e, WebRequest request) {
+        errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        errorResponse.setStatus(CONFLICT.value());
+        errorResponse.setError(CONFLICT.getReasonPhrase());
+        errorResponse.setMessage(e.getMessage());
+
+        return errorResponse;
+    }
+
+    /**
+     * Handle exception when the request not found data
+     *
+     * @param e ForBiddenException
+     * @param request request
+     * @return errorResponse
+     */
+    @ExceptionHandler(ForBiddenException.class)
+    @ResponseStatus(FORBIDDEN)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "403", description = "Access Dined",
+                    content = {@Content(mediaType = APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    name = "403 Response",
+                                    summary = "Handle exception when access forbidden",
+                                    value = """
+                                            {
+                                              "timestamp": "2023-10-19T06:07:35.321+00:00",
+                                              "status": 403,
+                                              "path": "/api/v1/...",
+                                              "error": "Access Dined",
+                                              "message": "{data} not found"
+                                            }
+                                            """
+                            ))})
+    })
+    public ErrorResponse handleForBiddenException(ForBiddenException e, WebRequest request) {
+        errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        errorResponse.setStatus(FORBIDDEN.value());
+        errorResponse.setError(FORBIDDEN.getReasonPhrase());
+        errorResponse.setMessage(e.getMessage());
+
+        return errorResponse;
+    }
 
 
     @Getter

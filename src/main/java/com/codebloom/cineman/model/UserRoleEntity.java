@@ -1,6 +1,7 @@
 package com.codebloom.cineman.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,9 +30,11 @@ public class UserRoleEntity implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private UserEntity user;
 
     @ManyToOne
     @JoinColumn(name = "role_id")
+    @JsonIgnore
     private RoleEntity role;
 }

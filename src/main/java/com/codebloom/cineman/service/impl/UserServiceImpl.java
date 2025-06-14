@@ -1,13 +1,12 @@
 package com.codebloom.cineman.service.impl;
 
+import com.codebloom.cineman.service.jwt.JwtServiceImpl;
 import com.codebloom.cineman.common.enums.UserStatus;
 import com.codebloom.cineman.common.enums.UserType;
-import com.codebloom.cineman.controller.request.ChangePasswordRequest;
-import com.codebloom.cineman.controller.request.PageQueryRequest;
-import com.codebloom.cineman.controller.request.UserCreationRequest;
-import com.codebloom.cineman.controller.request.UserUpdateRequest;
+import com.codebloom.cineman.controller.request.*;
 import com.codebloom.cineman.controller.response.UserPaginationResponse;
 import com.codebloom.cineman.controller.response.UserResponse;
+import com.codebloom.cineman.exception.ConfirmPasswordException;
 import com.codebloom.cineman.exception.DataExistingException;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.RoleEntity;
@@ -17,18 +16,26 @@ import com.codebloom.cineman.repository.RoleRepository;
 import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.repository.UserRoleRepository;
 import com.codebloom.cineman.service.UserService;
+import com.codebloom.cineman.service.util.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j(topic = "USER-SERVICE")
@@ -39,6 +46,11 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
     private final UserRoleRepository userRoleRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtServiceImpl jwtTokenUtil;
+    private final AuthenticationManager authenticationManager;
+    private final ApplicationContext context;
 
 
     @Override
@@ -83,8 +95,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse findByEmail(String email) {
-        return null;
+    public UserEntity findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new DataNotFoundException("User not found with email"+email));
     }
 
     @Override
@@ -111,8 +124,6 @@ public class UserServiceImpl implements UserService {
         // Add role for account //
         RoleEntity userRole = roleRepository.findById(UserType.USER.toString())
                 .orElseThrow(() -> new DataNotFoundException("Not found user role with role :"+UserType.USER));
-        RoleEntity guestRole = roleRepository.findById(UserType.GUEST.toString())
-                .orElseThrow(() -> new DataNotFoundException("Not found user role with role :"+UserType.GUEST));
 
         // User Role //
         UserRoleEntity userRoleEntity = new UserRoleEntity();
@@ -121,15 +132,15 @@ public class UserServiceImpl implements UserService {
         userRoleEntity.setName(userRole.getName());
         userRoleEntity.setDescription("Tài khoản dành cho khách hàng đăng kí tại nhà ( online )");
 
-        // Guest Role //
-        UserRoleEntity guestRoleEntity = new UserRoleEntity();
-        guestRoleEntity.setRole(guestRole);
-        guestRoleEntity.setUser(user);
-        guestRoleEntity.setName(guestRole.getName());
-        guestRoleEntity.setDescription("Vai trò này được phép làm những tác vụ cơ bản - XEM");
-
         userRoleRepository.save(userRoleEntity);
         log.info("Saved user {}", user);
+
+        // Send email //
+        try {
+            emailService.emailVerification(request.getEmail(), request.getFullName());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return user.getUserId();
     }
 
@@ -148,9 +159,27 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Override
+    public UserEntity register(UserRegisterRequest user) {
+        if(!user.getPassword().equals(user.getConfirmPassword())) {
+            throw new ConfirmPasswordException("Password not match confirm password");
+        }
+
+        UserEntity registerUser = this.findByEmail(user.getEmail());
+        if(registerUser.getFacebookId() == 0 &&  registerUser.getGoogleId() == 0) {
+            String passwordEncode = passwordEncoder.encode(user.getPassword());
+            registerUser.setPassword(passwordEncode);
+        }
+
+        registerUser.setStatus(UserStatus.ACTIVE);
+        return userRepository.save(registerUser);
+    }
+
     private UserResponse convertToUserResponse(UserEntity user) {
         return modelMapper.map(user, UserResponse.class);
     }
+
+
     private void checkNewUser(UserEntity user) {
         userRepository.findByEmail(user.getEmail())
                 .ifPresent(existingUser -> {throw new DataExistingException("Email already exists at least one user!");});

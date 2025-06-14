@@ -2,6 +2,7 @@ package com.codebloom.cineman.controller.request;
 
 import com.codebloom.cineman.common.enums.GenderUser;
 import com.codebloom.cineman.common.enums.UserType;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotBlank;
@@ -33,6 +34,7 @@ public class UserCreationRequest {
 
     @NotNull(message = "User's birth day is is not null !")
     @Temporal(TemporalType.DATE)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date dateOfBirth;
 
     @NotNull(message = "User's gender is is not null !")

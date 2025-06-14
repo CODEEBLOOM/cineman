@@ -1,11 +1,14 @@
 package com.codebloom.cineman.controller.request;
 
+
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.util.Date;
+
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -47,5 +50,6 @@ public class MovieCreationRequest {
 
     @NotBlank(message = "Banner's movie is not blank!")
     private String bannerImage;
+
 
 }

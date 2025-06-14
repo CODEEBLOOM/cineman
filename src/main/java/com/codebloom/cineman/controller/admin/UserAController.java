@@ -9,13 +9,17 @@ import com.codebloom.cineman.controller.response.UserResponse;
 import com.codebloom.cineman.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -25,6 +29,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 @RequestMapping("/user")
 @Tag(name = "User Controller ( User api )")
 @RequiredArgsConstructor
+@Slf4j(topic = "USER-CONTROLLER")
 public class UserAController {
 
     private final UserService userService;
@@ -91,6 +96,19 @@ public class UserAController {
         response.put("message", "Disable User Success");
         response.put("data", "");
         return response;
+    }
+
+    @Operation(summary = "Confirm User", description = "API dùng để confirm email")
+    @GetMapping("/confirm-email")
+    public void confirmEmail(@RequestParam String secretCode, HttpServletResponse response) throws IOException {
+        log.info("Confirm Email {}", secretCode);
+        try {
+            // TODO: check secretCode or compare secret code from database
+        }catch(Exception e) {
+            log.error("Error occur confirm email, error: {}", e.getMessage());
+        }finally {
+            response.sendRedirect("https://www.facebook.com");
+        }
     }
 
 }
