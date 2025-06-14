@@ -1,5 +1,7 @@
 package com.codebloom.cineman.service.impl;
 
+import com.codebloom.cineman.common.enums.TokenType;
+import com.codebloom.cineman.exception.ForBiddenException;
 import com.codebloom.cineman.service.jwt.JwtServiceImpl;
 import com.codebloom.cineman.common.enums.UserStatus;
 import com.codebloom.cineman.common.enums.UserType;
@@ -48,9 +50,7 @@ public class UserServiceImpl implements UserService {
     private final UserRoleRepository userRoleRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
-    private final JwtServiceImpl jwtTokenUtil;
-    private final AuthenticationManager authenticationManager;
-    private final ApplicationContext context;
+    private final JwtServiceImpl jwtService;
 
 
     @Override
@@ -173,6 +173,22 @@ public class UserServiceImpl implements UserService {
 
         registerUser.setStatus(UserStatus.ACTIVE);
         return userRepository.save(registerUser);
+    }
+
+    @Override
+    public UserEntity getUserFromToken(String token, TokenType tokenType) {
+        if(jwtService.isTokenExpired(token, tokenType)){
+            throw new ForBiddenException("Token is expired");
+        }
+        String email = jwtService.extractUsername(token, tokenType);
+        return this.findByEmail(email);
+    }
+
+    @Override
+    public void updateRefreshToken(String refreshToken) {
+        UserEntity user = this.getUserFromToken(refreshToken, TokenType.REFRESH_TOKEN);
+        user.setRefreshToken(refreshToken);
+        userRepository.save(user);
     }
 
     private UserResponse convertToUserResponse(UserEntity user) {

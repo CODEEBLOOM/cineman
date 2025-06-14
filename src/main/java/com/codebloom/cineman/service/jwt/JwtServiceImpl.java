@@ -147,6 +147,7 @@ public class JwtServiceImpl implements JwtService {
      * @param userDetails là user đăng nhập
      * @return true nếu user được sử dụng để token đã sinh ra trước đó và còn hạn
      */
+    @Override
     public boolean validateToken(String token,TokenType tokenType, UserDetails userDetails) {
         final String username = extractUsername(token, tokenType);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token, tokenType));
@@ -159,7 +160,7 @@ public class JwtServiceImpl implements JwtService {
      * @param tokenType: loại token
      * @return true nếu còn hạn
      */
-    private boolean isTokenExpired(String token, TokenType tokenType) {
+    public boolean isTokenExpired(String token, TokenType tokenType) {
         return extractExpiration(token, tokenType).before(new Date());
     }
 

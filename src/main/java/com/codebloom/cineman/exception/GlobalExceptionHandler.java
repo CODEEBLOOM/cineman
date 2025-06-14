@@ -274,6 +274,7 @@ public class GlobalExceptionHandler {
     }
 
 
+
     @Getter
     @Setter
     private static class ErrorResponse {

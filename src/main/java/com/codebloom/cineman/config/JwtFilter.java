@@ -1,6 +1,7 @@
 package com.codebloom.cineman.config;
 
 import com.codebloom.cineman.common.enums.TokenType;
+import com.codebloom.cineman.service.JwtService;
 import com.codebloom.cineman.service.jwt.JwtServiceImpl;
 import com.codebloom.cineman.service.MyUserDetailsService;
 import com.google.gson.Gson;
@@ -32,8 +33,8 @@ import java.util.Date;
 public class JwtFilter extends OncePerRequestFilter {
 
 
-    private final JwtServiceImpl jwtService;
-    private final MyUserDetailsService myUserDetailsService;
+    private final JwtService jwtService;
+    private final ApplicationContext context;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -54,10 +55,10 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails user =  myUserDetailsService.loadUserByUsername(username);
+            UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
 
-            if(jwtService.validateToken(token,TokenType.ACCESS_TOKEN, user)){
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+            if(jwtService.validateToken(token,TokenType.ACCESS_TOKEN, userDetails)){
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }

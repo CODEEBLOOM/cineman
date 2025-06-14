@@ -1,5 +1,6 @@
 package com.codebloom.cineman.service;
 
+import com.codebloom.cineman.common.enums.TokenType;
 import com.codebloom.cineman.controller.request.*;
 import com.codebloom.cineman.controller.response.UserPaginationResponse;
 import com.codebloom.cineman.controller.response.UserResponse;
@@ -23,4 +24,6 @@ public interface UserService {
     
     // Auth //
     UserEntity register(UserRegisterRequest user);
+    UserEntity getUserFromToken(String token, TokenType tokenType);
+    void updateRefreshToken(String refreshToken);
 }

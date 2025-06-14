@@ -86,6 +86,9 @@ public class UserEntity implements  Serializable {
     @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
     UserStatus status;
 
+    @Column(name = "refresh_token")
+    String refreshToken;
+
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "user")
     @JsonIgnore
     Set<UserRoleEntity> userRoles;
@@ -110,5 +113,6 @@ public class UserEntity implements  Serializable {
     @OneToMany(mappedBy = "staff")
     @JsonIgnore
     List<InvoiceEntity> staffInvoices;
+
 
 }
