@@ -2,7 +2,6 @@ package com.codebloom.cineman.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.FieldDefaults;
 
 import java.io.Serializable;
 
@@ -10,18 +9,16 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
-@Builder
 @Entity
 @Table(name = "movie_genres", uniqueConstraints = { @UniqueConstraint(columnNames = {"movie_id", "movie_genre_id"})})
 public class MovieGenresEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Integer id;
+    private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "movie_id")
+    @JoinColumn( name = "movie_id")
     private MovieEntity movie;
 
     @ManyToOne

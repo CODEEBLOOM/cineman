@@ -1,12 +1,12 @@
 package com.codebloom.cineman.model;
 
 import com.codebloom.cineman.common.enums.GenderUser;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -16,16 +16,16 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @Entity
-@Table(name = "directors")
-public class DirectorEntity implements Serializable {
+@Table(name = "participants")
+public class ParticipantEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "director_id")
-    Integer directorId;
+    @Column(name = "participant_id")
+    Integer participantId;
 
-    @Column(name = "fullname", columnDefinition = "NVARCHAR(100)")
-    String fullname;
+    @Column(name = "birth_name", columnDefinition = "NVARCHAR(100)")
+    String birthName;
 
     @Column(name = "nickname", columnDefinition = "NVARCHAR(100)")
     String nickname;
@@ -43,7 +43,8 @@ public class DirectorEntity implements Serializable {
     @Column(length = 200)
     String avatar;
 
-    @OneToMany(mappedBy = "director", cascade = CascadeType.ALL)
-    Set<MovieDirectorEntity> movieDirectors;
+    @OneToMany(mappedBy = "participant")
+    @JsonIgnore
+    Set<MovieParticipantEntity> movieParticipants;
 }
 

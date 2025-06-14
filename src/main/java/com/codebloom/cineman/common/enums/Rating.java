@@ -1,5 +1,5 @@
 package com.codebloom.cineman.common.enums;
 
 public enum Rating {
-    BAD, AVERAGE, GOOD, VERY_GOOD, EXCELLENT;
+    VERY_BAD,BAD, AVERAGE, GOOD, VERY_GOOD, EXCELLENT;
 }

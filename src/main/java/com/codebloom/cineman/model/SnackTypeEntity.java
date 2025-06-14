@@ -1,21 +1,12 @@
 package com.codebloom.cineman.model;
 
-import java.io.Serializable;
-
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.io.Serializable;
+import java.util.List;
 
 @Getter
 @Setter

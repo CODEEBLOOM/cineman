@@ -1,15 +1,15 @@
 package com.codebloom.cineman.model;
 
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Set;
-
 import com.codebloom.cineman.common.enums.Method;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Set;
 
 @Getter
 @Setter

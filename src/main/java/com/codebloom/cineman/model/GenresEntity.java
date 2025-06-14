@@ -1,13 +1,13 @@
 package com.codebloom.cineman.model;
 
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -31,5 +31,6 @@ public class GenresEntity implements Serializable {
     private String description;
 
     @OneToMany(mappedBy = "genres")
+    @JsonIgnore
     private List<MovieGenresEntity> movieGenres ;
 }

@@ -1,6 +1,7 @@
 package com.codebloom.cineman.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,7 +29,8 @@ public class MovieStatusEntity implements Serializable {
     @Column(name = "description", columnDefinition = "NVARCHAR(250)")
     private String description;
 
-    @OneToMany(mappedBy = "status")
+    @OneToMany(mappedBy = "status", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<MovieEntity> movies;
 
 
