@@ -11,6 +11,6 @@ public interface MovieRoleService {
     MovieRoleEntity findById(Integer id);
     MovieRoleEntity create(MovieRoleRequest movieRoleRequest);
     MovieRoleEntity update(Integer id, MovieRoleRequest movieRoleRequest);
-    int delete(Integer movieRoleId);
+    void delete(Integer movieRoleId);
 
 }

@@ -48,7 +48,8 @@ public class JwtFilter extends OncePerRequestFilter {
             try {
                 username = jwtService.extractUsername(token, TokenType.ACCESS_TOKEN);
             } catch (AccessDeniedException e) {
-                response.setStatus(HttpServletResponse.SC_OK);
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.setContentType("application/json");
                 response.getWriter().write(errorResponse(e.getMessage()));
                 return;
             }

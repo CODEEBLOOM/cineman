@@ -43,6 +43,9 @@ public class ParticipantEntity implements Serializable {
     @Column(length = 200)
     String avatar;
 
+    @Column(name = "active")
+    Boolean active;
+
     @OneToMany(mappedBy = "participant")
     @JsonIgnore
     Set<MovieParticipantEntity> movieParticipants;

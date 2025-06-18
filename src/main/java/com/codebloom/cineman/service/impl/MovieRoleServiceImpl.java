@@ -40,6 +40,7 @@ public class MovieRoleServiceImpl implements MovieRoleService {
                 });
         movieRole.setName(movieRole.getName().trim());
         MovieRoleEntity movieRoleEntity = modelMapper.map(movieRole, MovieRoleEntity.class);
+        movieRoleEntity.setActive(true);
         return movieRoleRepository.save(movieRoleEntity);
     }
 
@@ -52,12 +53,9 @@ public class MovieRoleServiceImpl implements MovieRoleService {
     }
 
     @Override
-    public int delete(Integer movieRoleId) {
+    public void delete(Integer movieRoleId) {
         MovieRoleEntity movieRole = this.findById(movieRoleId);
-        if(!movieParticipantRepository.existsByMovieRoleId(movieRoleId)) {
-            movieRoleRepository.delete(movieRole);
-            return 1;
-        }
-        return -1;
+        movieRole.setActive(false);
+        movieRoleRepository.save(movieRole);
     }
 }

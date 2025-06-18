@@ -9,7 +9,7 @@ public interface GenreService {
 
     GenresEntity create(GenresRequest genres);
     GenresEntity update(Integer id, GenresRequest genres);
-    int delete(Integer id);
+    void delete(Integer id);
     GenresEntity findById(Integer id);
     List<GenresEntity> findAll();
 
