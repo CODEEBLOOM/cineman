@@ -33,5 +33,6 @@ public class SnackTypeEntity implements Serializable {
     @JsonBackReference
     List<SnackEntity> snacks;
 
-
+    @Column(name = "is_active")
+    Boolean isActive;
 }
