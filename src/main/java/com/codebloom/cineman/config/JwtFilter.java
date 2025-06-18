@@ -42,7 +42,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final ApplicationContext context;
     private final UserRepository userRepository;
     private final PermissionService permissionService;
-
+    // check Authorization
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("{} {}", request.getMethod(), request.getRequestURI());
@@ -70,15 +70,23 @@ public class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
+        // check authenticate
         try {
-            Optional<UserEntity> user = userRepository.findByEmail(username);
+            Optional<UserEntity> userOptional  = userRepository.findByEmail(username);
 
+            if (userOptional.isEmpty()) {
+                log.warn("User not found with username: {}", username);
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Tài khoản không tồn tại");
+                return;
+            }
+            UserEntity user = userOptional.get();
             String uri = request.getRequestURI();
             Method methodEnum = Method.valueOf(request.getMethod());
 
-            boolean allowed = permissionService.hasPermission(user.get().getUserId(), methodEnum, uri);
+            boolean allowed = permissionService.hasPermission(user.getUserId(), methodEnum, uri);
             if (!allowed) {
-                log.warn("Access denied for user {} , userId {} on {} {}", username,user.get().getUserId(), methodEnum, uri);
+                log.warn("Access denied for user {} , userId {} on {} {}", username,user.getUserId(), methodEnum, uri);
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập");
                 return;
             }
