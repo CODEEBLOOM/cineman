@@ -4,7 +4,6 @@ import com.codebloom.cineman.common.enums.TokenType;
 import com.codebloom.cineman.controller.request.*;
 import com.codebloom.cineman.controller.response.UserPaginationResponse;
 import com.codebloom.cineman.controller.response.UserResponse;
-import com.codebloom.cineman.exception.ConfirmPasswordException;
 import com.codebloom.cineman.model.UserEntity;
 
 
