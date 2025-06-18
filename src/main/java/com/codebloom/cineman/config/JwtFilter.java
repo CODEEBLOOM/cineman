@@ -1,7 +1,11 @@
 package com.codebloom.cineman.config;
 
+import com.codebloom.cineman.common.enums.Method;
 import com.codebloom.cineman.common.enums.TokenType;
+import com.codebloom.cineman.model.UserEntity;
+import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.service.JwtService;
+import com.codebloom.cineman.service.PermissionService;
 import com.codebloom.cineman.service.jwt.JwtServiceImpl;
 import com.codebloom.cineman.service.MyUserDetailsService;
 import com.google.gson.Gson;
@@ -25,6 +29,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.Optional;
 
 
 @Service
@@ -35,6 +40,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final ApplicationContext context;
+    private final UserRepository userRepository;
+    private final PermissionService permissionService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -63,6 +70,26 @@ public class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
+        try {
+            Optional<UserEntity> user = userRepository.findByEmail(username);
+
+            String uri = request.getRequestURI();
+            Method methodEnum = Method.valueOf(request.getMethod());
+
+            boolean allowed = permissionService.hasPermission(user.get().getUserId(), methodEnum, uri);
+            if (!allowed) {
+                log.warn("Access denied for user {} , userId {} on {} {}", username,user.get().getUserId(), methodEnum, uri);
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập");
+                return;
+            }
+        } catch (AccessDeniedException e) {
+            log.error("Error checking permission", e);
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().write(errorResponse(e.getMessage()));
+            return;
+        }
+
+
         filterChain.doFilter(request, response);
     }
 

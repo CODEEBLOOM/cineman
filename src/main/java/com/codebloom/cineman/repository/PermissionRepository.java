@@ -10,8 +10,13 @@ import java.util.List;
 
 @Repository
 public interface PermissionRepository extends JpaRepository<PermissionEntity,Integer> {
-    @Query("SELECT p FROM PermissionEntity p JOIN p.roles r WHERE r.roleId = :roleId")
-    List<PermissionEntity> findAllByRoleId(@Param("roleId") String roleId);
+    @Query("""
+        SELECT p FROM PermissionEntity p
+        JOIN p.roles r
+        JOIN r.userRoles ur
+        WHERE ur.user.userId = :userId
+    """)
+    List<PermissionEntity> findAllByUserId(@Param("userId") Long userId);
 }
 
 

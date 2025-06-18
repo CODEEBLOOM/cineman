@@ -6,6 +6,5 @@ import com.codebloom.cineman.model.PermissionEntity;
 import java.util.List;
 
 public interface PermissionService {
-    boolean hasPermission(String roleId, Method method, String url);
-    List<PermissionEntity> getPermissionsByRole(String roleId);
+    boolean hasPermission(Long userId, Method method, String requesturl);
 }
