@@ -47,7 +47,7 @@ public class UserAController {
     }
 
     @Operation(summary = "Find User By User Id", description = "API dùng để lấy ra user theo user_id")
-    @GetMapping("/{userId}")
+    @GetMapping("/detail/{userId}")
     public Map<String, Object> getUserDetail(@PathVariable @Min(1) Long userId) {
         UserResponse userRes = userService.findById(userId);
         response = new LinkedHashMap<>();

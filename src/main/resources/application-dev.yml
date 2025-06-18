@@ -26,7 +26,7 @@ spring:
     verification-link: http://localhost:8081/user/confirm-email
 jwt:
   expirationDay: 30
-  expirationMinutes: 1
+  expirationMinutes: 5
   accessKey: XEV3ZWGVjFHgilOWNuKJxNRSK8wUl5txZH3JabLRtfw=
   refreshKey: LGgDK8nPs6LeCAkBUmTwjCxJo7EUHs0Djs63XCBNpaCbYZTIagsltVFa8p6ltllN
 springdoc:
