@@ -35,7 +35,7 @@ public class MovieParticipantAController {
         );
     }
 
-    @PutMapping("/{id}/update")
+    @PutMapping("${api.path}/{id}/update")
     public ResponseEntity<ApiResponse> updateDirectorForMovie(
             @PathVariable @Min(value = 1, message = "Id of movie participant is must be greater than 0") Integer id,
             @RequestBody @Valid MovieParticipantRequest request) {

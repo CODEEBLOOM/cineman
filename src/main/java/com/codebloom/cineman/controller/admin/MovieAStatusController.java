@@ -16,7 +16,7 @@ import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/admin/movie-status")
+@RequestMapping("${api.path}/admin/movie-status")
 @Tag(name = "Movie Status Controller ( Admin Role )")
 @Validated
 public class MovieAStatusController {

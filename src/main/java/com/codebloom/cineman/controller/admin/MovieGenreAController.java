@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Tag(name = "Movie Genre Controller")
-@RequestMapping("/admin/movie-genre")
+@RequestMapping("${api.path}/admin/movie-genre")
 @Validated
 @RequiredArgsConstructor
 public class MovieGenreAController {

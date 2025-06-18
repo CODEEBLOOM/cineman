@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping("/admin/movie-role")
+@RequestMapping("${api.path}/admin/movie-role")
 @RequiredArgsConstructor
 @Tag(name = "Movie Role Controller")
 @Validated

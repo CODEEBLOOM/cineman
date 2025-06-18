@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "Genre of movie Controller")
-@RequestMapping("/admin/genre")
+@RequestMapping("${api.path}/admin/genre")
 public class GenreAController {
 
     private final GenreService genreService;
