@@ -14,6 +14,7 @@ import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -159,7 +160,7 @@ public class JwtServiceImpl implements JwtService {
         try{
             return Jwts.parserBuilder().setSigningKey(getKey(tokenType)).build().parseClaimsJws(token).getBody();
         }catch (SignatureException | ExpiredJwtException e) {
-            throw new AccessDeniedException("Access denied !, error: "+ e.getMessage());
+            throw new BadCredentialsException("Unauthorized: "+ e.getMessage());
         }
     }
 
