@@ -61,7 +61,7 @@ public class FeedbackServiceImpl implements FeedbackService {
 
     @Override
     @Transactional
-    public FeedbackResponse create(FeedbackRequest request, String userEmail) {
+    public FeedbackResponse save(FeedbackRequest request, String userEmail) {
         UserEntity user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("Không tìm thấy người dùng"));
 
@@ -137,6 +137,7 @@ public class FeedbackServiceImpl implements FeedbackService {
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
+
 
     
 }

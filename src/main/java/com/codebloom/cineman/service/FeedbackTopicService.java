@@ -6,9 +6,14 @@ import com.codebloom.cineman.controller.response.FeedbackTopicResponse;
 import java.util.List;
 
 public interface FeedbackTopicService {
+	void delete(Integer id);
+	
     List<FeedbackTopicResponse> findAll();
+    
     FeedbackTopicResponse findById(Integer id);
-    FeedbackTopicResponse create(FeedbackTopicRequest feedbackTopic);
+    
+    FeedbackTopicResponse save(FeedbackTopicRequest feedbackTopic);
+    
     FeedbackTopicResponse update(Integer id, FeedbackTopicRequest feedbackTopic);
-    void delete(Integer id);
+    
 }

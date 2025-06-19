@@ -9,6 +9,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface FeedbackTopicRepository extends JpaRepository<FeedbackTopicEntity,Integer> {
-
 	Optional<FeedbackTopicEntity> findByTopicName(String topicName);
 }

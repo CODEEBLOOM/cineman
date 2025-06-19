@@ -7,12 +7,20 @@ import com.codebloom.cineman.controller.response.FeedbackResponse;
 import java.util.List;
 
 public interface FeedbackService {
+	void delete(Integer id, String userEmail);
 	
-    FeedbackResponse findById(Integer id); 
-    List<FeedbackResponse> findAll();
-    List<FeedbackResponse> findByUser(String userEmail); 
-    FeedbackResponse create(FeedbackRequest request, String userEmail);
-    FeedbackResponse update(Integer id, FeedbackRequest request, String userEmail);
-    void delete(Integer id, String userEmail);
+	List<FeedbackResponse> findAll();
+    
+    List<FeedbackResponse> findByUser(String userEmail);
+    
     List<FeedbackResponse> findBySatisfactionLevel(SatisfactionLevel level);
+    
+    FeedbackResponse findById(Integer id); 
+    
+    FeedbackResponse save(FeedbackRequest request, String userEmail);
+    
+    FeedbackResponse update(Integer id, FeedbackRequest request, String userEmail);
+    
+//    FeedbackResponse update(Integer feedbackId, FeedbackRequest request, Long userId);
+    
 }
