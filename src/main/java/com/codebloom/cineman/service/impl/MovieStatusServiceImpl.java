@@ -36,10 +36,11 @@ public class MovieStatusServiceImpl implements MovieStatusService {
         if(movieStatusEntity.isPresent()){
             throw new DataExistingException("Movie status already existing with ID: " + movieStatusRequest.getId());
         }else {
-            MovieStatusEntity newMovieStatus = new MovieStatusEntity();
-            newMovieStatus.setStatusId(movieStatusRequest.getId());
-            newMovieStatus.setName(movieStatusRequest.getName());
-            newMovieStatus.setDescription(movieStatusRequest.getDescription());
+            MovieStatusEntity newMovieStatus = MovieStatusEntity.builder()
+                    .statusId(movieStatusRequest.getId())
+                    .name(movieStatusRequest.getName())
+                    .description(movieStatusRequest.getDescription())
+                    .build();
             return movieStatusRepository.save(newMovieStatus);
         }
     }
@@ -53,10 +54,15 @@ public class MovieStatusServiceImpl implements MovieStatusService {
         return movieStatusRepository.save(updatedMovieStatusEntity);
     }
 
+    /**
+     * Hàm thực hiện xóa mềm movie status
+     * @param id : id duy nhât của movie status
+     */
     @Override
     public void deleteById(String id) {
-        MovieStatusEntity updatedMovieStatusEntity = this.findById(id);
-        movieStatusRepository.delete(updatedMovieStatusEntity);
+        MovieStatusEntity existMovieStatus = this.findById(id);
+        existMovieStatus.setActive(false);
+        movieStatusRepository.delete(existMovieStatus);
     }
 
 

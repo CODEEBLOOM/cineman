@@ -29,6 +29,9 @@ public class MovieRoleEntity implements Serializable {
     @Column(name = "description", columnDefinition = "NVARCHAR(250)")
     String description;
 
+    @Column(name = "active")
+    Boolean active;
+
     @OneToMany(mappedBy = "movieRole")
     @JsonIgnore
     List<MovieParticipantEntity> movieParticipants;

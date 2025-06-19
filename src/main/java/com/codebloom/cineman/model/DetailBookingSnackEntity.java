@@ -23,9 +23,6 @@ public class DetailBookingSnackEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(name = "total_money")
-    private Integer totalMoney;
-
     @Column(name = "total_snack")
     private Integer totalSnack;
 

@@ -44,7 +44,7 @@ public class UserEntity implements  Serializable {
     @Column(name = "fullname", columnDefinition = "NVARCHAR(100)")
     String fullName;
 
-    @Column(name = "phone_number", length = 20, nullable = false, unique = true)
+    @Column(name = "phone_number", length = 20, unique = true)
     String phoneNumber;
 
     @Column(name = "address", columnDefinition = "NVARCHAR(200)")

@@ -11,12 +11,13 @@ import java.util.List;
 
 public interface MovieService  {
 
-    MoviePageableResponse findAllByPage(PageQueryRequest request);
+    MoviePageableResponse findAllByPage(MoviePageQueryRequest request);
     List<MovieResponse> findAll();
     MovieResponse findById(Integer id);
     MovieEntity findById(Integer id, boolean isEntity);
     MovieEntity save(MovieCreationRequest movie);
     MovieResponse update(MovieUpdateRequest movie);
     void delete(Integer id );
-    List<MovieResponse> findByTitle(String title);
+
+
 }

@@ -1,7 +1,7 @@
 package com.codebloom.cineman.controller.admin;
 
 import com.codebloom.cineman.controller.request.MovieStatusRequest;
-import com.codebloom.cineman.model.MovieStatusEntity;
+import com.codebloom.cineman.controller.response.ApiResponse;
 import com.codebloom.cineman.service.MovieStatusService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -11,70 +11,72 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/admin/movie-status")
+@RequestMapping("${api.path}/admin/movie-status")
 @Tag(name = "Movie Status Controller ( Admin Role )")
 @Validated
 public class MovieAStatusController {
 
     private final MovieStatusService movieStatusService;
-    private Map<String, Object> response;
 
     @GetMapping("/all")
-    public ResponseEntity<Map<String, Object>> getAllMovieStatus() {
-        List<MovieStatusEntity> list = movieStatusService.findAll();
-        Map<String, Object> response = new HashMap<>();
-        response.put("data", list);
-        response.put("status", 200);
-        response.put("message", "success");
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+    public ResponseEntity<ApiResponse> getAllMovieStatus() {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(OK.value())
+                        .message("Success")
+                        .data(movieStatusService.findAll())
+                        .build()
+        );
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> getMovieStatusById(@PathVariable String id) {
-        MovieStatusEntity status = movieStatusService.findById(id);
-        response = new HashMap<>();
-        response.put("data", status);
-        response.put("status", OK.value());
-        response.put("message", "success");
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+    public ResponseEntity<ApiResponse> getMovieStatusById(@PathVariable String id) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(OK.value())
+                        .message("Success")
+                        .data(movieStatusService.findById(id))
+                        .build()
+        );
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Map<String, Object>> handleAddMovieStatus(@RequestBody @Valid MovieStatusRequest request) {
-        MovieStatusEntity status = movieStatusService.save(request);
-        response = new HashMap<>();
-        response.put("data", status);
-        response.put("status", CREATED.value());
-        response.put("message", "success");
-        return ResponseEntity.status(CREATED).body(response);
+    public ResponseEntity<ApiResponse> handleAddMovieStatus(@RequestBody @Valid MovieStatusRequest request) {
+        return ResponseEntity.status(CREATED).body(
+                ApiResponse.builder()
+                        .status(CREATED.value())
+                        .message("Created")
+                        .data(movieStatusService.save(request))
+                        .build()
+        );
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Map<String, Object>> handleUpdateMovieStatus(@RequestBody @Valid MovieStatusRequest request) {
-        MovieStatusEntity status = movieStatusService.update(request);
-        response = new HashMap<>();
-        response.put("data", status);
-        response.put("status", CREATED.value());
-        response.put("message", "success");
-        return ResponseEntity.status(CREATED).body(response);
+    public ResponseEntity<ApiResponse> handleUpdateMovieStatus(@RequestBody @Valid MovieStatusRequest request) {
+        return ResponseEntity.status(CREATED).body(
+                ApiResponse.builder()
+                        .status(OK.value())
+                        .message("Updated successfully")
+                        .data(movieStatusService.update(request))
+                        .build()
+        );
     }
 
     @DeleteMapping("/{id}/remove")
-    public ResponseEntity<Map<String, Object>> handleRemoveMovieStatus(@PathVariable String id) {
+    public ResponseEntity<ApiResponse> handleRemoveMovieStatus(@PathVariable String id) {
         movieStatusService.deleteById(id);
-        response = new HashMap<>();
-        response.put("data", null);
-        response.put("status", NO_CONTENT.value());
-        response.put("message", "Delete success with id: " + id);
-        return ResponseEntity.status(NO_CONTENT).body(response);
+        return ResponseEntity.status(NO_CONTENT).body(
+                ApiResponse.builder()
+                        .status(NO_CONTENT.value())
+                        .message("Delete success with id: " + id)
+                        .data(null)
+                        .build()
+        );
     }
 
 }

@@ -1,5 +1,7 @@
 package com.codebloom.cineman.service.util;
 
+import com.codebloom.cineman.common.enums.TokenType;
+import com.codebloom.cineman.service.JwtService;
 import com.sendgrid.Method;
 import com.sendgrid.Request;
 import com.sendgrid.Response;
@@ -35,6 +37,7 @@ public class EmailServiceImpl implements EmailService {
 
 
     private final SendGrid sendGrid;
+    private final JwtService jwtService;
 
     /**
      * Send email by send grid
@@ -78,20 +81,22 @@ public class EmailServiceImpl implements EmailService {
      * @param name:
      */
     @Override
-    public void emailVerification(String to, String name) throws IOException {
+    public void emailVerification(String to, String phoneNumber, String name) throws IOException {
         log.info("Email verification started with email to: " + to);
 
-        Email fromEmail = new Email(from, "STLang");
+        Email fromEmail = new Email(from, "QuangSon");
         Email toEmail = new Email(to);
 
         String subject = "Xác thực tài khoản";
-        String secretCode = String.format("?secretCode=%s", UUID.randomUUID());
+        String tokenVerify = jwtService.generateTokenToVerify(phoneNumber, to);
+        String secretCode = String.format("?secretCode=%s", tokenVerify);
 
         //TODO generate secretCode and save to database
 
         Map<String, String> map = new HashMap<>();
         map.put("name", name);
         map.put("verification_link", verificationLink + secretCode);
+        map.put("subject", subject);
 
         Mail mail = new Mail();
         mail.setFrom(fromEmail);

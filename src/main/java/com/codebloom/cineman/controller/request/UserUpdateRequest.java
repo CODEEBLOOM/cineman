@@ -1,11 +1,16 @@
 package com.codebloom.cineman.controller.request;
 
+import com.codebloom.cineman.common.enums.GenderUser;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Date;
 
 @Getter
-public class    UserUpdateRequest {
+@Setter
+@Builder
+public class UserUpdateRequest {
 
     private Long userId;
     private String email;
@@ -13,6 +18,6 @@ public class    UserUpdateRequest {
     private String phoneNumber;
     private String address;
     private Date dateOfBirth;
-    private Boolean gender;
+    private GenderUser gender;
 
 }

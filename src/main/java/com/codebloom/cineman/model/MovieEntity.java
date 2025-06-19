@@ -34,7 +34,7 @@ public class MovieEntity implements Serializable {
     @Column(name = "synopsis", columnDefinition = "NVARCHAR(500)")
     private String synopsis;
 
-    @Column(name = "detail_description", columnDefinition = "NVARCHAR(500)")
+    @Column(name = "detail_description", columnDefinition = "NVARCHAR(1000)")
     private String detailDescription;
 
     @Column(name = "release_date")

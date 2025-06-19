@@ -1,5 +1,6 @@
 package com.codebloom.cineman.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,9 +32,10 @@ public class RoleEntity implements Serializable {
             name= "role_permissions",
             joinColumns = @JoinColumn(name = "role_id"),
 			inverseJoinColumns = @JoinColumn(name = "permission_id"))
-	@JsonManagedReference
+	@JsonIgnore
     Set<PermissionEntity> permissions;
 
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "role")
+    @JsonIgnore
     Set<UserRoleEntity> userRoles;
 }

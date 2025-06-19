@@ -22,8 +22,7 @@ import java.security.Key;
 import java.util.*;
 import java.util.function.Function;
 
-import static com.codebloom.cineman.common.enums.TokenType.ACCESS_TOKEN;
-import static com.codebloom.cineman.common.enums.TokenType.REFRESH_TOKEN;
+import static com.codebloom.cineman.common.enums.TokenType.*;
 
 @Service
 @Slf4j(topic = "JWT-SERVICE-UTIL")
@@ -40,6 +39,12 @@ public class JwtServiceImpl implements JwtService {
 
     @Value("${jwt.refreshKey}")
     private String refreshKey;
+
+    @Value("${jwt.verifyKey}")
+    private String verifyKey;
+
+    @Value("${jwt.expirationVerify}")
+    private long expirationVerify;
 
 
     @Override
@@ -90,6 +95,21 @@ public class JwtServiceImpl implements JwtService {
         }
     }
 
+    private String generateVerifyToken(Map<String, Object> claims, String email) {
+        try {
+            return Jwts.builder()
+                    .setClaims(claims)
+                    .setSubject(email)
+                    .setIssuedAt(new Date(System.currentTimeMillis()))
+                    .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * expirationVerify))
+                    .signWith(getKey(VERIFY_EMAIL), SignatureAlgorithm.HS256)
+                    .compact();
+        } catch (InvalidKeyException e) {
+            log.error("{}",e.getMessage());
+            return null;
+        }
+    }
+
     private String generateRefreshToken(Map<String, Object> claims, String username) {
         try {
             return Jwts.builder()
@@ -115,6 +135,9 @@ public class JwtServiceImpl implements JwtService {
             }
             case REFRESH_TOKEN -> {
                 return Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshKey));
+            }
+            case VERIFY_EMAIL -> {
+                return Keys.hmacShaKeyFor(Decoders.BASE64.decode(verifyKey));
             }
             default -> {
                 try {
@@ -162,6 +185,20 @@ public class JwtServiceImpl implements JwtService {
      */
     public boolean isTokenExpired(String token, TokenType tokenType) {
         return extractExpiration(token, tokenType).before(new Date());
+    }
+
+
+    /**
+     * Token dùng để xác nhận email hợp lệ của người dùng
+     * @param phoneNumber số điện thoại
+     * @param email email xác nhận
+     * @return token với thời gian hêt hạn là 10 phút
+     */
+    @Override
+    public String generateTokenToVerify(String phoneNumber, String email) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("phone", phoneNumber);
+        return generateVerifyToken(claims, email);
     }
 
     /**

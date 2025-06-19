@@ -11,6 +11,6 @@ public interface ParticipantService {
     ParticipantEntity findById(Integer id);
     ParticipantEntity save(ParticipantRequest director);
     ParticipantEntity update(Integer id, ParticipantRequest director);
-    int delete(Integer id);
+    void delete(Integer id);
 
 }

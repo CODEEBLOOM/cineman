@@ -2,6 +2,7 @@ package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.controller.request.LoginRequest;
 import com.codebloom.cineman.controller.response.TokenResponse;
+import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.exception.ForBiddenException;
 import com.codebloom.cineman.exception.InvalidDataException;
 import com.codebloom.cineman.model.UserEntity;
@@ -52,11 +53,11 @@ public class AuthServiceImpl implements AuthService {
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (AuthenticationException e) {
             log.info("Authentication failed: {}", e.getMessage());
-            throw new AccessDeniedException(e.getMessage());
+            throw new DataNotFoundException("Username or password is incorrect");
         }
 
         UserEntity user =  userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("Email or password is incorrect"));
         UserPrincipal userPrincipal = new UserPrincipal(user);
 
         String accessToken =  jwtService.generateAccessToken(user.getUserId(), request.getEmail(), userPrincipal.getAuthorities());

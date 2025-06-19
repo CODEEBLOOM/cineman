@@ -30,6 +30,9 @@ public class GenresEntity implements Serializable {
     @Column(name = "description", columnDefinition = "NVARCHAR(250)")
     private String description;
 
+    @Column(name = "active")
+    private Boolean active;
+
     @OneToMany(mappedBy = "genres")
     @JsonIgnore
     private List<MovieGenresEntity> movieGenres ;
