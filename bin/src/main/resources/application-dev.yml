@@ -8,31 +8,26 @@ spring:
   datasource:
     url: jdbc:sqlserver://localhost:1433;databaseName=cinema_app;encrypt=true;trustServerCertificate=true;
     username: sa
-    password: 123456
+    password: Son15@2
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   jpa:
     database-platform: org.hibernate.dialect.SQLServer2012Dialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
         format_sql: false
   sendgrid:
-    api-key: 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
-    from-email: admin@em7802.cineman.io.vn
+    api-key: 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
+    from-email: sondoquang3@gmail.com
     template-id: d-c59a7109d01d40ca97cd20310ad512f7
     verification-link: http://localhost:8081/user/confirm-email
 jwt:
   expirationDay: 30
-  expirationMinutes: 30
-  expirationVerify: 10
+  expirationMinutes: 1
   accessKey: XEV3ZWGVjFHgilOWNuKJxNRSK8wUl5txZH3JabLRtfw=
   refreshKey: LGgDK8nPs6LeCAkBUmTwjCxJo7EUHs0Djs63XCBNpaCbYZTIagsltVFa8p6ltllN
-  verifyKey: blIDNZ3afjxIxnJ6Rj/EtbD3p4znONpL6Y//xEQoaQ8=
-
-api:
-  path: /api/v01
 springdoc:
   api-docs:
     enabled: true
