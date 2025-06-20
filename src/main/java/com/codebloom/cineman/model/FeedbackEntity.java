@@ -48,5 +48,8 @@ public class FeedbackEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name = "feedback_topic", nullable = false)
     FeedbackTopicEntity topic;
+    
+    @Column(name = "is_active")
+    Boolean isActive;
 
 }

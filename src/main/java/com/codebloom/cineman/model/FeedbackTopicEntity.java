@@ -31,4 +31,7 @@ public class FeedbackTopicEntity implements Serializable {
 
     @OneToMany(mappedBy = "topic")
     private List<FeedbackEntity> feedbacks;
+    
+    @Column(name = "is_active")
+    Boolean isActive;
 }

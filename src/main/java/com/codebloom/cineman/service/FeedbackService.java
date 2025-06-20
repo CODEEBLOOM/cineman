@@ -9,6 +9,8 @@ import java.util.List;
 public interface FeedbackService {
 	void delete(Integer id, String userEmail);
 	
+	void deleteByAdmin(Integer id);
+	
 	List<FeedbackResponse> findAll();
     
     List<FeedbackResponse> findByUser(String userEmail);
@@ -22,5 +24,10 @@ public interface FeedbackService {
     FeedbackResponse update(Integer id, FeedbackRequest request, String userEmail);
     
 //    FeedbackResponse update(Integer feedbackId, FeedbackRequest request, Long userId);
+    
+    List<FeedbackResponse> findAllIncludeInactive();
+
+	
+
     
 }
