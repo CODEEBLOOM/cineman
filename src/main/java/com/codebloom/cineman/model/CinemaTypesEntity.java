@@ -30,6 +30,6 @@ public class CinemaTypesEntity implements Serializable {
 
     @OneToMany(mappedBy = "cinemaType")
     @JsonBackReference
-    List<CinemaTheatersEntity> cinemaTheaters;
+    List<CinemaTheaterEntity> cinemaTheaters;
 
 }

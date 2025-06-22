@@ -99,6 +99,10 @@ public class JwtFilter extends OncePerRequestFilter {
                 Pair.of(String.format("%s/auth/register", apiPath), "POST"),
                 Pair.of(String.format("%s/auth/refresh-token", apiPath), "POST"),
 
+                /* Movie*/
+                Pair.of(String.format("%s/movie/all", apiPath), "GET"),
+                Pair.of(String.format("%s/movie/.*", apiPath), "GET"),
+
                 // Swagger
                 Pair.of("/api-docs","GET"),
                 Pair.of("/api-docs/**","GET"),

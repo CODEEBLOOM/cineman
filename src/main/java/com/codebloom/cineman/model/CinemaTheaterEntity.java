@@ -1,6 +1,7 @@
 package com.codebloom.cineman.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -18,7 +19,7 @@ import java.util.List;
 @Entity
 @Table(name = "cinema_theaters")
 @Check(constraints = "total_seats > 0 and number_of_rows >= 0 and number_of_columns>0")
-public class CinemaTheatersEntity implements Serializable {
+public class CinemaTheaterEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,13 +43,18 @@ public class CinemaTheatersEntity implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "movie_theater_id")
-    MovieTheatersEntity movieTheater;
+    MovieTheaterEntity movieTheater;
 
     @ManyToOne
     @JoinColumn(name = "cinema_type_id")
     CinemaTypesEntity cinemaType;
 
-    @OneToMany(mappedBy = "CinemaTheater")
+    @OneToMany(mappedBy = "cinemaTheater")
+    @JsonIgnore
     List<SeatEntity> seats;
+
+    @OneToMany(mappedBy = "cinemaTheater")
+    @JsonIgnore
+    List<ShowTimeEntity> showTimes;
 
 }

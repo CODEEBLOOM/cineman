@@ -34,7 +34,7 @@ public class SnackEntity implements Serializable {
     @Column(name = "image", columnDefinition = "VARCHAR(100)")
     String image;
 
-    @Column(name = "description", columnDefinition = "VARCHAR(200)")
+    @Column(name = "description", columnDefinition = "NVARCHAR(250)")
     String description;
 
     @Column(name = "is_active")
