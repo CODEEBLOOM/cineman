@@ -3,7 +3,7 @@ package com.codebloom.cineman.service.impl;
 import com.codebloom.cineman.common.constant.MovieStatus;
 import com.codebloom.cineman.controller.request.MovieCreationRequest;
 import com.codebloom.cineman.controller.request.MovieUpdateRequest;
-import com.codebloom.cineman.controller.request.PageQueryRequest;
+import com.codebloom.cineman.controller.request.MoviePageQueryRequest;
 import com.codebloom.cineman.controller.response.MetaResponse;
 import com.codebloom.cineman.controller.response.MoviePageableResponse;
 import com.codebloom.cineman.controller.response.MovieResponse;
@@ -39,9 +39,11 @@ public class MovieServiceImpl implements MovieService {
 
 
     @Override
-    public MoviePageableResponse findAllByPage(PageQueryRequest request) {
+    public MoviePageableResponse findAllByPage(MoviePageQueryRequest request) {
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
-        Page<MovieEntity> moviePage = movieRepository.findAll(pageable);
+        MovieStatusEntity movieStatus = movieStatusRepository.findById(request.getStatus())
+                .orElseThrow(() -> new DataNotFoundException("Movie status not found"));
+        Page<MovieEntity> moviePage = movieRepository.findAllByStatus(movieStatus,pageable);
         return movieToMoviePageableResponse(moviePage);
     }
 
@@ -75,7 +77,7 @@ public class MovieServiceImpl implements MovieService {
     public MovieEntity save(MovieCreationRequest request) {
         MovieStatusEntity status = null;
         Optional<MovieStatusEntity> movieStatus = movieStatusRepository.findById(MovieStatus.MOVIE_STATUS_SC);
-        if(!movieStatus.isPresent()){
+        if(movieStatus.isEmpty()){
             MovieStatusEntity movieStatusEntity = new MovieStatusEntity();
             movieStatusEntity.setStatusId(MovieStatus.MOVIE_STATUS_SC);
             movieStatusEntity.setName("Sắp chiếu");
@@ -84,14 +86,10 @@ public class MovieServiceImpl implements MovieService {
         }else {
             status = movieStatus.get();
         }
-        Date now = new Date();
         MovieEntity movie = modelMapper.map(request, MovieEntity.class);
         movie.setStatus(status);
-        movie.setCreatedAt(now);
-        movie.setUpdatedAt(now);
         log.info("Movie saved: {}", movie);
         return movieRepository.save(movie);
-
     }
 
 
@@ -129,13 +127,6 @@ public class MovieServiceImpl implements MovieService {
         movieRepository.save(movie);
     }
 
-    @Override
-    public List<MovieResponse> findByTitle(String title) {
-        List<MovieEntity> movies = movieRepository.findByTitleContainingIgnoreCase(title);
-        List<MovieResponse> movieResponses = new ArrayList<>();
-        movies.forEach(movie -> movieResponses.add(movieToMovieResponse(movie)));
-        return movieResponses;
-    }
 
     private MovieResponse movieToMovieResponse(MovieEntity movie) {
         List<GenresEntity> genres = new ArrayList<>();
@@ -152,6 +143,8 @@ public class MovieServiceImpl implements MovieService {
         MovieResponse movieResponse = new MovieResponse();
         movieResponse.setMovieId(movie.getMovieId());
         movieResponse.setStatus(movie.getStatus().getName());
+        movieResponse.setSynopsis(movie.getSynopsis());
+        movieResponse.setDetailDescription(movie.getDetailDescription());
         movieResponse.setTitle(movie.getTitle());
         movieResponse.setReleaseDate(movie.getReleaseDate());
         movieResponse.setLanguage(movie.getLanguage());
@@ -170,8 +163,13 @@ public class MovieServiceImpl implements MovieService {
     private MoviePageableResponse movieToMoviePageableResponse(Page<MovieEntity> page) {
         List<MovieResponse> movieResponses = new ArrayList<>();
         page.getContent().forEach(movieEntity -> movieResponses.add(movieToMovieResponse(movieEntity)));
-        MetaResponse metaResponse = new MetaResponse();
-        metaResponse.setCurrentPage(page.getNumber() + 1);
+        MetaResponse metaResponse = MetaResponse.builder()
+                .currentPage(page.getNumber())
+                .pageSize(page.getSize())
+                .totalPages(page.getTotalPages())
+                .totalElements((int) page.getTotalElements())
+                .build();
+        metaResponse.setCurrentPage(page.getNumber());
         metaResponse.setTotalPages(page.getTotalPages());
         metaResponse.setPageSize(page.getSize());
         metaResponse.setTotalElements(page.getNumberOfElements());

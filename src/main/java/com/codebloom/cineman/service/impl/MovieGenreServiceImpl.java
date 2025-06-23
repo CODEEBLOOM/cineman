@@ -12,8 +12,6 @@ import com.codebloom.cineman.service.MovieService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class MovieGenreServiceImpl implements MovieGenreService {

@@ -3,10 +3,7 @@ package com.codebloom.cineman.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.Serializable;
 import java.util.List;
@@ -15,6 +12,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "movie_status")
 public class MovieStatusEntity implements Serializable {
@@ -28,6 +26,9 @@ public class MovieStatusEntity implements Serializable {
 
     @Column(name = "description", columnDefinition = "NVARCHAR(250)")
     private String description;
+
+    @Column(name = "active")
+    private Boolean active;
 
     @OneToMany(mappedBy = "status", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore

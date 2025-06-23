@@ -11,17 +11,5 @@ import java.util.List;
 @Builder
 public class UserPaginationResponse {
     private List<UserResponse> userResponses;
-    private Meta meta;
-
-    @Getter
-    @Setter
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Builder
-    public static class Meta {
-        private Integer currentPage;
-        private Integer pageSize;
-        private Integer totalPages;
-        private Integer totalElements;
-    }
+    private MetaResponse meta;
 }

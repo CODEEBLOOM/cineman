@@ -2,8 +2,6 @@ package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.controller.request.ParticipantRequest;
 import com.codebloom.cineman.exception.DataNotFoundException;
-import com.codebloom.cineman.model.MovieParticipantEntity;
-import com.codebloom.cineman.repository.MovieParticipantRepository;
 import com.codebloom.cineman.repository.ParticipantRepository;
 import com.codebloom.cineman.service.ParticipantService;
 import lombok.RequiredArgsConstructor;
@@ -18,18 +16,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ParticipantServiceImpl implements ParticipantService {
 
-    private final ParticipantRepository directorRepository;
-    private final MovieParticipantRepository movieParticipantRepository;
+    private final ParticipantRepository participantRepository;
     private final ModelMapper modelMapper;
 
     @Override
     public List<ParticipantEntity> findAll() {
-        return directorRepository.findAll();
+        return participantRepository.findAll();
     }
 
     @Override
     public ParticipantEntity findById(Integer id) {
-         return directorRepository.findById(id)
+         return participantRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Director not found with id: " + id));
     }
 
@@ -37,7 +34,8 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Transactional
     public ParticipantEntity save(ParticipantRequest director) {
         ParticipantEntity participantEntity = modelMapper.map(director, ParticipantEntity.class);
-        return directorRepository.save(participantEntity);
+        participantEntity.setActive(true);
+        return participantRepository.save(participantEntity);
     }
 
     @Override
@@ -51,15 +49,17 @@ public class ParticipantServiceImpl implements ParticipantService {
         participantEntity.setMiniBio(director.getMiniBio());
         participantEntity.setAvatar(director.getAvatar());
 
-        return directorRepository.save(participantEntity);
+        return participantRepository.save(participantEntity);
     }
 
+    /**
+     * Thực hiện xóa mềm
+     * @param id : id người tham gia vào bộ phim
+     */
     @Override
-    public int delete(Integer id) {
-        if(!movieParticipantRepository.existsByParticipantId(id)){
-            directorRepository.deleteById(id);
-            return 1;
-        }
-        return -1;
+    public void delete(Integer id) {
+        ParticipantEntity participant =  this.findById(id);
+        participant.setActive(false);
+        participantRepository.save(participant);
     }
 }

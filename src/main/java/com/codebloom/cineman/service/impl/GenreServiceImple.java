@@ -24,7 +24,9 @@ public class GenreServiceImple implements GenreService {
         genresRepository.findByName(genres.getName()).ifPresent(genre -> {
             throw new DataExistingException("Genre with name " + genres.getName() + " already exists");
         });
-        return genresRepository.save(modelMapper.map(genres, GenresEntity.class));
+        GenresEntity genresEntity = modelMapper.map(genres, GenresEntity.class);
+        genresEntity.setActive(true);
+        return genresRepository.save(genresEntity);
     }
 
     @Override
@@ -35,13 +37,10 @@ public class GenreServiceImple implements GenreService {
     }
 
     @Override
-    public int delete(Integer id) {
-        this.findById(id);
-        if(!genresRepository.existsByGenreId(id)) {
-            genresRepository.deleteById(id);
-            return 1;
-        }
-        return -1;
+    public void delete(Integer id) {
+        GenresEntity genre = this.findById(id);
+        genre.setActive(false);
+        genresRepository.save(genre);
     }
 
     @Override

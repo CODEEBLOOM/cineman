@@ -1,18 +1,16 @@
 package com.codebloom.cineman.controller.admin;
 
-import com.codebloom.cineman.controller.request.ChangePasswordRequest;
-import com.codebloom.cineman.controller.request.PageQueryRequest;
+
+import com.codebloom.cineman.controller.request.PageRequest;
 import com.codebloom.cineman.controller.request.UserCreationRequest;
 import com.codebloom.cineman.controller.request.UserUpdateRequest;
-import com.codebloom.cineman.controller.response.UserPaginationResponse;
-import com.codebloom.cineman.controller.response.UserResponse;
+import com.codebloom.cineman.controller.response.ApiResponse;
 import com.codebloom.cineman.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,82 +18,78 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("${api.path}/admin/user")
 @Tag(name = "User Controller ( User api )")
 @RequiredArgsConstructor
 @Slf4j(topic = "USER-CONTROLLER")
 public class UserAController {
 
     private final UserService userService;
-    Map<String, Object> response;
 
     @Operation(summary = "Get all users", description = "API dùng để lấy ra toàn bộ users có trong hệ thống.")
-    @GetMapping("/list")
-    public Map<String, Object> getList(@RequestBody PageQueryRequest request) {
-        UserPaginationResponse userList = userService.findAll(request);
-        response = new LinkedHashMap<>();
-        response.put("data", userList);
-        response.put("message", "User List");
-        response.put("status", HttpStatus.OK.value());
-        return response;
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse> getAllUsers(PageRequest pageRequest) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Success")
+                        .data(userService.findAll(pageRequest))
+                        .build()
+        );
     }
 
     @Operation(summary = "Find User By User Id", description = "API dùng để lấy ra user theo user_id")
-    @GetMapping("/detail/{userId}")
-    public Map<String, Object> getUserDetail(@PathVariable @Min(1) Long userId) {
-        UserResponse userRes = userService.findById(userId);
-        response = new LinkedHashMap<>();
-        response.put("data", userRes);
-        response.put("message", "User List");
-        response.put("status", HttpStatus.OK.value());
-        return response;
+    @GetMapping("/{userId}")
+    public ResponseEntity<ApiResponse> getUserDetail(@PathVariable @Min(1) Long userId) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Success")
+                        .data(userService.findById(userId))
+                        .build()
+        );
     }
 
-    @Operation(summary = "Create New User", description = "API dùng để tạo mới một User")
+    @Operation(summary = "Create New User", description = "API dùng để tạo mới một user bên admin")
     @PostMapping("/add")
-    public ResponseEntity<Map<String, Object>> createUser(@RequestBody @Valid UserCreationRequest request) {
-        Long userId = userService.save(request);
-        response = new LinkedHashMap<>();
-        response.put("status", CREATED.value());
-        response.put("message", "User Created Success");
-        response.put("data", userId);
-        return ResponseEntity.status(CREATED).body(response);
+    public ResponseEntity<ApiResponse> createUser(@RequestBody @Valid UserCreationRequest request) {
+        return ResponseEntity.status(CREATED).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.CREATED.value())
+                        .message("User Created Success")
+                        .data(userService.save(request))
+                        .build()
+        );
     }
 
     @Operation(summary = "Update User", description = "API dùng để cập nhật một User")
     @PutMapping("/update")
-    public Map<String, Object> updateUser(@RequestBody UserUpdateRequest request) {
-        response = new LinkedHashMap<>();
-        response.put("status", HttpStatus.ACCEPTED.value());
-        response.put("message", "User Updated Success");
-        response.put("data", "");
-        return response;
+    public ResponseEntity<ApiResponse> updateUser(@RequestBody UserUpdateRequest request) {
+        return ResponseEntity.status(CREATED).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.CREATED.value())
+                        .message("User Updated Success")
+                        .data(userService.update(request))
+                        .build()
+        );
     }
 
-    @Operation(summary = "Change Password", description = "API dùng để thay đổi mật khẩu của User")
-    @PutMapping("/change-pwd")
-    public Map<String, Object> changePassword(@RequestBody ChangePasswordRequest request) {
-        response = new LinkedHashMap<>();
-        response.put("status", HttpStatus.NO_CONTENT.value());
-        response.put("message", "Change Password Success");
-        response.put("data", "");
-        return response;
-    }
 
     @Operation(summary = "Disable User", description = "API dùng để chuyển isActive thành false")
-    @DeleteMapping("/{userId}/del")
-    public Map<String, Object> delete(@PathVariable Long userId) {
-        response = new LinkedHashMap<>();
-        response.put("status", HttpStatus.NO_CONTENT.value());
-        response.put("message", "Disable User Success");
-        response.put("data", "");
-        return response;
+    @DeleteMapping("/{userId}/delete")
+    public ResponseEntity<ApiResponse> delete(@PathVariable Long userId) {
+        userService.delete(userId);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Success")
+                        .data(null)
+                        .build()
+        );
     }
 
     @Operation(summary = "Confirm User", description = "API dùng để confirm email")
@@ -103,7 +97,8 @@ public class UserAController {
     public void confirmEmail(@RequestParam String secretCode, HttpServletResponse response) throws IOException {
         log.info("Confirm Email {}", secretCode);
         try {
-            // TODO: check secretCode or compare secret code from database
+            userService.confirmEmail(secretCode);
+            response.sendRedirect("http://localhost:3000");
         }catch(Exception e) {
             log.error("Error occur confirm email, error: {}", e.getMessage());
         }finally {

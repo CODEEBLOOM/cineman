@@ -274,6 +274,42 @@ public class GlobalExceptionHandler {
     }
 
 
+/**
+     * Handle exception when the request not found data
+     *
+     * @param e AccessDeniedException
+     * @param request request
+     * @return errorResponse
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(UNAUTHORIZED)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "401", description = "UNAUTHORIZED",
+                    content = {@Content(mediaType = APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    name = "401 Response",
+                                    summary = "Handle exception when UNAUTHORIZED",
+                                    value = """
+                                            {
+                                              "timestamp": "2023-10-19T06:07:35.321+00:00",
+                                              "status": 401,
+                                              "path": "/api/v1/...",
+                                              "error": "UNAUTHORIZED",
+                                              "message": "{data} not found"
+                                            }
+                                            """
+                            ))})
+    })
+    public ErrorResponse handleAccessDeniedException(AccessDeniedException e, WebRequest request) {
+        errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        errorResponse.setStatus(UNAUTHORIZED.value());
+        errorResponse.setError(UNAUTHORIZED.getReasonPhrase());
+        errorResponse.setMessage(e.getMessage());
+
+        return errorResponse;
+    }
 
     @Getter
     @Setter
