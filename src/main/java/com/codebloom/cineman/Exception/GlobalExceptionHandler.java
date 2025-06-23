@@ -274,7 +274,7 @@ public class GlobalExceptionHandler {
     }
 
 
-    /**
+/**
      * Handle exception when the request not found data
      *
      * @param e AccessDeniedException
@@ -287,12 +287,12 @@ public class GlobalExceptionHandler {
             @ApiResponse(responseCode = "401", description = "UNAUTHORIZED",
                     content = {@Content(mediaType = APPLICATION_JSON_VALUE,
                             examples = @ExampleObject(
-                                    name = "403 Response",
+                                    name = "401 Response",
                                     summary = "Handle exception when UNAUTHORIZED",
                                     value = """
                                             {
                                               "timestamp": "2023-10-19T06:07:35.321+00:00",
-                                              "status": 403,
+                                              "status": 401,
                                               "path": "/api/v1/...",
                                               "error": "UNAUTHORIZED",
                                               "message": "{data} not found"
@@ -310,8 +310,6 @@ public class GlobalExceptionHandler {
 
         return errorResponse;
     }
-
-
 
     @Getter
     @Setter
