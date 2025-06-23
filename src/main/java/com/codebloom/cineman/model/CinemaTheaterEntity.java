@@ -47,7 +47,7 @@ public class CinemaTheaterEntity implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "cinema_type_id")
-    CinemaTypesEntity cinemaType;
+    CinemaTypeEntity cinemaType;
 
     @OneToMany(mappedBy = "cinemaTheater")
     @JsonIgnore
