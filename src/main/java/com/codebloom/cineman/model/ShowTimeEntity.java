@@ -39,16 +39,16 @@ public class ShowTimeEntity implements Serializable {
 
     @Column(name = "total_cinema")
     Integer totalCinema;
-    
-    @ManyToOne
-    @JoinColumn(name = "movie_id", nullable = false)
-    private MovieEntity movie;
 
     @OneToMany(mappedBy = "showTime")
     private List<TicketEntity> tickets;
 
     @ManyToOne
-    @JoinColumn(name = "movie_theater_id", nullable = false)
-    private MovieTheatersEntity movieTheater;
+    @JoinColumn(name = "movie_id", nullable = false)
+    private MovieEntity movie;
+
+    @ManyToOne
+    @JoinColumn(name = "cinema_theater_id", nullable = false)
+    private CinemaTheaterEntity cinemaTheater;
 
 }

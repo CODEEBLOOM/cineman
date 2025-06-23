@@ -10,16 +10,13 @@ import java.util.Set;
 
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class PermissionResponse {
-    Integer permissionId;
-    String title;
-    String description;
-    Method method;
-    String url;
-    Date createdAt;
-    Date updatedAt;
+    private Integer permissionId;
+    private String title;
+    private String description;
+    private Method method;
+    private String url;
+    private Date createdAt;
+    private Date updatedAt;
 }

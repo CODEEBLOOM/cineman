@@ -169,7 +169,7 @@ public class GlobalExceptionHandler {
                                               "timestamp": "2025-06-01T06:35:52.333+00:00",
                                               "status": 500,
                                               "path": "/api/v1/...",
-//                                              "error": "Internal Server Error",
+                                              "error": "Internal Server Error",
                                               "message": "Connection timeout, please try again"
                                             }
                                             """

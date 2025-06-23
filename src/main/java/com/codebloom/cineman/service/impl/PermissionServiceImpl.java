@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
-import org.springframework.util.AntPathMatcher;;
+import org.springframework.util.AntPathMatcher;
 
 import java.util.Date;
 import java.util.List;
@@ -111,8 +111,7 @@ public class PermissionServiceImpl implements PermissionService {
                 .toList();
     }
 
-// Phần bên dưới là của Cường //
-    private final PermissionRepository permissionRepository;
+
 
     // thư viện tiện ích jup so sánh URL -> /user/api/** match /user/api/123/abc
     private final AntPathMatcher pathMatcher = new AntPathMatcher();

@@ -7,11 +7,9 @@ import java.util.Set;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class RoleResponse {
-    String roleId;
-    String name;
-    Set<String> permissions;
+    private String roleId;
+    private String name;
+    private Set<String> permissions;
 }

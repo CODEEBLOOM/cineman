@@ -1,6 +1,6 @@
 package com.codebloom.cineman.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -16,11 +16,15 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "cinema_types")
-public class CinemaTypesEntity implements Serializable {
+public class CinemaTypeEntity implements Serializable {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cinema_type_id")
-    String cinemaTypeId;
+    Integer cinemaTypeId;
+
+    @Column(name="code", nullable=false, length=25)
+    String code;
 
     @Column(columnDefinition = "NVARCHAR(200)")
     String name;
@@ -28,8 +32,17 @@ public class CinemaTypesEntity implements Serializable {
     @Column(columnDefinition = "NVARCHAR(250)")
     String description;
 
+    @Column(name = "price_multiplier", columnDefinition = "TINYINT")
+    Integer priceMultiplier;
+
+    Boolean status;
+
     @OneToMany(mappedBy = "cinemaType")
-    @JsonBackReference
-    List<CinemaTheatersEntity> cinemaTheaters;
+    @JsonIgnore
+    List<CinemaTheaterEntity> cinemaTheaters;
+
+    @ManyToMany(mappedBy = "cinemaTypes")
+    @JsonIgnore
+    private List<FeatureEntity> features;
 
 }

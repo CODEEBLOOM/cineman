@@ -3,6 +3,7 @@ package com.codebloom.cineman.model;
 
 import com.codebloom.cineman.common.enums.Method;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -46,6 +47,6 @@ public class PermissionEntity implements Serializable {
     Date updatedAt;
 
 	@ManyToMany(mappedBy = "permissions")
-    @JsonBackReference
+    @JsonIgnore
     Set<RoleEntity> roles;
 }

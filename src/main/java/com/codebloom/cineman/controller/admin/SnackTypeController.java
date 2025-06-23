@@ -73,7 +73,7 @@ public class SnackTypeController {
     }
 
     @Operation(summary = "Xóa một loại snack")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/delete")
     public ResponseEntity<ApiResponse> delete(@PathVariable @Min(1) Integer id) {
         snackTypeService.delete(id);
         return ResponseEntity.status(HttpStatus.OK).body(

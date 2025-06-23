@@ -1,6 +1,7 @@
 package com.codebloom.cineman.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -27,11 +28,20 @@ public class ProvinceEntity {
     @Column(columnDefinition = "NVARCHAR(150)")
     String name;
 
+    @Column(name = "active")
+    Boolean active;
+
     @Column(name = "create_at")
     @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
     Date createdAt ;
 
+    @Column(name = "update_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    @CreationTimestamp
+    Date updateAt ;
+
     @OneToMany(mappedBy = "province")
-    List<MovieTheatersEntity> movieTheaters;
+    @JsonIgnore
+    List<MovieTheaterEntity> movieTheaters;
 }

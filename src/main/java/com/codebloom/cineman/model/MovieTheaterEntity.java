@@ -1,6 +1,7 @@
 package com.codebloom.cineman.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -17,22 +18,18 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "movie_theaters")
-@Check(constraints = "total_cinema_theater > 0")
-public class MovieTheatersEntity implements Serializable {
+public class MovieTheaterEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "movie_theater_id")
     Integer movieTheaterId;
 
-    @Column(columnDefinition = "nvarchar(500)")
+    @Column(columnDefinition = "nvarchar(200)")
     String name;
 
     @Column(columnDefinition = "nvarchar(200)")
     String address;
-
-    @Column(name = "total_cinema_theater")
-    Integer numbersOfCinemaTheater;
 
     @Column(name = "hotline", length = 20)
     String hotline;
@@ -45,9 +42,11 @@ public class MovieTheatersEntity implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "province_id", nullable = false)
+    @JsonIgnore
     ProvinceEntity province;
 
     @OneToMany(mappedBy = "movieTheater")
-    List<CinemaTheatersEntity> cinemaTheaters;
+    @JsonIgnore
+    List<CinemaTheaterEntity> cinemaTheaters;
 }
 

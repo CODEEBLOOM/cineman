@@ -38,7 +38,7 @@ public class SnackServiceImpl implements SnackService {
                 .orElseThrow(() -> new DataNotFoundException("Snack Type not found"));
         snack.setSnackType(snackType);
         SnackEntity saved = snackRepository.save(snack);
-        return mapper.map(saved, SnackResponse.class);
+        return convert(saved);
     }
 
 
@@ -47,12 +47,13 @@ public class SnackServiceImpl implements SnackService {
         SnackEntity snack = snackRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Snack not found"));
         mapper.map(request, snack);
+        snack.setId(id);
         SnackTypeEntity snackType = snackTypeRepository.findById(request.getSnackTypeId())
                 .orElseThrow(() -> new DataNotFoundException("Snack Type not found"));
         snack.setSnackType(snackType);
         snack.setIsActive(true);
         SnackEntity updated = snackRepository.save(snack);
-        return mapper.map(updated, SnackResponse.class);
+        return convert(updated);
     }
 
     @Override
@@ -67,15 +68,21 @@ public class SnackServiceImpl implements SnackService {
     public SnackResponse findById(int id) {
         SnackEntity snack = snackRepository.findByIdAndIsActiveTrue(id)
                 .orElseThrow(() -> new DataNotFoundException("Snack not found or inactive"));
-        return mapper.map(snack, SnackResponse.class);
+        return convert(snack);
     }
 
     @Override
     public List<SnackResponse> findAll() {
         return snackRepository.findByIsActive(true)
                 .stream()
-                .map(snack -> mapper.map(snack, SnackResponse.class))
+                .map(this::convert)
                 .toList();
+    }
+
+    private SnackResponse convert(SnackEntity snack) {
+        SnackResponse snackResponse = mapper.map(snack, SnackResponse.class);
+        snackResponse.setSnackTypes(snack.getSnackType());
+        return snackResponse;
     }
 }
 
