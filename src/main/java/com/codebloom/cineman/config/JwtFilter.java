@@ -1,6 +1,9 @@
 package com.codebloom.cineman.config;
 
+import com.codebloom.cineman.common.enums.Method;
 import com.codebloom.cineman.common.enums.TokenType;
+import com.codebloom.cineman.model.PermissionEntity;
+import com.codebloom.cineman.repository.PermissionRepository;
 import com.codebloom.cineman.service.JwtService;
 import com.codebloom.cineman.service.MyUserDetailsService;
 import com.google.gson.Gson;
@@ -28,6 +31,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -38,6 +42,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final ApplicationContext context;
+    private final PermissionRepository permissionRepository;
 
     @Value("${api.path}")
     private String apiPath;
@@ -55,7 +60,12 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("{} {}", request.getMethod(), request.getRequestURI());
 
-        if(isBypassToken(request)) {
+        List<PermissionEntity> guestPermissions = permissionRepository.findAllByRoleGuest();
+        List<Pair<String, Method>> bypassTokens = guestPermissions.stream()
+                .map(p -> Pair.of(p.getUrl(), p.getMethod()))
+                .collect(Collectors.toList());
+
+        if(isBypassToken(request,bypassTokens)) {
             filterChain.doFilter(request, response); //enable bypass
             return;
         }
@@ -90,40 +100,31 @@ public class JwtFilter extends OncePerRequestFilter {
 
 
     /* Những request sau không cần check token*/
-    private boolean isBypassToken(@NonNull HttpServletRequest request) {
-        final List<Pair<String, String>> bypassTokens = Arrays.asList(
+    private boolean isBypassToken(@NonNull HttpServletRequest request, List<Pair<String, Method>> bypassTokens) {
+        bypassTokens = Arrays.asList(
 
-                /* AUTH */
-                Pair.of(String.format("%s/auth/login", apiPath), "POST"),
-                Pair.of(String.format("%s/auth/logout", apiPath), "POST"),
-                Pair.of(String.format("%s/auth/register", apiPath), "POST"),
-                Pair.of(String.format("%s/auth/refresh-token", apiPath), "POST"),
-
-                /* Movie*/
-                Pair.of(String.format("%s/movie/all", apiPath), "GET"),
-                Pair.of(String.format("%s/movie/.*", apiPath), "GET"),
 
                 // Swagger
-                Pair.of("/api-docs","GET"),
-                Pair.of("/api-docs/**","GET"),
-                Pair.of("/swagger-resources","GET"),
-                Pair.of("/swagger-resources/**","GET"),
-                Pair.of("/configuration/ui","GET"),
-                Pair.of("/configuration/security","GET"),
-                Pair.of("/swagger-ui/**","GET"),
-                Pair.of("/swagger-ui.html", "GET"),
-                Pair.of("/swagger-ui/index.html", "GET")
+                Pair.of("/api-docs",Method.GET),
+                Pair.of("/api-docs/**",Method.GET),
+                Pair.of("/swagger-resources",Method.GET),
+                Pair.of("/swagger-resources/**",Method.GET),
+                Pair.of("/configuration/ui",Method.GET),
+                Pair.of("/configuration/security",Method.GET),
+                Pair.of("/swagger-ui/**",Method.GET),
+                Pair.of("/swagger-ui.html", Method.GET),
+                Pair.of("/swagger-ui/index.html", Method.GET)
         );
 
         String requestPath = request.getServletPath();
         String requestMethod = request.getMethod();
 
-        for (Pair<String, String> token : bypassTokens) {
+        for (Pair<String, Method> token : bypassTokens) {
             String path = token.getFirst();
-            String method = token.getSecond();
+            Method method = token.getSecond();
             // Check if the request path and method match any pair in the bypassTokens list
             if (requestPath.matches(path.replace("**", ".*"))
-                    && requestMethod.equalsIgnoreCase(method)) {
+                    && requestMethod.equalsIgnoreCase(method.name())) {
                 return true;
             }
         }
@@ -160,4 +161,3 @@ public class JwtFilter extends OncePerRequestFilter {
         private String message;
     }
 }
-
