@@ -41,8 +41,5 @@ public class CinemaTypeEntity implements Serializable {
     @JsonIgnore
     List<CinemaTheaterEntity> cinemaTheaters;
 
-    @ManyToMany(mappedBy = "cinemaTypes")
-    @JsonIgnore
-    private List<FeatureEntity> features;
 
 }

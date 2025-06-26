@@ -1,5 +1,7 @@
 package com.codebloom.cineman.model;
 
+import com.codebloom.cineman.common.enums.SeatMapStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Check;
@@ -38,7 +40,15 @@ public class SeatMapEntity {
     @Column(name = "double_seat_row")
     private Integer doubleSeatRow;
 
+    @Column(name = "description" , length = 250, columnDefinition = "NVARCHAR(250)")
+    private String description;
+
+    @Column(name = "status", columnDefinition = "TINYINT")
+    @Enumerated(EnumType.ORDINAL)
+    private SeatMapStatus status;
+
     @OneToMany(mappedBy = "seatMap")
-    private List<CinemaTheaterEntity> seats;
+    @JsonIgnore
+    private List<CinemaTheaterEntity> cinemaTheater;
 
 }
