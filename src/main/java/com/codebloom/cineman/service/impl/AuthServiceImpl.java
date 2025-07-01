@@ -58,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (AuthenticationException e) {
             log.info("Authentication failed: {}", e.getMessage());
-            throw new DataNotFoundException("Username or password is incorrect");
+            throw new DataNotFoundException("Username or password is incorrect or non-existent");
         }
 
         UserEntity user =  userRepository.findByEmail(request.getEmail())
