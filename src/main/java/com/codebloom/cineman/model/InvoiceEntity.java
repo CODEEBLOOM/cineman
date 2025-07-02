@@ -35,6 +35,7 @@ public class InvoiceEntity implements Serializable {
     @Column(name = "phone_number", nullable = false, unique = true, length = 20)
     private String phoneNumber;
 
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "status", columnDefinition = "TINYINT")
     private InvoiceStatus status;
 
@@ -72,5 +73,7 @@ public class InvoiceEntity implements Serializable {
 
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL)
     private List<TicketEntity> tickets;
+    
+
 }
 
