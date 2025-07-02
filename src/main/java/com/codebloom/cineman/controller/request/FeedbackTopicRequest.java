@@ -8,7 +8,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FeedbackTopicRequest {
-    @NotBlank(message = "Topic name must not be blank!")
+	private Long id;
+	
     @Size(max = 100, message = "Title of movie must be less than 100 character !")
     private String topicName;
     

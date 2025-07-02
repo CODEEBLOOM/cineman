@@ -1,5 +1,7 @@
 package com.codebloom.cineman.controller.request;
 
+import java.util.Date;
+
 import com.codebloom.cineman.common.enums.SatisfactionLevel;
 
 import jakarta.persistence.Temporal;
@@ -16,36 +18,23 @@ import lombok.*;
 @Builder
 public class FeedbackRequest {
 
-//    private Integer feedbackId; 
-//
-//    @Size(max = 100, message = "Title of movie must be less than 100 characters!")
-//    @NotNull(message = "Content must not be null")
-//    private String content;
-//
-//    @NotNull(message = "Satisfaction level must not be null")
-//    private SatisfactionLevel satisfactionLevel;
-//
-//    private String reasonForReview;
-//
-//    @NotNull(message = "Feedback date must not be null")
-//    @Temporal(TemporalType.DATE)
-//    private Date dateFeedback; 
-//
-//    @NotNull(message = "User ID must not be null")
-//    private Integer userId;
-//
-//    @NotNull(message = "Topic ID must not be null")
-//    private Integer topicId;
+    private Integer feedbackId; 
 
-    @NotBlank(message = "Content must not be blank")
-    @Size(max = 500, message = "Content of movie must be less than 500 characters!")
+    @Size(max = 100, message = "Title of movie must be less than 100 characters!")
+    @NotNull(message = "Content must not be null")
     private String content;
 
     @NotNull(message = "Satisfaction level must not be null")
     private SatisfactionLevel satisfactionLevel;
-
+    
+    @NotNull(message = "Reason For Review must not be null")
+    @Size(max = 250, message = "Title of movie must be less than 250 characters!")
     private String reasonForReview;
 
     @NotNull(message = "Topic ID must not be null")
     private Integer topicId;
+    
+    @NotNull(message = "Invoice ID must not be null")
+    private Long invoiceId;
+
 }

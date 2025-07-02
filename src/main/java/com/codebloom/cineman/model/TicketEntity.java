@@ -58,5 +58,6 @@ public class TicketEntity implements Serializable {
     @JoinColumn(name = "invoice_id")
     private InvoiceEntity invoice;
 
-
+    @Column(name = "rating")
+    private Integer rating;
 }
