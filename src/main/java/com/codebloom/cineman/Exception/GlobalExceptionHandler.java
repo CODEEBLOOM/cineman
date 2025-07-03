@@ -1,4 +1,4 @@
-package com.codebloom.cineman.exception;
+package com.codebloom.cineman.Exception;
 
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.ConstraintViolationException;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
+import java.io.IOException;
 import java.util.Date;
 
 import static org.springframework.http.HttpStatus.*;
@@ -85,7 +87,7 @@ public class GlobalExceptionHandler {
      * @param request: để lấy ra URI đích
      * @return errorResponse
      */
-    @ExceptionHandler(DataNotFoundException.class)
+    @ExceptionHandler(com.codebloom.cineman.exception.DataNotFoundException.class)
     @ResponseStatus(NOT_FOUND)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "Bad Request",
@@ -104,7 +106,7 @@ public class GlobalExceptionHandler {
                                             """
                             ))})
     })
-    public ErrorResponse handleDataNotFoundException(DataNotFoundException e, WebRequest request) {
+    public ErrorResponse handleDataNotFoundException(com.codebloom.cineman.exception.DataNotFoundException e, WebRequest request) {
         errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
@@ -114,12 +116,48 @@ public class GlobalExceptionHandler {
         return errorResponse;
     }
 
+
+    /**
+     * Hàm xử lý bắt ngoại lệ liên quan tới xử lí file
+     * @param request: để lấy ra URI đích
+     * @return errorResponse
+     */
+
+    @ExceptionHandler(IOException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "500", description = "Lỗi khi xử lý file hoặc Google Drive",
+                    content = {@Content(mediaType = APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    name = "500 Response",
+                                    summary = "Handle exception when upload fails",
+                                    value = """
+                                        {
+                                          "timestamp": "2025-06-27T10:00:00.000+00:00",
+                                          "status": 500,
+                                          "path": "/api/v1/drive/upload",
+                                          "error": "Internal Server Error",
+                                          "message": "Không thể upload file: file quá lớn hoặc lỗi hệ thống"
+                                        }
+                                        """
+                            ))})
+    })
+    public ErrorResponse handleIOException(IOException e, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        errorResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        errorResponse.setError(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
+        errorResponse.setMessage("Không thể upload file: " + e.getMessage());
+        return errorResponse;
+    }
+
     /**
      * Hàm xử lý bắt ngoại lệ dữ liệu đã tồn tại trong hệ thống
      * @param request: để lấy ra URI đích
      * @return errorResponse
      */
-    @ExceptionHandler(DataExistingException.class)
+    @ExceptionHandler(com.codebloom.cineman.exception.DataExistingException.class)
     @ResponseStatus(BAD_REQUEST)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "400", description = "Conflict",
@@ -138,7 +176,7 @@ public class GlobalExceptionHandler {
                                             """
                             ))})
     })
-    public ErrorResponse handleDuplicateKeyException(DataExistingException e, WebRequest request) {
+    public ErrorResponse handleDuplicateKeyException(com.codebloom.cineman.exception.DataExistingException e, WebRequest request) {
         errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
@@ -187,9 +225,9 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler(ConfirmPasswordException.class)
+    @ExceptionHandler(com.codebloom.cineman.exception.ConfirmPasswordException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ErrorResponse handleConfirmPasswordException(ConfirmPasswordException e, WebRequest request) {
+    public ErrorResponse handleConfirmPasswordException(com.codebloom.cineman.exception.ConfirmPasswordException e, WebRequest request) {
         errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
@@ -206,7 +244,7 @@ public class GlobalExceptionHandler {
      * @param request request
      * @return errorResponse
      */
-    @ExceptionHandler(InvalidDataException.class)
+    @ExceptionHandler(com.codebloom.cineman.exception.InvalidDataException.class)
     @ResponseStatus(CONFLICT)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "409", description = "Conflict",
@@ -225,7 +263,7 @@ public class GlobalExceptionHandler {
                                             """
                             ))})
     })
-    public ErrorResponse handleDuplicateKeyException(InvalidDataException e, WebRequest request) {
+    public ErrorResponse handleDuplicateKeyException(com.codebloom.cineman.exception.InvalidDataException e, WebRequest request) {
         errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
@@ -243,7 +281,7 @@ public class GlobalExceptionHandler {
      * @param request request
      * @return errorResponse
      */
-    @ExceptionHandler(ForBiddenException.class)
+    @ExceptionHandler(com.codebloom.cineman.exception.ForBiddenException.class)
     @ResponseStatus(FORBIDDEN)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "403", description = "Access Dined",
@@ -262,7 +300,7 @@ public class GlobalExceptionHandler {
                                             """
                             ))})
     })
-    public ErrorResponse handleForBiddenException(ForBiddenException e, WebRequest request) {
+    public ErrorResponse handleForBiddenException(com.codebloom.cineman.exception.ForBiddenException e, WebRequest request) {
         errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
@@ -281,7 +319,7 @@ public class GlobalExceptionHandler {
      * @param request request
      * @return errorResponse
      */
-    @ExceptionHandler(AccessDeniedException.class)
+    @ExceptionHandler(com.codebloom.cineman.exception.AccessDeniedException.class)
     @ResponseStatus(UNAUTHORIZED)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "401", description = "UNAUTHORIZED",
@@ -300,7 +338,7 @@ public class GlobalExceptionHandler {
                                             """
                             ))})
     })
-    public ErrorResponse handleAccessDeniedException(AccessDeniedException e, WebRequest request) {
+    public ErrorResponse handleAccessDeniedException(com.codebloom.cineman.exception.AccessDeniedException e, WebRequest request) {
         errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
