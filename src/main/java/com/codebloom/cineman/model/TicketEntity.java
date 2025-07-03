@@ -26,10 +26,10 @@ public class TicketEntity implements Serializable {
     @Column(name = "ticket_id")
     private Long id;
 
-    @Column(name = "status", columnDefinition = "TINYINT")
+    @Column(name = "status", columnDefinition = "TINYINT", nullable = false)
     private TicketStatus status;
 
-    @Column(name = "price")
+    @Column(name = "price", nullable = false)
     private Double price;
 
     @Column(name = "create_booking")
@@ -40,6 +40,7 @@ public class TicketEntity implements Serializable {
     @Column(name = "limit_time", nullable = false)
     Integer limitTime;
 
+    @Column(name = "expired", nullable = false)
     Boolean expired;
 
     @ManyToOne
@@ -55,7 +56,7 @@ public class TicketEntity implements Serializable {
     private SeatEntity seat;
 
     @ManyToOne
-    @JoinColumn(name = "invoice_id")
+    @JoinColumn(name = "invoice_id", nullable = false)
     private InvoiceEntity invoice;
 
 

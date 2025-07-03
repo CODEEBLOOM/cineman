@@ -38,13 +38,13 @@ public class UserEntity implements  Serializable {
     @Column(name = "email", unique = true, nullable = false, length = 150)
     String email;
 
-    @Column(name = "password", length = 250)
+    @Column(name = "password", length = 250, nullable = false)
     String password;
 
-    @Column(name = "fullname", columnDefinition = "NVARCHAR(100)")
+    @Column(name = "fullname", columnDefinition = "NVARCHAR(100)", nullable = false)
     String fullName;
 
-    @Column(name = "phone_number", length = 20, unique = true)
+    @Column(name = "phone_number", length = 20, unique = true, nullable = false)
     String phoneNumber;
 
     @Column(name = "address", columnDefinition = "NVARCHAR(200)")
@@ -55,7 +55,7 @@ public class UserEntity implements  Serializable {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     Date dateOfBirth;
 
-    @Column(name = "gender", columnDefinition = "TINYINT")
+    @Column(name = "gender", columnDefinition = "TINYINT", nullable = false)
     @Enumerated(EnumType.ORDINAL)
     GenderUser gender;
 

@@ -24,26 +24,26 @@ public class ParticipantEntity implements Serializable {
     @Column(name = "participant_id")
     Integer participantId;
 
-    @Column(name = "birth_name", columnDefinition = "NVARCHAR(100)")
+    @Column(name = "birth_name", columnDefinition = "NVARCHAR(100)", nullable = false)
     String birthName;
 
-    @Column(name = "nickname", columnDefinition = "NVARCHAR(100)")
+    @Column(name = "nickname", columnDefinition = "NVARCHAR(100)", nullable = false)
     String nickname;
 
-    @Column(name = "gender", columnDefinition = "TINYINT")
+    @Column(name = "gender", columnDefinition = "TINYINT", nullable = false)
     @Enumerated(EnumType.ORDINAL)
     GenderUser gender;
 
-    @Column(name = "nationality", columnDefinition = "NVARCHAR(100)")
+    @Column(name = "nationality", columnDefinition = "NVARCHAR(100)", nullable = false)
     String nationality;
 
     @Column(name = "mini_bio", columnDefinition = "NVARCHAR(500)")
     String miniBio;
 
-    @Column(length = 200)
+    @Column(name = "avatar", length = 200, nullable = false)
     String avatar;
 
-    @Column(name = "active")
+    @Column(name = "active", nullable = false)
     Boolean active;
 
     @OneToMany(mappedBy = "participant")

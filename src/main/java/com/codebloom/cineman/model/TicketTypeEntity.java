@@ -1,5 +1,6 @@
 package com.codebloom.cineman.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -23,16 +24,17 @@ public class TicketTypeEntity implements Serializable {
     @Column(name = "ticket_type_id")
     Integer id;
 
-    @Column(name = "name", columnDefinition = "NVARCHAR(100)")
+    @Column(name = "name", columnDefinition = "NVARCHAR(100)", nullable = false)
     String nameType;
 
     @Column(name = "description", columnDefinition = "NVARCHAR(200)")
     String description;
 
-    @Column(name = "price")
+    @Column(name = "price", nullable = false)
     Double price;
 
     @OneToMany(mappedBy = "ticketType")
+    @JsonIgnore
     List<TicketEntity> tickets;
 
 

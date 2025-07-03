@@ -10,15 +10,13 @@ import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PermissionRequest {
 
 
     @NotBlank(message = "Title không được để trống")
     @Size(max = 100, message = "Title không được vượt quá 100 ký tự")
+    @NotNull( message = "Title không được phép null !")
     String title;
 
     @Size(max = 500, message = "Description không được vượt quá 500 ký tự")
@@ -29,6 +27,6 @@ public class PermissionRequest {
 
     @NotBlank(message = "URL không được để trống")
     @Size(max = 200, message = "URL không được vượt quá 200 ký tự")
-    @Pattern(regexp = "^/.*", message = "URL phải bắt đầu bằng /")
+    @NotNull( message = "URL không được phép null !")
     String url;
 }

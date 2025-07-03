@@ -1,6 +1,6 @@
 package com.codebloom.cineman.controller.request;
 
-import jakarta.persistence.Column;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -17,6 +17,7 @@ public class CinemaTypeRequest {
 
     @NotBlank(message = "Name's cinema type is must not blank !")
     @Size(min = 1, max = 200, message = "Name's cinema type is must less than or equal 200 character !")
+    @NotNull(message = "Name's cinema type is must not null !")
     String name;
 
     @NotBlank(message = "Description's cinema type is must not blank !")

@@ -1,8 +1,9 @@
 package com.codebloom.cineman.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.Check;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -12,10 +13,10 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @Entity
 @Table(name = "show_times")
+@Check(constraints = "origin_price > 0")
 public class ShowTimeEntity implements Serializable {
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,10 +38,8 @@ public class ShowTimeEntity implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date endTime;
 
-    @Column(name = "total_cinema")
-    Integer totalCinema;
-
     @OneToMany(mappedBy = "showTime")
+    @JsonIgnore
     private List<TicketEntity> tickets;
 
     @ManyToOne

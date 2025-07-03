@@ -92,18 +92,5 @@ public class UserAController {
         );
     }
 
-    @Operation(summary = "Confirm User", description = "API dùng để confirm email")
-    @GetMapping("/confirm-email")
-    public void confirmEmail(@RequestParam String secretCode, HttpServletResponse response) throws IOException {
-        log.info("Confirm Email {}", secretCode);
-        try {
-            userService.confirmEmail(secretCode);
-            response.sendRedirect("http://localhost:3000");
-        }catch(Exception e) {
-            log.error("Error occur confirm email, error: {}", e.getMessage());
-        }finally {
-            response.sendRedirect("https://www.facebook.com");
-        }
-    }
 
 }

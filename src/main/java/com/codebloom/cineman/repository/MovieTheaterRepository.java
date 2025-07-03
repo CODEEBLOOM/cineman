@@ -17,4 +17,6 @@ public interface MovieTheaterRepository extends JpaRepository<MovieTheaterEntity
     Page<MovieTheaterEntity> findAllByStatus(Boolean status, Pageable pageable);
 
     Optional<MovieTheaterEntity>  findByMovieTheaterIdAndStatus(Integer id, Boolean status);
+
+    Optional<MovieTheaterEntity> findByStatusAndMovieTheaterId(Boolean status, Integer movieTheaterId);
 }

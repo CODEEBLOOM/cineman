@@ -1,6 +1,6 @@
 package com.codebloom.cineman.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -23,16 +23,16 @@ public class SnackTypeEntity implements Serializable {
     @Column(name = "snack_type_id")
     Integer id;
 
-    @Column(name = "name", columnDefinition = "NVARCHAR(100)")
+    @Column(name = "name", columnDefinition = "NVARCHAR(100)", nullable = false)
     String name;
 
     @Column(name = "description", columnDefinition = "NVARCHAR(200)")
     String description;
 
     @OneToMany(mappedBy = "snackType")
-    @JsonBackReference
+    @JsonIgnore
     List<SnackEntity> snacks;
 
-    @Column(name = "is_active")
+    @Column(name = "is_active", nullable = false)
     Boolean isActive;
 }

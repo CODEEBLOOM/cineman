@@ -26,13 +26,13 @@ public class PromotionEntity implements Serializable  {
     @Column(name = "promotion_id")
     private Long promotionId;
 
-    @Column(columnDefinition = "NVARCHAR(100)")
+    @Column(columnDefinition = "NVARCHAR(100)", nullable = false)
     private String name;
 
     @Column( columnDefinition = "NVARCHAR(500)")
     private String content;
 
-    @Column(name = "code", length=100)
+    @Column(name = "code", length=100, nullable = false)
     private String code;
 
     @Column(name = "start_day")
@@ -45,10 +45,10 @@ public class PromotionEntity implements Serializable  {
     @CreationTimestamp
     private Date endDay;
 
-    @Column(name = "discount")
+    @Column(name = "discount", nullable = false)
     private Double discount;
 
-    @Column(name = "status", columnDefinition = "TINYINT")
+    @Column(name = "status", columnDefinition = "TINYINT", nullable = false)
     private StatusPromotion status;
 
     @ManyToOne

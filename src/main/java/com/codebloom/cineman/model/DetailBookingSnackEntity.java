@@ -27,10 +27,10 @@ public class DetailBookingSnackEntity implements Serializable {
     private Integer totalSnack;
 
     @ManyToOne
-    @JoinColumn(name = "invoice_id")
+    @JoinColumn(name = "invoice_id", nullable = false)
     private InvoiceEntity invoice;
 
     @ManyToOne
-    @JoinColumn(name =  "snack_id")
+    @JoinColumn(name =  "snack_id", nullable = false)
     private SnackEntity snack;
 }

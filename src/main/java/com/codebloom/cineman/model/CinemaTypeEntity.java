@@ -23,18 +23,16 @@ public class CinemaTypeEntity implements Serializable {
     @Column(name = "cinema_type_id")
     Integer cinemaTypeId;
 
-    @Column(name="code", nullable=false, length=25)
+    @Column(name="code", nullable = false, length = 25)
     String code;
 
-    @Column(columnDefinition = "NVARCHAR(200)")
+    @Column(columnDefinition = "NVARCHAR(200)", nullable = false)
     String name;
 
     @Column(columnDefinition = "NVARCHAR(250)")
     String description;
 
-    @Column(name = "price_multiplier", columnDefinition = "TINYINT")
-    Integer priceMultiplier;
-
+    @Column(name = "status", nullable = false)
     Boolean status;
 
     @OneToMany(mappedBy = "cinemaType")

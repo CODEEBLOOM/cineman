@@ -13,6 +13,7 @@ import com.codebloom.cineman.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -142,6 +145,20 @@ public class AuthenticationController {
                     .build();
         }
         return ResponseEntity.status(UNAUTHORIZED).body(null);
+    }
+
+    @Operation(summary = "Confirm User", description = "API dùng để confirm email")
+    @GetMapping("/confirm-email")
+    public void confirmEmail(@RequestParam String secretCode, HttpServletResponse response) throws IOException {
+        log.info("Confirm Email {}", secretCode);
+        try {
+            userService.confirmEmail(secretCode);
+            response.sendRedirect("http://localhost:3000");
+        }catch(Exception e) {
+            log.error("Error occur confirm email, error: {}", e.getMessage());
+        }finally {
+            response.sendRedirect("https://www.facebook.com");
+        }
     }
 
 }
