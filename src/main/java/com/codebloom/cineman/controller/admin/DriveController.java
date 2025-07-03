@@ -71,7 +71,7 @@ public class DriveController {
 
     @Operation(summary = "download file from drive", description = "API dùng để tải file của người dùng trên gg drive.")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse> getAllFileIMG(@Re) throws IOException{
+    public ResponseEntity<ApiResponse> getAllFileIMG() throws IOException{
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
