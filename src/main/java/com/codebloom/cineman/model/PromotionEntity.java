@@ -1,5 +1,6 @@
 package com.codebloom.cineman.model;
 
+import com.codebloom.cineman.common.enums.PromotionConditionType;
 import com.codebloom.cineman.common.enums.StatusPromotion;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,8 +21,8 @@ import java.util.List;
 @Entity
 @Table(name = "promotions")
 public class PromotionEntity implements Serializable  {
-	
-	@Id
+
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "promotion_id")
     private Long promotionId;
@@ -42,7 +43,7 @@ public class PromotionEntity implements Serializable  {
 
     @Column(name = "end_day")
     @Temporal(TemporalType.TIMESTAMP)
-    @CreationTimestamp
+    //   @CreationTimestamp
     private Date endDay;
 
     @Column(name = "discount")
@@ -50,6 +51,16 @@ public class PromotionEntity implements Serializable  {
 
     @Column(name = "status", columnDefinition = "TINYINT")
     private StatusPromotion status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "condition_type")
+    private PromotionConditionType conditionType;
+
+    @Column(name = "condition_value", columnDefinition = "NVARCHAR(100)")
+    private Double conditionValue;
+
+
+
 
     @ManyToOne
     @JoinColumn(name = "staff_id", nullable = false)
