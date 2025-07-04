@@ -124,17 +124,17 @@ public class GlobalExceptionHandler {
      */
 
     @ExceptionHandler(IOException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(BAD_REQUEST)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "500", description = "Lỗi khi xử lý file hoặc Google Drive",
+            @ApiResponse(responseCode = "404", description = "Lỗi khi xử lý file hoặc Google Drive",
                     content = {@Content(mediaType = APPLICATION_JSON_VALUE,
                             examples = @ExampleObject(
-                                    name = "500 Response",
+                                    name = "404 Response",
                                     summary = "Handle exception when upload fails",
                                     value = """
                                         {
                                           "timestamp": "2025-06-27T10:00:00.000+00:00",
-                                          "status": 500,
+                                          "status": 404,
                                           "path": "/api/v1/drive/upload",
                                           "error": "Internal Server Error",
                                           "message": "Không thể upload file: file quá lớn hoặc lỗi hệ thống"
@@ -142,12 +142,12 @@ public class GlobalExceptionHandler {
                                         """
                             ))})
     })
-    public ErrorResponse handleIOException(IOException e, WebRequest request) {
+    public ErrorResponse handleIOException(FileNotFoundException e, WebRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
-        errorResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        errorResponse.setError(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
+        errorResponse.setStatus(BAD_REQUEST.value());
+        errorResponse.setError(BAD_REQUEST.getReasonPhrase());
         errorResponse.setMessage("Không thể upload file: " + e.getMessage());
         return errorResponse;
     }

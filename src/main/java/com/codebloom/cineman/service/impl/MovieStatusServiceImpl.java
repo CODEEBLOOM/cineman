@@ -26,7 +26,7 @@ public class MovieStatusServiceImpl implements MovieStatusService {
 
     @Override
     public MovieStatusEntity findById(String movieStatusId) {
-        return movieStatusRepository.findById(movieStatusId)
+        return movieStatusRepository.findByStatusIdAndActive(movieStatusId , true)
                 .orElseThrow(() -> new DataNotFoundException("Status of movie not found with ID: " + movieStatusId));
     }
 
@@ -40,6 +40,7 @@ public class MovieStatusServiceImpl implements MovieStatusService {
                     .statusId(movieStatusRequest.getId())
                     .name(movieStatusRequest.getName())
                     .description(movieStatusRequest.getDescription())
+                    .active(true)
                     .build();
             return movieStatusRepository.save(newMovieStatus);
         }

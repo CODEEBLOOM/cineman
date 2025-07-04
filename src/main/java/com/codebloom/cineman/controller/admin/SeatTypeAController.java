@@ -1,10 +1,12 @@
 package com.codebloom.cineman.controller.admin;
 
+import com.codebloom.cineman.common.enums.SeatType;
 import com.codebloom.cineman.controller.request.SeatTypeRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
 import com.codebloom.cineman.service.SeatTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +39,7 @@ public class SeatTypeAController {
     @Operation(summary = "Get seat type by id", description = "API dùng để lấy ra loại ghế theo id của rạp chiếu.")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> getSeatTypeById(
-            @PathVariable @Size(min = 1, max = 25, message = "Id của loại ghế có độ dài nhỏ hơn 26 kí tự !") String id) {
+            @PathVariable SeatType id) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
@@ -49,7 +51,7 @@ public class SeatTypeAController {
 
     @Operation(summary = "Create a seat type", description = "API dùng để tạo mới loại ghế của rạp chiếu.")
     @PostMapping("/add")
-    public ResponseEntity<ApiResponse> createSeatType(@RequestBody SeatTypeRequest seatTypeRequest) {
+    public ResponseEntity<ApiResponse> createSeatType(@RequestBody @Valid SeatTypeRequest seatTypeRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.builder()
                         .status(HttpStatus.CREATED.value())
@@ -62,7 +64,7 @@ public class SeatTypeAController {
     @Operation(summary = "Update a seat type", description = "API dùng để cập nhật thông tin loại ghế của rạp chiếu.")
     @PutMapping("/{id}/update")
     public ResponseEntity<ApiResponse> updateSeatType(
-            @PathVariable @Size(min = 1, max = 25, message = "Id của loại ghế có độ dài nhỏ hơn 26 kí tự !") String id,
+            @PathVariable SeatType id,
             @RequestBody SeatTypeRequest seatTypeRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.builder()
@@ -76,7 +78,7 @@ public class SeatTypeAController {
     @Operation(summary = "Delete a seat type", description = "API dùng để xóa loại ghế của rạp chiếu.")
     @DeleteMapping("/{id}/delete")
     public ResponseEntity<ApiResponse> deleteSeatType(
-            @PathVariable @Size(min = 1, max = 25, message = "Id của loại ghế có độ dài nhỏ hơn 26 kí tự !") String id
+            @PathVariable SeatType id
     ) {
         seatTypeService.delete(id);
         return ResponseEntity.status(HttpStatus.CREATED).body(

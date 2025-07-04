@@ -10,9 +10,9 @@ import java.util.List;
 public interface SeatTypeService {
 
     SeatTypeEntity create(SeatTypeRequest seatTypeRequest);
-    SeatTypeEntity update(String id, SeatTypeRequest seatTypeRequest);
+    SeatTypeEntity update(SeatType id, SeatTypeRequest seatTypeRequest);
     List<SeatTypeEntity> findAll();
-    SeatTypeEntity findById(String id);
-    void delete(String id);
+    SeatTypeEntity findById(SeatType id);
+    void delete(SeatType id);
 
 }

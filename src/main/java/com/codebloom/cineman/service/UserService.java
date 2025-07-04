@@ -2,6 +2,7 @@ package com.codebloom.cineman.service;
 
 import com.codebloom.cineman.common.enums.TokenType;
 import com.codebloom.cineman.controller.request.*;
+import com.codebloom.cineman.controller.response.TokenResponse;
 import com.codebloom.cineman.controller.response.UserPaginationResponse;
 import com.codebloom.cineman.controller.response.UserResponse;
 import com.codebloom.cineman.model.UserEntity;
@@ -26,4 +27,6 @@ public interface UserService {
     UserResponse getInfoUserByAccessToken(String token);
     void updateRefreshToken(String refreshToken, boolean isLogout);
     void confirmEmail(String secretCode);
+    LoginRequest loginSocial(UserCreationRequest userLoginDTO);
+
 }

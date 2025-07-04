@@ -2,6 +2,7 @@ package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.common.enums.CinemaTheaterStatus;
 import com.codebloom.cineman.common.enums.SeatStatus;
+import com.codebloom.cineman.common.enums.SeatType;
 import com.codebloom.cineman.controller.request.SeatRequest;
 import com.codebloom.cineman.controller.response.SeatResponse;
 import com.codebloom.cineman.exception.DataNotFoundException;
@@ -75,8 +76,16 @@ public class SeatServiceImpl implements SeatService {
     @Transactional
     public SeatEntity save(SeatRequest seat) {
         log.info("Saving seat: {}", seat);
-        SeatTypeEntity seatType = seatTypeRepository.findByStatusAndId(true, seat.getSeatType())
+        SeatType existingSeatType = switch (seat.getSeatType()) {
+            case "VIP" -> SeatType.VIP;
+            case "DOUBLE" -> SeatType.DOUBLE;
+            case "REGULAR" -> SeatType.REGULAR;
+            default -> throw new DataNotFoundException("Seat Type Not Found");
+        };
+
+        SeatTypeEntity seatType = seatTypeRepository.findByIdAndStatus(existingSeatType, true)
                 .orElseThrow(() -> new DataNotFoundException("Seat Type Not Found With Name: " + seat.getSeatType()));
+
         CinemaTheaterEntity cinemaTheater = cinemaTheatersRepository.findByStatusNotAndCinemaTheaterId(CinemaTheaterStatus.INVALID, seat.getCinemaTheaterId())
                 .orElseThrow(() -> new DataNotFoundException("Cinema Theater Not Found"));
         checkCinemaTheaterStatus(cinemaTheater.getCinemaTheaterId());
@@ -140,6 +149,7 @@ public class SeatServiceImpl implements SeatService {
      * @return The list of SeatResponse
      */
     @Override
+    @Transactional
     public List<SeatResponse> addMultiple(List<SeatRequest> seats) {
         List<SeatResponse> list = new ArrayList<>();
         seats.forEach(seat -> {
@@ -155,8 +165,9 @@ public class SeatServiceImpl implements SeatService {
      * @param ids The list of ids to be deleted
      */
     @Override
+    @Transactional
     public void deleteMultiple(List<Long> ids) {
-        ids.forEach(id -> this.delete(id));
+        ids.forEach(this::delete);
     }
 
     /**

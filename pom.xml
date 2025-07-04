@@ -125,6 +125,20 @@
 			<artifactId>google-auth-library-oauth2-http</artifactId>
 			<version>1.20.0</version>
 		</dependency>
+		<dependency>
+			<groupId>com.google.oauth-client</groupId>
+			<artifactId>google-oauth-client-jetty</artifactId>
+			<version>1.36.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.apis</groupId>
+			<artifactId>google-api-services-people</artifactId>
+			<version>v1-rev537-1.25.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents.client5</groupId>
+			<artifactId>httpclient5</artifactId>
+		</dependency>
 
 		<!-- Google Drive API via client wrapper -->
 		<dependency>
@@ -133,6 +147,10 @@
 			<version>v3-rev20220815-2.0.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-client</artifactId>
+		</dependency>
 
 		<!--JWT-->
 		<dependency>

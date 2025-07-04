@@ -33,7 +33,7 @@ import java.util.Optional;
 public class MovieServiceImpl implements MovieService {
 
     private final MovieRepository movieRepository;
-    private final  MovieStatusRepository movieStatusRepository;
+    private final MovieStatusRepository movieStatusRepository;
     private final MovieStatusService movieStatusService;
     private final ModelMapper modelMapper;
 
@@ -43,7 +43,7 @@ public class MovieServiceImpl implements MovieService {
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
         MovieStatusEntity movieStatus = movieStatusRepository.findById(request.getStatus())
                 .orElseThrow(() -> new DataNotFoundException("Movie status not found"));
-        Page<MovieEntity> moviePage = movieRepository.findAllByStatus(movieStatus,pageable);
+        Page<MovieEntity> moviePage = movieRepository.findAllByStatus(movieStatus, pageable);
         return movieToMoviePageableResponse(moviePage);
     }
 
@@ -68,7 +68,7 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public MovieEntity findById(Integer id, boolean isEntity) {
         return movieRepository.findById(id)
-                .orElseThrow(() -> new DataNotFoundException("Movie not found with id: " + id));
+                .orElseThrow(() ->new DataNotFoundException("Movie not found with id: " + id));
     }
 
 
@@ -82,6 +82,7 @@ public class MovieServiceImpl implements MovieService {
             movieStatusEntity.setStatusId(MovieStatus.MOVIE_STATUS_SC);
             movieStatusEntity.setName("Sắp chiếu");
             movieStatusEntity.setDescription("Trạng thái dành cho các bộ phim sắp được chiếu tại rạp");
+            movieStatusEntity.setActive(true);
             status = movieStatusRepository.save(movieStatusEntity);
         }else {
             status = movieStatus.get();

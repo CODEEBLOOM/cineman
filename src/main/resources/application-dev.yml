@@ -8,11 +8,25 @@ spring:
     multipart:
       max-file-size: 10MB     # Giới hạn cho 1 file
       max-request-size: 20MB  # Tổng dung lượng toàn request
+
+  # security oauth2
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 313620644939-tv7e1h8s17cpj07s732bp029joi11dg1.apps.googleusercontent.com
+            client-secret: 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
+            redirect-uri: http://localhost:3000/auth/google/callback
+        provider:
+          google:
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+
 # kêt nối database
   datasource:
     url: jdbc:sqlserver://localhost:1433;databaseName=cinema_app_test;encrypt=true;trustServerCertificate=true;
     username: sa
-    password: 123456
+    password: Son15@2
 
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   jpa:

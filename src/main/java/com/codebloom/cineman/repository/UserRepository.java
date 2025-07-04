@@ -3,6 +3,7 @@ package com.codebloom.cineman.repository;
 
 import com.codebloom.cineman.common.enums.UserStatus;
 import com.codebloom.cineman.model.UserEntity;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -19,4 +20,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     UserEntity findByRefreshToken(String refreshToken);
 
     Optional<UserEntity> findByEmailAndPhoneNumberAndUserIdNot(String email, String phoneNumber, Long userId);
+
+    Optional<UserEntity> findByGoogleId(String googleId);
 }

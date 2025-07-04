@@ -1,15 +1,18 @@
 package com.codebloom.cineman.controller.request;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import com.codebloom.cineman.common.enums.SeatType;
+import com.codebloom.cineman.common.utils.EnumPattern;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 public class SeatTypeRequest {
+
+    @NotNull(message = "Id of seat type is must not null !")
+    @EnumPattern(name = "id", regexp = "VIP|REGULAR|DOUBLE")
+    private SeatType id;
 
     @NotNull(message = "Name of seat type is must not null !")
     @NotBlank(message = "Name of seat type is must not blank !")

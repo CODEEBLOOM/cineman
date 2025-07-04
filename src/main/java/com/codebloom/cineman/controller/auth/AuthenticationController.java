@@ -1,8 +1,10 @@
 package com.codebloom.cineman.controller.auth;
 
 
+import com.codebloom.cineman.common.enums.GenderUser;
 import com.codebloom.cineman.controller.request.ChangePasswordRequest;
 import com.codebloom.cineman.controller.request.LoginRequest;
+import com.codebloom.cineman.controller.request.UserCreationRequest;
 import com.codebloom.cineman.controller.request.UserRegisterRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
 import com.codebloom.cineman.controller.response.TokenResponse;
@@ -14,6 +16,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +29,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.Map;
+import java.util.Objects;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -159,6 +167,94 @@ public class AuthenticationController {
         }finally {
             response.sendRedirect("https://www.facebook.com");
         }
+    }
+
+
+    @GetMapping("/social-login")
+    public ResponseEntity<ApiResponse> socialAuth(
+            @RequestParam("login_type") String loginType
+    ){
+        loginType = loginType.trim().toLowerCase();  // Loại bỏ dấu cách và chuyển thành chữ thường
+        String url = authService.generateAuthUrl(loginType);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Success")
+                        .data(url)
+                        .build()
+        );
+    }
+
+    private ResponseEntity<TokenResponse> loginSocial(
+            @Valid @RequestBody UserCreationRequest userLoginDTO
+    )  {
+        // Gọi hàm loginSocial từ UserService cho đăng nhập mạng xã hội
+        LoginRequest loginRequest = userService.loginSocial(userLoginDTO);
+        return this.getAccessToken(loginRequest);
+    }
+
+    @GetMapping("/social/callback")
+    public ResponseEntity<TokenResponse> callback(
+            @RequestParam("code") String code,
+            @RequestParam("login_type") String loginType
+    ) throws Exception {
+        // Call the AuthService to get user info
+        Map<String, Object> userInfo = authService.authenticateAndFetchProfile(code, loginType);
+
+        if (userInfo == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        // Extract user information from userInfo map
+        String accountId = "";
+        String name = "";
+        String picture = "";
+        String email = "";
+
+        if (loginType.trim().equals("google")) {
+            accountId = (String) Objects.requireNonNullElse(userInfo.get("sub"), "");
+            name = (String) Objects.requireNonNullElse(userInfo.get("name"), "");
+            picture = (String) Objects.requireNonNullElse(userInfo.get("picture"), "");
+            email = (String) Objects.requireNonNullElse(userInfo.get("email"), "");
+        }
+//        else if (loginType.trim().equals("facebook")) {
+//            accountId = (String) Objects.requireNonNullElse(userInfo.get("id"), "");
+//            name = (String) Objects.requireNonNullElse(userInfo.get("name"), "");
+//            email = (String) Objects.requireNonNullElse(userInfo.get("email"), "");
+//            // Lấy URL ảnh từ cấu trúc dữ liệu của Facebook
+//            Object pictureObj = userInfo.get("picture");
+//            if (pictureObj instanceof Map) {
+//                Map<?, ?> pictureData = (Map<?, ?>) pictureObj;
+//                Object dataObj = pictureData.get("data");
+//                if (dataObj instanceof Map) {
+//                    Map<?, ?> dataMap = (Map<?, ?>) dataObj;
+//                    Object urlObj = dataMap.get("url");
+//                    if (urlObj instanceof String) {
+//                        picture = (String) urlObj;
+//                    }
+//                }
+//            }
+//        }
+
+        // Tạo đối tượng UserLoginDTO
+        UserCreationRequest loginRequest = UserCreationRequest.builder()
+                .email(email)
+                .password(accountId)
+                .fullName(name)
+                .phoneNumber("")
+                .address("")
+                .dateOfBirth(Date.from(LocalDate.now().minusYears(13).atStartOfDay(ZoneId.systemDefault()).toInstant()))
+                .avatar(picture)
+                .gender(GenderUser.MALE)
+                .build();
+
+        if (loginType.trim().equals("google")) {
+            loginRequest.setGoogleId(accountId);
+        } else if (loginType.trim().equals("facebook")) {
+            loginRequest.setFacebookId(accountId);
+        }
+
+        return this.loginSocial(loginRequest);
     }
 
 }

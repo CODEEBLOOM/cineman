@@ -18,7 +18,7 @@ import static org.springframework.http.HttpStatus.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("${api.path}/admin/participant")
-@Tag(name = "Movie Status Controller ( Admin Role )")
+@Tag(name = "Participant Controller", description = "Quản lý người tham gia cho bộ phim")
 @Validated
 public class ParticipantAController {
 
@@ -26,7 +26,7 @@ public class ParticipantAController {
 
     @GetMapping("/all")
     @Operation(summary = "get participants", description = "API dùng để lấy tất cả đạo diễn chưa thực hiện phân trang!")
-    public ResponseEntity<ApiResponse> getDirectors() {
+    public ResponseEntity<ApiResponse> getAllParticipants() {
         return ResponseEntity.status(OK).body(
                 ApiResponse.builder()
                         .status(OK.value())
@@ -38,7 +38,7 @@ public class ParticipantAController {
 
     @GetMapping("/{id}")
     @Operation(summary = "get participant by id", description = "API dùng để lấy đạo diễn theo id !")
-    public ResponseEntity<ApiResponse> getDirector(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse> getParticipant(@PathVariable Integer id) {
         return ResponseEntity.status(OK).body(
                 ApiResponse.builder()
                         .status(OK.value())
@@ -50,7 +50,7 @@ public class ParticipantAController {
 
     @PostMapping("/add")
     @Operation(summary = "Create participant", description = "API dùng để tạo mới một đạo diễn của bộ phim !")
-    public ResponseEntity<ApiResponse> createDirector(@RequestBody @Valid ParticipantRequest request) {
+    public ResponseEntity<ApiResponse> createParticipant(@RequestBody @Valid ParticipantRequest request) {
         return ResponseEntity.status(CREATED).body(
                 ApiResponse.builder()
                         .status(CREATED.value())
@@ -62,7 +62,7 @@ public class ParticipantAController {
 
     @PutMapping("/{id}/update")
     @Operation(summary = "Create participant", description = "API dùng để tạo mới một đạo diễn của bộ phim !")
-    public ResponseEntity<ApiResponse> updateDirector(
+    public ResponseEntity<ApiResponse> updateParticipant(
             @PathVariable @Min(value = 1, message = "Id's participant is must be greater than 0 !") Integer id,
             @RequestBody @Valid ParticipantRequest request) {
         return ResponseEntity.status(OK).body(
@@ -76,7 +76,7 @@ public class ParticipantAController {
 
     @DeleteMapping("/{id}/delete")
     @Operation(summary = "Delete participant", description = "API dùng để xóa một đạo diễn chưa có tồn tại trong bộ phim nào !")
-    public ResponseEntity<ApiResponse> deleteDirector(@PathVariable @Min(value = 1, message = "Id's participant is must be greater than 0 !") Integer id) {
+    public ResponseEntity<ApiResponse> deleteParticipant(@PathVariable @Min(value = 1, message = "Id's participant is must be greater than 0 !") Integer id) {
         participantService.delete(id);
         return ResponseEntity.status(OK).body(
                 ApiResponse.builder()

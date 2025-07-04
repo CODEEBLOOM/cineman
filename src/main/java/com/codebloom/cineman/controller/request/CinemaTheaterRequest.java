@@ -27,11 +27,11 @@ public class CinemaTheaterRequest {
     Integer regularSeatRow;
 
     @NotNull(message = "Số lượng hàng ghế thường không được phép trống !")
-    @Min(value =  1, message = "Số lượng hàng ghế thường phải lớn hơn 0 !")
+    @Min(value =  0, message = "Số lượng hàng ghế thường phải lớn hơn hoặc bằng 0 !")
     Integer vipSeatRow;
 
     @NotNull(message = "Số lượng hàng ghế thường không được phép trống !")
-    @Min(value =  1, message = "Số lượng hàng ghế thường phải lớn hơn 0 !")
+    @Min(value =  0, message = "Số lượng hàng ghế thường phải lớn hơn hoặc bằng 0 !")
     Integer doubleSeatRow;
 
     @NotNull(message = "Id của loại phòng chiếu không được phép trống !")

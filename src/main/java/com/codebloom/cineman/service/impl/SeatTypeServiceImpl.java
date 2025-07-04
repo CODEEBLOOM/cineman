@@ -10,6 +10,7 @@ import com.codebloom.cineman.service.SeatTypeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,12 +29,14 @@ public class SeatTypeServiceImpl implements SeatTypeService {
      * @return SeatTypeEntity
      */
     @Override
+    @Transactional
     public SeatTypeEntity create(SeatTypeRequest seatTypeRequest) {
-        Optional<SeatTypeEntity> seatTypeEntity = seatTypeRepository.findByNameAndStatus(seatTypeRequest.getName(), true);
+        Optional<SeatTypeEntity> seatTypeEntity = seatTypeRepository.findByIdAndStatus(seatTypeRequest.getId(), true);
         if (seatTypeEntity.isPresent()) {
             throw new DataExistingException("Seat type already exists with name: " + seatTypeRequest.getName());
         }
         SeatTypeEntity createSeatTypeEntity = SeatTypeEntity.builder()
+                .id(seatTypeRequest.getId())
                 .name(seatTypeRequest.getName())
                 .price(seatTypeRequest.getPrice())
                 .status(true)
@@ -49,8 +52,8 @@ public class SeatTypeServiceImpl implements SeatTypeService {
      * @return SeatTypeEntity
      */
     @Override
-    public SeatTypeEntity update(String id, SeatTypeRequest seatTypeRequest) {
-        SeatTypeEntity seatTypeEntity = seatTypeRepository.findByStatusAndId(true, id)
+    public SeatTypeEntity update(SeatType id, SeatTypeRequest seatTypeRequest) {
+        SeatTypeEntity seatTypeEntity = seatTypeRepository.findByIdAndStatus(id, true)
                 .orElseThrow(() -> new DataNotFoundException("Seat type not found with id: " + id));
         seatTypeRepository.findByNameAndStatusAndIdNot(seatTypeRequest.getName(), true, id)
                         .ifPresent((seatType) -> {
@@ -77,8 +80,8 @@ public class SeatTypeServiceImpl implements SeatTypeService {
      * @return  SeatTypeEntity
      */
     @Override
-    public SeatTypeEntity findById(String id) {
-        return seatTypeRepository.findByStatusAndId(true, id)
+    public SeatTypeEntity findById(SeatType id) {
+        return seatTypeRepository.findByIdAndStatus(id, true)
                 .orElseThrow(() -> new DataNotFoundException("Seat type not found with id: " + id));
     }
 
@@ -87,8 +90,8 @@ public class SeatTypeServiceImpl implements SeatTypeService {
      * @param id id cua loai ghe
      */
     @Override
-    public void delete(String id) {
-        SeatTypeEntity seatTypeEntity = findById(id);
+    public void delete(SeatType id) {
+        SeatTypeEntity seatTypeEntity = this.findById(id);
         seatTypeEntity.setStatus(false);
         seatTypeRepository.save(seatTypeEntity);
     }

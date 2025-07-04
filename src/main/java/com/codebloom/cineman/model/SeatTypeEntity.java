@@ -1,5 +1,6 @@
 package com.codebloom.cineman.model;
 
+import com.codebloom.cineman.common.enums.SeatType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,7 +21,8 @@ public class SeatTypeEntity implements Serializable {
 
     @Id
     @Column(name = "id", length = 25)
-    private String id;
+    @Enumerated(EnumType.STRING)
+    private SeatType id;
 
     @Column(name = "name", columnDefinition = "NVARCHAR(150)", nullable = false)
     private String name;
@@ -28,7 +30,7 @@ public class SeatTypeEntity implements Serializable {
     @Column(name = "price", nullable = false)
     private Double price;
 
-    @Column(name = "seat_type", nullable = false)
+    @Column(name = "status", nullable = false)
     private Boolean status;
 
     @OneToMany(mappedBy = "seatType")

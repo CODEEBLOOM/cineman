@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +16,7 @@ import java.util.Date;
 
 @Getter
 @Setter
+@Builder
 public class UserRegisterRequest {
 
     @NotBlank(message = "User's fullName is is not blank !")
@@ -29,10 +31,12 @@ public class UserRegisterRequest {
 
     @NotBlank(message = "Password is must not empty !")
     @Size(max = 100, message = "Password is must be less than or equal 100 character !")
+    @NotNull(message = "Password's user is must not null !")
     private String password;
 
     @NotBlank(message = "ConfirmPassword is must not empty !")
     @Size(max = 100, message = "Password is must be less than or equal 100 character !")
+    @NotNull(message = "ConfirmPassword's user is must not null !")
     private String confirmPassword;
 
     @NotNull(message = "User's birth day is is not null !")
@@ -49,7 +53,9 @@ public class UserRegisterRequest {
 
     private String address;
 
-    private Integer facebookId = 0;
-    private Integer googleId = 0;
+    @Builder.Default
+    private String facebookId = "";
+    @Builder.Default
+    private String googleId = "";
 
 }
