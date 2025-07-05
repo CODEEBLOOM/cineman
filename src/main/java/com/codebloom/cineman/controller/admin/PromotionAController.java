@@ -68,20 +68,20 @@ public class PromotionAController {
         );
     }
 
-//    @Operation(summary = "Xoá khuyến mãi", description = "API dùng để xoá một khuyến mãi theo ID.")
-//    @DeleteMapping("/{id}/delete")
-//    public ResponseEntity<ApiResponse> deletePromotion(
-//            @PathVariable @Min(value = 1, message = "ID must be >= 1") Long id
-//    ) {
-//        promotionService.deletePromotion(id);
-//        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(
-//                ApiResponse.builder()
-//                        .status(HttpStatus.NO_CONTENT.value())
-//                        .message("Deleted promotion successfully")
-//                        .data(null)
-//                        .build()
-//        );
-//    }
+    @Operation(summary = "Xóa khuyến mãi", description = "Chỉ xóa được nếu chưa được áp dụng cho hóa đơn.")
+    @DeleteMapping("/{id}/delete")
+    public ResponseEntity<ApiResponse> deletePromotion(
+            @PathVariable @Min(value = 1, message = "ID must be >= 1") Long id
+    ) {
+        promotionService.deletePromotion(id);
+        return ResponseEntity.ok(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Deleted promotion successfully")
+                        .build()
+        );
+    }
+
 
     @Operation(summary = "Lấy khuyến mãi theo ID", description = "API dùng để lấy chi tiết khuyến mãi theo ID.")
     @GetMapping("/{id}")

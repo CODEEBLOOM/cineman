@@ -21,6 +21,7 @@ public class PromotionResponse {
     private Date endDay;
     private Double discount;
     private String conditionType;
+    private String conditionDayOfWeek;
     private Double conditionValue;
     private StatusPromotion status;
 }

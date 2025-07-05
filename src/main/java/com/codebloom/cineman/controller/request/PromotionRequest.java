@@ -25,8 +25,7 @@ public class PromotionRequest {
 
     private String code;
 
-    //@NotNull(message = "Ngày bắt đầu không được để trống")
-    @FutureOrPresent(message = "Ngày bắt đầu phải là hôm nay hoặc trong tương lai")
+  //  @FutureOrPresent(message = "Ngày bắt đầu phải là hôm nay hoặc trong tương lai")
     private Date startDay;
 
     @NotNull(message = "Ngày kết thúc không được để trống")
@@ -44,6 +43,7 @@ public class PromotionRequest {
     @DecimalMin(value = "0.0", message = "Giá trị điều kiện phải >= 0")
     private Double conditionValue;
 
+    private Date conditionDate;
 
     @NotNull(message = "Trạng thái không được để trống")
     private StatusPromotion status;

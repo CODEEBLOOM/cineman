@@ -38,7 +38,7 @@ public class PromotionEntity implements Serializable  {
 
     @Column(name = "start_day")
     @Temporal(TemporalType.TIMESTAMP)
-    @CreationTimestamp
+  //  @CreationTimestamp
     private Date startDay;
 
     @Column(name = "end_day")

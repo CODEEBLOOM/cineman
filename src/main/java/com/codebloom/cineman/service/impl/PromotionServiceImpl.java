@@ -18,10 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +41,23 @@ public class PromotionServiceImpl implements PromotionService {
             throw new DataNotFoundException("Mã khuyến mãi đã tồn tại");
         }
 
+        if (request.getStartDay() == null) {
+            request.setStartDay(new Date());
+        } else if (request.getStartDay().before(new Date())) {
+            throw new DataNotFoundException("Ngày bắt đầu phải là hôm nay hoặc tương lai");
+        }
+
+        if ("DAY_OF_WEEK".equals(request.getConditionType())) {
+            Date conditionDate = request.getConditionDate();
+            if (conditionDate == null) {
+                conditionDate = new Date();
+            }
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(conditionDate);
+            int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
+            request.setConditionValue((double) dayOfWeek);
+        }
+
         PromotionEntity promotion = new PromotionEntity();
         promotion.setName(request.getName());
         promotion.setContent(request.getContent());
@@ -53,13 +67,18 @@ public class PromotionServiceImpl implements PromotionService {
         promotion.setDiscount(request.getDiscount());
         promotion.setConditionType(PromotionConditionType.valueOf(request.getConditionType()));
         promotion.setConditionValue(request.getConditionValue());
-        promotion.setStatus(request.getStatus());
         promotion.setStaff(staff);
+        updatePromotionStatus(promotion);
 
         PromotionEntity saved = promotionRepository.save(promotion);
-        return mapper.map(saved, PromotionResponse.class);
-    }
+        PromotionResponse response = mapper.map(saved, PromotionResponse.class);
 
+        if (saved.getConditionType() == PromotionConditionType.DAY_OF_WEEK) {
+            response.setConditionDayOfWeek(convertDayOfWeekToVietnamese(saved.getConditionValue().intValue()));
+        }
+
+        return response;
+    }
 
     @Transactional
     @Override
@@ -70,25 +89,85 @@ public class PromotionServiceImpl implements PromotionService {
         UserEntity staff = userRepository.findById(request.getStaffId())
                 .orElseThrow(() -> new DataNotFoundException("Staff not found"));
 
+        if ("DAY_OF_WEEK".equals(request.getConditionType())) {
+            Date conditionDate = request.getConditionDate();
+            if (conditionDate == null) {
+                conditionDate = new Date();
+            }
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(conditionDate);
+            int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
+            request.setConditionValue((double) dayOfWeek);
+        }
+
         promotion.setName(request.getName());
         promotion.setContent(request.getContent());
         promotion.setCode(request.getCode());
-        promotion.setStartDay(request.getStartDay());
-        promotion.setEndDay(request.getEndDay());
+        if (request.getStartDay() == null) {
+            throw new DataNotFoundException("Ngày bắt đầu không được để trống");
+        }
+        if (request.getEndDay() == null) {
+            throw new DataNotFoundException("Ngày kết thúc không được để trống");
+        }
         promotion.setDiscount(request.getDiscount());
         promotion.setConditionType(PromotionConditionType.valueOf(request.getConditionType()));
         promotion.setConditionValue(request.getConditionValue());
-        promotion.setStatus(request.getStatus());
         promotion.setStaff(staff);
+        updatePromotionStatus(promotion);
 
         PromotionEntity updated = promotionRepository.save(promotion);
-        return mapper.map(updated, PromotionResponse.class);
+        PromotionResponse response = mapper.map(updated, PromotionResponse.class);
+
+        if (updated.getConditionType() == PromotionConditionType.DAY_OF_WEEK) {
+            response.setConditionDayOfWeek(convertDayOfWeekToVietnamese(updated.getConditionValue().intValue()));
+        }
+
+        return response;
+    }
+
+    private String convertDayOfWeekToVietnamese(int dayOfWeek) {
+        return switch (dayOfWeek) {
+            case Calendar.SUNDAY -> "Chủ nhật";
+            case Calendar.MONDAY -> "Thứ 2";
+            case Calendar.TUESDAY -> "Thứ 3";
+            case Calendar.WEDNESDAY -> "Thứ 4";
+            case Calendar.THURSDAY -> "Thứ 5";
+            case Calendar.FRIDAY -> "Thứ 6";
+            case Calendar.SATURDAY -> "Thứ 7";
+            default -> "Không xác định";
+        };
+    }
+
+    private void updatePromotionStatus(PromotionEntity promo) {
+        if (promo.getStatus() == StatusPromotion.DELETED) {
+            return;
+        }
+
+        Date now = new Date();
+        if (now.before(promo.getStartDay())) {
+            promo.setStatus(StatusPromotion.UPCOMING);
+        } else if (now.after(promo.getEndDay())) {
+            promo.setStatus(StatusPromotion.EXPIRED);
+        } else {
+            promo.setStatus(StatusPromotion.ACTIVE);
+        }
     }
 
 
     @Override
     public void deletePromotion(Long id) {
+        PromotionEntity promo = promotionRepository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("Promotion not found"));
 
+        // Nếu đã áp dụng cho hóa đơn rồi thì không cho xóa
+        boolean isApplied = invoiceRepository.existsByPromotion(promo);
+        if (isApplied) {
+            throw new DataNotFoundException("Voucher đã được áp dụng cho hóa đơn, không thể xóa");
+        }
+
+        // Xóa mềm
+        promo.setStatus(StatusPromotion.DELETED);
+        promotionRepository.save(promo);
     }
 
     @Transactional
@@ -104,16 +183,14 @@ public class PromotionServiceImpl implements PromotionService {
         PromotionEntity promo = promotionRepository.findByCode(code)
                 .orElseThrow(() -> new DataNotFoundException("Voucher not found"));
 
-        Date now = new Date();
-        if (promo.getStatus() == StatusPromotion.EXPIRED ||
-                now.before(promo.getStartDay()) || now.after(promo.getEndDay())) {
+        updatePromotionStatus(promo);
+
+        if (promo.getStatus() != StatusPromotion.ACTIVE) {
             throw new DataNotFoundException("Voucher hết hạn hoặc chưa hiệu lực");
         }
 
-        // Kiểm tra điều kiện áp dụng
         validatePromotionCondition(promo, invoice);
 
-        // Áp dụng giảm giá
         double discountAmount = invoice.getTotalPrice() * (promo.getDiscount() / 100);
         invoice.setTotalPrice(invoice.getTotalPrice() - discountAmount);
         invoice.setPromotion(promo);
@@ -143,10 +220,9 @@ public class PromotionServiceImpl implements PromotionService {
                 cal.setTime(new Date());
                 int today = cal.get(Calendar.DAY_OF_WEEK); // 1: CN, 2: T2, ...
                 if ((int) conditionValue != today) {
-                    throw new DataNotFoundException("Voucher chỉ áp dụng cho ngày cụ thể trong tuần");
+                    throw new DataNotFoundException("Voucher chỉ áp dụng cho " + convertDayOfWeekToVietnamese((int) conditionValue));
                 }
             }
-
         }
     }
 
@@ -154,17 +230,39 @@ public class PromotionServiceImpl implements PromotionService {
     public List<PromotionResponse> getAllPromotions() {
         return promotionRepository.findAll()
                 .stream()
-                .map(p -> mapper.map(p, PromotionResponse.class))
+                .filter(p -> p.getStatus() != StatusPromotion.DELETED) // Nếu muốn ẩn voucher đã xoá
+                .peek(this::updatePromotionStatus)
+                .map(p -> {
+                    PromotionResponse response = mapper.map(p, PromotionResponse.class);
+                    if (p.getConditionType() == PromotionConditionType.DAY_OF_WEEK
+                            && p.getConditionValue() != null) {
+                        response.setConditionDayOfWeek(
+                                convertDayOfWeekToVietnamese(p.getConditionValue().intValue())
+                        );
+                    }
+                    return response;
+                })
                 .collect(Collectors.toList());
     }
 
+
     @Override
     public PromotionResponse getPromotionById(Long id) {
-        return mapper.map(
-                promotionRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Promotion not found")),
-                PromotionResponse.class
-        );
+        PromotionEntity promo = promotionRepository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("Promotion not found"));
+        updatePromotionStatus(promo);
+        PromotionResponse response = mapper.map(promo, PromotionResponse.class);
+
+        if (promo.getConditionType() == PromotionConditionType.DAY_OF_WEEK
+                && promo.getConditionValue() != null) {
+            response.setConditionDayOfWeek(
+                    convertDayOfWeekToVietnamese(promo.getConditionValue().intValue())
+            );
+        }
+
+        return response;
     }
+
 
     @Override
     public List<PromotionResponse> getAvailablePromotions() {
@@ -172,15 +270,18 @@ public class PromotionServiceImpl implements PromotionService {
         List<PromotionEntity> allPromotions = promotionRepository.findAll();
 
         for (PromotionEntity promo : allPromotions) {
-            if (promo.getStatus() == StatusPromotion.ACTIVE && now.after(promo.getEndDay())) {
-                promo.setStatus(StatusPromotion.EXPIRED);
-                promotionRepository.save(promo);
-            }
+            updatePromotionStatus(promo);
         }
 
         return promotionRepository.findByStatusAndStartDayBeforeAndEndDayAfter(StatusPromotion.ACTIVE, now, now)
                 .stream()
-                .map(p -> mapper.map(p, PromotionResponse.class))
+                .map(p -> {
+                    PromotionResponse response = mapper.map(p, PromotionResponse.class);
+                    if (p.getConditionType() == PromotionConditionType.DAY_OF_WEEK) {
+                        response.setConditionDayOfWeek(convertDayOfWeekToVietnamese(p.getConditionValue().intValue()));
+                    }
+                    return response;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -189,13 +290,17 @@ public class PromotionServiceImpl implements PromotionService {
         PromotionEntity promo = promotionRepository.findByCode(code)
                 .orElseThrow(() -> new DataNotFoundException("Invalid voucher code"));
 
-        Date now = new Date();
-        if (!promo.getStatus().equals(StatusPromotion.ACTIVE)
-                || now.before(promo.getStartDay()) || now.after(promo.getEndDay())) {
+        updatePromotionStatus(promo);
+
+        if (promo.getStatus() != StatusPromotion.ACTIVE) {
             throw new DataNotFoundException("Voucher is expired or inactive");
         }
 
-        return mapper.map(promo, PromotionResponse.class);
+        PromotionResponse response = mapper.map(promo, PromotionResponse.class);
+        if (promo.getConditionType() == PromotionConditionType.DAY_OF_WEEK) {
+            response.setConditionDayOfWeek(convertDayOfWeekToVietnamese(promo.getConditionValue().intValue()));
+        }
+        return response;
     }
 
     @Override
