@@ -47,8 +47,9 @@ public class SnackTypeServiceImpl implements SnackTypeService {
 
     @Override
     public SnackTypeResponse save(SnackTypeRequest snackTypeDto) {
-        SnackTypeEntity entity = modelMapper.map(snackTypeDto, SnackTypeEntity.class);
-        SnackTypeEntity saved = snackTypeRepository.save(entity);
+        SnackTypeEntity snackTypeEntity = modelMapper.map(snackTypeDto, SnackTypeEntity.class);
+        snackTypeEntity.setIsActive(true);
+        SnackTypeEntity saved = snackTypeRepository.save(snackTypeEntity);
         return modelMapper.map(saved, SnackTypeResponse.class);
     }
 

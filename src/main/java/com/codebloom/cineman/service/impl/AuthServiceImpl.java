@@ -15,7 +15,6 @@ import com.codebloom.cineman.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -41,6 +40,12 @@ public class AuthServiceImpl implements AuthService {
     private final UserService userService;
     private final ApplicationContext context;
 
+
+    /**
+     * Hàm get access token và refresh token
+     * @param request Login request object
+     * @return access token và refresh token
+     */
     @Override
     public TokenResponse getAccessToken(LoginRequest request) {
         log.info("get access token");
@@ -53,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (AuthenticationException e) {
             log.info("Authentication failed: {}", e.getMessage());
-            throw new DataNotFoundException("Username or password is incorrect");
+            throw new DataNotFoundException("Username or password is incorrect or non-existent");
         }
 
         UserEntity user =  userRepository.findByEmail(request.getEmail())
@@ -68,6 +73,11 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
+    /**
+     * Hàm refresh token: tạo ra accessToken mới và refresh toke mới
+     * @param refreshToken : accessToken
+     * @return access token và refresh token
+     */
     @Override
     public TokenResponse getRefreshToken(String refreshToken) {
         if (!StringUtils.hasLength(refreshToken)) {
@@ -84,7 +94,7 @@ public class AuthServiceImpl implements AuthService {
                 // generate new access token
                 String accessToken = jwtService.generateAccessToken(user.getUserId(), user.getEmail(), userDetails.getAuthorities());
                 String newRefreshToken = jwtService.generateRefreshToken(user.getUserId(), user.getEmail(), userDetails.getAuthorities());
-                userService.updateRefreshToken(newRefreshToken);
+                userService.updateRefreshToken(newRefreshToken, false);
                 return TokenResponse.builder().accessToken(accessToken).refreshToken(newRefreshToken).build();
             } catch (Exception e) {
                 log.error("Access denied! errorMessage: {}", e.getMessage());

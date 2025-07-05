@@ -37,6 +37,6 @@ public class SeatEntity implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "room_id", nullable = false)
-    CinemaTheatersEntity CinemaTheater;
+    CinemaTheaterEntity cinemaTheater;
 
 }

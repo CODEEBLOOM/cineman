@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface UserService {
 
-    List<UserEntity> findAll();
+    List<UserResponse> findAll();
     UserPaginationResponse findAll(PageRequest pageRequest);
     UserResponse findById(Long userId);
     UserResponse findByEmail(String email);
@@ -24,6 +24,6 @@ public interface UserService {
     long register(UserRegisterRequest user);
     UserEntity getUserFromToken(String token, TokenType tokenType);
     UserResponse getInfoUserByAccessToken(String token);
-    void updateRefreshToken(String refreshToken);
+    void updateRefreshToken(String refreshToken, boolean isLogout);
     void confirmEmail(String secretCode);
 }
