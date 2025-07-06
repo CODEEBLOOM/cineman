@@ -69,10 +69,12 @@ public class FeedbackAController {
             ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message("Lấy phản hồi theo email thành công.")
-                .data(feedbackService.findByUser(email))
+                .data(feedbackService.findByUserEmail(email))
                 .build()
         );
     }
+
+
     
  // admin lấy feedback theo mức độ đánh giá cần tìm ( isActive = true )
     @GetMapping("/satisfaction")

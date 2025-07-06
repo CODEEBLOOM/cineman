@@ -3,19 +3,12 @@ package com.codebloom.cineman.controller.admin;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.codebloom.cineman.controller.request.FeedbackRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
+import com.codebloom.cineman.model.UserPrincipal;
 import com.codebloom.cineman.service.FeedbackService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,32 +23,31 @@ import lombok.RequiredArgsConstructor;
 public class FeedbackUController {
 
     private final FeedbackService feedbackService;
-    
-    // thêm feedback mới
+
+    // Tạo phản hồi mới
     @PostMapping("/add")
     public ResponseEntity<ApiResponse> createFeedback(@Valid @RequestBody FeedbackRequest request,
-                                                      @AuthenticationPrincipal UserDetails userDetails) {
-        String userEmail = userDetails.getUsername();
+                                                      @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        Long userId = userPrincipal.getUserId();
         return ResponseEntity.status(HttpStatus.CREATED).body(
             ApiResponse.builder()
                 .status(HttpStatus.CREATED.value())
                 .message("Tạo phản hồi thành công.")
-                .data(feedbackService.save(request, userEmail))
+                .data(feedbackService.save(request, userId)) 
                 .build()
         );
     }
-    
-    // user chỉ có thể xem feedback của bản thân
+
+    // Người dùng chỉ xem feedback của chính họ
     @GetMapping("/my-feedbacks")
-    public ResponseEntity<ApiResponse> getMyFeedbacks(@AuthenticationPrincipal UserDetails userDetails) {
-      String userEmail = userDetails.getUsername();
+    public ResponseEntity<ApiResponse> getMyFeedbacks(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        Long userId = userPrincipal.getUserId(); 
         return ResponseEntity.ok(
             ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message("Lấy phản hồi cá nhân thành công.")
-                .data(feedbackService.findByUser(userEmail))
+                .data(feedbackService.findByUser(userId)) 
                 .build()
         );
     }
-    
 }

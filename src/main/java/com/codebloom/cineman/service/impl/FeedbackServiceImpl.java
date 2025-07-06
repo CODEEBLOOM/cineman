@@ -71,75 +71,55 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     
-    /**
-     * Lấy danh sách phản hồi của người dùng theo email, chỉ lấy phản hồi đang hoạt động.
-     *
-     * @param userEmail Email người dùng.
-     * @return Danh sách {@link FeedbackResponse} thuộc về người dùng.
-     */
     @Override
-    public List<FeedbackResponse> findByUser(String userEmail) {
-        return feedbackRepository.findByInvoice_Customer_Email(userEmail).stream()
-                .filter(f -> Boolean.TRUE.equals(f.getIsActive()))
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public List<FeedbackResponse> findByUser(Long userId) {
+        UserEntity user = userRepository.findById(userId)
+            .orElseThrow(() -> new DataNotFoundException("Không tìm thấy người dùng"));
+
+        return feedbackRepository.findByInvoiceCustomerAndInvoiceCustomerStatus(user, user.getStatus()).stream()
+            .filter(f -> Boolean.TRUE.equals(f.getIsActive()))
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
     }
 
-    
-    /**
-     * Tạo mới phản hồi từ người dùng cho một hóa đơn cụ thể.
-     * <p>
-     * Người dùng chỉ được phản hồi một lần duy nhất cho mỗi hóa đơn đã thanh toán.
-     * Kiểm tra quyền sở hữu hóa đơn, trạng thái hóa đơn và đảm bảo rằng phản hồi chưa tồn tại.
-     * </p>
-     *
-     * @param request   Dữ liệu yêu cầu bao gồm nội dung, mức độ hài lòng, chủ đề và lý do đánh giá.
-     * @param userEmail Email người dùng hiện đang xác thực.
-     * @return Đối tượng {@link FeedbackResponse} đại diện cho phản hồi đã lưu.
-     * @throws DataNotFoundException nếu không tìm thấy người dùng, hóa đơn hoặc chủ đề phản hồi.
-     * @throws RuntimeException nếu người dùng không sở hữu hóa đơn, hóa đơn chưa thanh toán,
-     *                          hoặc phản hồi đã tồn tại cho hóa đơn này.
-     * @throws IllegalArgumentException nếu lý do đánh giá bị bỏ trống.
-     */
     @Override
     @Transactional
-    public FeedbackResponse save(FeedbackRequest request, String userEmail) {
-
-        UserEntity user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("Người dùng không tồn tại"));
+    public FeedbackResponse save(FeedbackRequest request, Long userId) {
+        UserEntity user = userRepository.findById(userId)
+            .orElseThrow(() -> new DataNotFoundException("Người dùng không tồn tại"));
 
         InvoiceEntity invoice = invoiceRepository.findById(request.getInvoiceId())
-                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy hóa đơn"));
+            .orElseThrow(() -> new DataNotFoundException("Không tìm thấy hóa đơn"));
 
-        if (!invoice.getCustomer().getUserId().equals(user.getUserId())) {
+        if (!invoice.getCustomer().getUserId().equals(userId)) {
             throw new RuntimeException("Bạn không có quyền gửi feedback cho hóa đơn này");
         }
 
         if (invoice.getStatus() != InvoiceStatus.PAID) {
             throw new RuntimeException("Trạng thái hóa đơn không hợp lệ");
         }
-        
+
         if (feedbackRepository.existsByInvoice_InvoiceId(invoice.getInvoiceId())) {
             throw new RuntimeException("Hóa đơn này đã được feedback trước đó");
         }
 
         FeedbackTopicEntity topic = topicRepository.findByTopicIdAndIsActiveTrue(request.getTopicId())
-                .orElseThrow(() -> new DataNotFoundException("Chủ đề không tồn tại hoặc đã bị vô hiệu hóa"));
+            .orElseThrow(() -> new DataNotFoundException("Chủ đề không tồn tại hoặc đã bị vô hiệu hóa"));
 
         if (request.getReasonForReview() == null || request.getReasonForReview().trim().isEmpty()) {
             throw new IllegalArgumentException("Lý do đánh giá không được để trống.");
         }
 
         FeedbackEntity feedback = FeedbackEntity.builder()
-                .content(request.getContent()) 
-                .satisfactionLevel(request.getSatisfactionLevel())
-                .reasonForReview(request.getReasonForReview().trim())
-                .topic(topic)
-                .invoice(invoice)
-                .user(user)
-                .dateFeedback(new Date())
-                .isActive(true)
-                .build();
+            .content(request.getContent())
+            .satisfactionLevel(request.getSatisfactionLevel())
+            .reasonForReview(request.getReasonForReview().trim())
+            .topic(topic)
+            .invoice(invoice)
+            .user(user)
+            .dateFeedback(new Date())
+            .isActive(true)
+            .build();
 
         return mapToResponse(feedbackRepository.save(feedback));
     }
@@ -200,5 +180,14 @@ public class FeedbackServiceImpl implements FeedbackService {
                 .userEmail(feedback.getUser().getEmail())
                 .build();
     }
+
+    @Override
+    public List<FeedbackResponse> findByUserEmail(String email) {
+        return feedbackRepository.findByInvoice_Customer_Email(email).stream()
+                .filter(f -> Boolean.TRUE.equals(f.getIsActive()))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
 
 }

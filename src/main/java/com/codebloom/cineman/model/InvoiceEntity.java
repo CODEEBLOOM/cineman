@@ -45,8 +45,8 @@ public class InvoiceEntity implements Serializable {
     @Column(name = "payment_method", columnDefinition = "TINYINT")
     private PaymentMethod paymentMethod;
 
-    @Column(name = "total_price")
-    private Double totalPrice;
+//    @Column(name = "total_price")
+//    private Double totalPrice;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", columnDefinition = "DATETIME")

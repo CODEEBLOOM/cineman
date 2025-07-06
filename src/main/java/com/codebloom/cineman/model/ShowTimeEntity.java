@@ -36,9 +36,9 @@ public class ShowTimeEntity implements Serializable {
     @Column(name = "end_time", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date endTime;
-
-    @Column(name = "total_cinema")
-    Integer totalCinema;
+//
+//    @Column(name = "total_cinema")
+//    Integer totalCinema;
 
     @OneToMany(mappedBy = "showTime")
     private List<TicketEntity> tickets;
