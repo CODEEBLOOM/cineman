@@ -166,6 +166,7 @@ public class RatingServiceImpl implements RatingService {
     public List<RatingResponse> getRatingsByMovie(Integer movieId) {
         return ticketRepository.findAllByMovieId(movieId)
                 .stream()
+                .filter(ticket -> ticket.getRating() != null) 
                 .map(this::mapToRatingResponse)
                 .collect(Collectors.toList());
     }

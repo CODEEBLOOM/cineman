@@ -1,8 +1,8 @@
-
 package com.codebloom.cineman.controller.admin;
 
 import com.codebloom.cineman.controller.request.RatingRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
+import com.codebloom.cineman.model.UserPrincipal; 
 import com.codebloom.cineman.service.RatingService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,10 +22,11 @@ public class RatingUController {
 
     private final RatingService ratingService;
 
+    // Thêm đánh giá phim mới
     @PostMapping("/add")
     public ResponseEntity<ApiResponse> rateMovie(@Valid @RequestBody RatingRequest request,
-                                                 @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = Long.parseLong(userDetails.getUsername());
+                                                 @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        Long userId = userPrincipal.getUserId(); 
         return ResponseEntity.ok(
             ApiResponse.builder()
                 .status(HttpStatus.OK.value())
@@ -36,10 +36,11 @@ public class RatingUController {
         );
     }
 
+    // Xem đánh giá theo mã vé
     @GetMapping("/my-rating/ticket/{ticketId}")
     public ResponseEntity<ApiResponse> getMyTicketRating(@PathVariable Long ticketId,
-                                                         @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = Long.parseLong(userDetails.getUsername());
+                                                         @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        Long userId = userPrincipal.getUserId();
         return ResponseEntity.ok(
             ApiResponse.builder()
                 .status(HttpStatus.OK.value())
@@ -49,10 +50,10 @@ public class RatingUController {
         );
     }
 
- 
+    // Lấy toàn bộ đánh giá cá nhân
     @GetMapping("/all-ratings")
-    public ResponseEntity<ApiResponse> getMyRatings(@AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = Long.parseLong(userDetails.getUsername());
+    public ResponseEntity<ApiResponse> getMyRatings(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        Long userId = userPrincipal.getUserId();
         return ResponseEntity.ok(
             ApiResponse.builder()
                 .status(HttpStatus.OK.value())
@@ -61,12 +62,12 @@ public class RatingUController {
                 .build()
         );
     }
-    
-    
+
+    // Lấy đánh giá theo phim
     @GetMapping("/my-rating/movie/{movieId}")
     public ResponseEntity<ApiResponse> getMyRatingsByMovie(@PathVariable Integer movieId,
-                                                           @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = Long.parseLong(userDetails.getUsername());
+                                                           @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        Long userId = userPrincipal.getUserId();
         return ResponseEntity.ok(
             ApiResponse.builder()
                 .status(HttpStatus.OK.value())
@@ -75,5 +76,4 @@ public class RatingUController {
                 .build()
         );
     }
-
 }

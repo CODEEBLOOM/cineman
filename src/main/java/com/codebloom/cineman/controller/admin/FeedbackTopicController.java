@@ -23,7 +23,7 @@ public class FeedbackTopicController {
     private final FeedbackTopicService feedbackTopicService;
 
     @Operation(summary = "Lấy tất cả chủ đề phản hồi")
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<ApiResponse> getAllTopics() {
         return ResponseEntity.ok(
                 ApiResponse.builder()
@@ -47,7 +47,7 @@ public class FeedbackTopicController {
     }
 
     @Operation(summary = "Tạo mới một chủ đề phản hồi")
-    @PostMapping
+    @PostMapping("/add")
     public ResponseEntity<ApiResponse> createTopic(@Valid @RequestBody FeedbackTopicRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.builder()
@@ -59,7 +59,7 @@ public class FeedbackTopicController {
     }
 
     @Operation(summary = "Cập nhật một chủ đề phản hồi")
-    @PutMapping("/{id}")
+    @PutMapping("/{id}/update")
     public ResponseEntity<ApiResponse> updateTopic(@PathVariable @Min(1) Integer id,
                                                    @Valid @RequestBody FeedbackTopicRequest request) {
         return ResponseEntity.ok(
@@ -72,7 +72,7 @@ public class FeedbackTopicController {
     }
 
     @Operation(summary = "Xóa một chủ đề phản hồi")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/delete")
     public ResponseEntity<ApiResponse> deleteTopic(@PathVariable @Min(1) Integer id) {
         feedbackTopicService.delete(id);
         return ResponseEntity.status(HttpStatus.OK).body(

@@ -96,10 +96,17 @@ public class FeedbackTopicServiceImpl implements FeedbackTopicService {
                 .filter(FeedbackTopicEntity::getIsActive) 
                 .orElseThrow(() -> new DataNotFoundException("Feedback topic not found or inactive"));
 
+        boolean exists = feedbackTopicRepository.isTopicNameDuplicated(request.getTopicName(), id);
+
+        if (exists) {
+            throw new RuntimeException("Tên chủ đề đã tồn tại, vui lòng chọn tên khác.");
+        }
+
         entity.setTopicName(request.getTopicName());
         entity.setDescription(request.getDescription());
 
         FeedbackTopicEntity updated = feedbackTopicRepository.save(entity);
         return modelMapper.map(updated, FeedbackTopicResponse.class);
     }
+
 }
