@@ -11,10 +11,18 @@ import java.util.List;
 
 public class UserPrincipal implements UserDetails {
 
-    private UserEntity user;
+    private final UserEntity user;
 
     public UserPrincipal(UserEntity user) {
         this.user = user;
+    }
+    
+    public Long getUserId() {
+        return this.user.getUserId();
+    }
+
+    public UserEntity getUser() {
+        return this.user;
     }
 
     @Override

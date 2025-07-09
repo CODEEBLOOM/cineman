@@ -32,8 +32,8 @@ public class CinemaTypeEntity implements Serializable {
     @Column(columnDefinition = "NVARCHAR(250)")
     String description;
 
-    @Column(name = "price_multiplier", columnDefinition = "TINYINT")
-    Integer priceMultiplier;
+//    @Column(name = "price_multiplier", columnDefinition = "TINYINT")
+//    Integer priceMultiplier;
 
     Boolean status;
 
