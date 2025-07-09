@@ -60,7 +60,7 @@ public class FeedbackTopicController {
 
     @Operation(summary = "Cập nhật một chủ đề phản hồi")
     @PutMapping("/{id}/update")
-    public ResponseEntity<ApiResponse> updateTopic(@PathVariable @Min(1) Integer id,
+    public ResponseEntity<ApiResponse> updateTopic(@PathVariable("id") @Min(1) Integer id,
                                                    @Valid @RequestBody FeedbackTopicRequest request) {
         return ResponseEntity.ok(
                 ApiResponse.builder()

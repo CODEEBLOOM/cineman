@@ -6,6 +6,7 @@ import com.codebloom.cineman.common.enums.SatisfactionLevel;
 
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -15,9 +16,10 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class FeedbackRequest {
 
+    @NotNull(message = "Content must not be null")
+    @Min(1)
     private Integer feedbackId; 
 
     @Size(max = 100, message = "Title of movie must be less than 100 characters!")
