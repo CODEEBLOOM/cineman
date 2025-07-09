@@ -33,18 +33,18 @@ public class PromotionCController {
         );
     }
 
-    @Operation(summary = "Kiểm tra mã voucher", description = "Dùng để kiểm tra mã voucher có hợp lệ hay không.")
-    @GetMapping("/validate")
-    public ResponseEntity<ApiResponse> validateVoucher(@RequestParam @NotBlank(message = "Voucher code is required") String code) {
-        PromotionResponse response = promotionService.validateVoucherCode(code);
-        return ResponseEntity.ok(
-                ApiResponse.builder()
-                        .status(HttpStatus.OK.value())
-                        .message("Mã hợp lệ")
-                        .data(response)
-                        .build()
-        );
-    }
+        @Operation(summary = "Kiểm tra mã voucher", description = "Dùng để kiểm tra mã voucher có hợp lệ hay không.")
+        @GetMapping("/validate")
+        public ResponseEntity<ApiResponse> validateVoucher(@RequestParam @NotBlank(message = "Voucher code is required") String code) {
+            PromotionResponse response = promotionService.validateVoucherCode(code);
+            return ResponseEntity.ok(
+                    ApiResponse.builder()
+                            .status(HttpStatus.OK.value())
+                            .message("Mã hợp lệ")
+                            .data(response)
+                            .build()
+            );
+        }
     @Operation(summary = "Áp dụng mã voucher cho hóa đơn", description = "Chỉ áp dụng nếu tổng hóa đơn từ 400.000 trở lên.")
     @PostMapping("/apply")
     public ResponseEntity<ApiResponse> applyVoucherToInvoice(

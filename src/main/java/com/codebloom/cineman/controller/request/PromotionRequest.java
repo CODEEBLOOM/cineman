@@ -45,8 +45,6 @@ public class PromotionRequest {
 
     private Date conditionDate;
 
-    @NotNull(message = "Trạng thái không được để trống")
-    private StatusPromotion status;
 
     @NotNull(message = "ID nhân viên không được để trống")
     @Positive(message = "ID nhân viên phải là số dương")

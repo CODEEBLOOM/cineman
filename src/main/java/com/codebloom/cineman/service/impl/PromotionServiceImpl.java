@@ -42,9 +42,23 @@ public class PromotionServiceImpl implements PromotionService {
         }
 
         if (request.getStartDay() == null) {
-            request.setStartDay(new Date());
-        } else if (request.getStartDay().before(new Date())) {
-            throw new DataNotFoundException("Ngày bắt đầu phải là hôm nay hoặc tương lai");
+            throw new DataNotFoundException("Ngày bắt đầu không được để trống");
+        } else {
+            // Gộp giờ hiện tại vào ngày bắt đầu
+            Calendar inputCal = Calendar.getInstance();
+            inputCal.setTime(request.getStartDay());
+
+            Calendar now = Calendar.getInstance();
+            inputCal.set(Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY));
+            inputCal.set(Calendar.MINUTE, now.get(Calendar.MINUTE));
+            inputCal.set(Calendar.SECOND, now.get(Calendar.SECOND));
+            inputCal.set(Calendar.MILLISECOND, now.get(Calendar.MILLISECOND));
+
+            Date fullStartDay = inputCal.getTime();
+            if (fullStartDay.before(new Date())) {
+                throw new DataNotFoundException("Ngày bắt đầu phải là hôm nay hoặc tương lai");
+            }
+            request.setStartDay(fullStartDay);
         }
 
         if ("DAY_OF_WEEK".equals(request.getConditionType())) {
@@ -79,6 +93,7 @@ public class PromotionServiceImpl implements PromotionService {
 
         return response;
     }
+
 
     @Transactional
     @Override
