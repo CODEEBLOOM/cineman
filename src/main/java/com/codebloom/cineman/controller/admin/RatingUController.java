@@ -6,6 +6,7 @@ import com.codebloom.cineman.model.UserPrincipal;
 import com.codebloom.cineman.service.RatingService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +39,7 @@ public class RatingUController {
 
     // Xem đánh giá theo mã vé
     @GetMapping("/my-rating/ticket/{ticketId}")
-    public ResponseEntity<ApiResponse> getMyTicketRating(@PathVariable Long ticketId,
+    public ResponseEntity<ApiResponse> getMyTicketRating(@PathVariable("ticketId") @Min(1) Long ticketId,
                                                          @AuthenticationPrincipal UserPrincipal userPrincipal) {
         Long userId = userPrincipal.getUserId();
         return ResponseEntity.ok(
@@ -65,7 +66,7 @@ public class RatingUController {
 
     // Lấy đánh giá theo phim
     @GetMapping("/my-rating/movie/{movieId}")
-    public ResponseEntity<ApiResponse> getMyRatingsByMovie(@PathVariable Integer movieId,
+    public ResponseEntity<ApiResponse> getMyRatingsByMovie(@PathVariable("movieId") @Min(1) Integer movieId,
                                                            @AuthenticationPrincipal UserPrincipal userPrincipal) {
         Long userId = userPrincipal.getUserId();
         return ResponseEntity.ok(

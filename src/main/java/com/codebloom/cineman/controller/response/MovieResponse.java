@@ -22,7 +22,7 @@ public class MovieResponse {
     private Date releaseDate;
     private String language;
     private Integer duration;
-    private Rating rating;
+    private Double rating;
     private Integer age;
     private String trailerLink;
     private String posterImage;

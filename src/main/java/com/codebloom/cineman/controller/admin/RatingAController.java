@@ -1,6 +1,7 @@
 
 package com.codebloom.cineman.controller.admin;
 
+import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -29,7 +30,7 @@ public class RatingAController {
      * Admin hoặc public lấy toàn bộ đánh giá theo ID phim
      */
     @GetMapping("/movie/{movieId}")
-    public ResponseEntity<ApiResponse> getRatingsByMovie(@PathVariable Integer movieId) {
+    public ResponseEntity<ApiResponse> getRatingsByMovie(@PathVariable("movieId") @Min(1) Integer movieId) {
         return ResponseEntity.ok(
             ApiResponse.builder()
                 .status(HttpStatus.OK.value())
