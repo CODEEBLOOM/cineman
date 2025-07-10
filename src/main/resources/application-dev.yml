@@ -4,16 +4,21 @@ spring:
       on-profile: dev
   devtools:
     add-properties: true
+  servlet:
+    multipart:
+      max-file-size: 10MB     # Giới hạn cho 1 file
+      max-request-size: 20MB  # Tổng dung lượng toàn request
 # kêt nối database
   datasource:
     url: jdbc:sqlserver://localhost:1433;databaseName=cinema_app;encrypt=true;trustServerCertificate=true;
     username: sa
     password: 123456
+
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   jpa:
     database-platform: org.hibernate.dialect.SQLServer2012Dialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
@@ -25,7 +30,7 @@ spring:
     verification-link: http://localhost:8081/user/confirm-email
 jwt:
   expirationDay: 30
-  expirationMinutes: 30
+  expirationMinutes: 15
   expirationVerify: 10
   accessKey: XEV3ZWGVjFHgilOWNuKJxNRSK8wUl5txZH3JabLRtfw=
   refreshKey: LGgDK8nPs6LeCAkBUmTwjCxJo7EUHs0Djs63XCBNpaCbYZTIagsltVFa8p6ltllN
@@ -44,3 +49,10 @@ openapi:
     server: http://localhost:${server.port}
     title: Cineman Backend service
     version: 1.0.0
+
+
+google:
+  service:
+    account:
+      key: classpath:service_account.json
+

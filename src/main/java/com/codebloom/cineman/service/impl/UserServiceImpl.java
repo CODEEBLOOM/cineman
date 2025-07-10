@@ -48,11 +48,23 @@ public class UserServiceImpl implements UserService {
     private final RoleService roleService;
 
 
+    /**
+     * hàm lấy toàn bộ user của hệ thống
+     * @return danh sách UserResponse object
+     */
     @Override
-    public List<UserEntity> findAll() {
-        return List.of();
+    public List<UserResponse> findAll() {
+        List<UserResponse> userResponses = new ArrayList<>();
+        userRepository.findAll().forEach(user -> userResponses.add(convertToUserResponse(user)));
+        return userResponses;
     }
 
+
+    /**
+     * hàm lấy toàn bộ user của hệ thống có phân trang
+     * @param pageRequest thông tin phân trang và query
+     * @return UserPaginationResponse
+     */
     @Override
     public UserPaginationResponse findAll(PageRequest pageRequest) {
         Pageable pageable = org.springframework.data.domain.PageRequest.of(pageRequest.getPage(), pageRequest.getSize());
@@ -77,6 +89,12 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+
+    /**
+     * hàm tìm kiếm user theo userId
+     * @param userId id của người dùng
+     * @return UserResponse
+     */
     @Override
     public UserResponse findById(Long userId) {
         UserEntity user = userRepository.findById(userId)
@@ -84,6 +102,11 @@ public class UserServiceImpl implements UserService {
         return convertToUserResponse(user);
     }
 
+    /**
+     * hàm tìm kiếm user theo email
+     * @param email email của người dùng
+     * @return UserResponse
+     */
     @Override
     public UserResponse findByEmail(String email) {
         UserEntity user = userRepository.findByEmail(email)
@@ -95,7 +118,6 @@ public class UserServiceImpl implements UserService {
     /**
      * Tạo tài khoản cho nhân viên hệ thống
      * Tức là role trong rạp chiếu
-     *
      * @param request : Thông tin user hệ thống
      * @return : UserResponse
      */
@@ -127,6 +149,11 @@ public class UserServiceImpl implements UserService {
         return user.getUserId();
     }
 
+    /**
+     * Hàm cập nhật thông tin tài khoản
+     * @param user UserUpdateRequest
+     * @return UserResponse
+     */
     @Override
     public UserResponse update(UserUpdateRequest user) {
         UserEntity existingUser = userRepository.findById(user.getUserId())
@@ -145,6 +172,10 @@ public class UserServiceImpl implements UserService {
         return convertToUserResponse(userRepository.save(existingUser));
     }
 
+    /**
+     * Hàm cho phép người dùng đổi mật khẩu
+     * @param changePasswordRequest thông tin đầu vào
+     */
     @Override
     public void changePassword(ChangePasswordRequest changePasswordRequest) {
         UserEntity userEntity = userRepository.findByEmail(changePasswordRequest.getEmail())
@@ -163,6 +194,10 @@ public class UserServiceImpl implements UserService {
         userRepository.save(userEntity);
     }
 
+    /**
+     * hàm xóa mềm user trong hệ thống
+     * @param userId id của tài khoản
+     */
     @Override
     public void delete(Long userId) {
         UserEntity user = userRepository.findById(userId)
@@ -171,6 +206,12 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    /**
+     * Hàm tạo tài khoản người dùng với vài trò là USER
+     * Nghĩa là khách hàng tạo tài khoản
+     * @param user thông tin cần thiết để tạo tài khoản
+     * @return user với trạng thải PENDING
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public long register(UserRegisterRequest user) {
@@ -232,6 +273,13 @@ public class UserServiceImpl implements UserService {
         return userEntity.getUserId();
     }
 
+
+    /**
+     * Trich xuất thông tin user từ token
+     * @param token token
+     * @param tokenType loại token
+     * @return user trích xuất được
+     */
     @Override
     public UserEntity getUserFromToken(String token, TokenType tokenType) {
         if (jwtService.isTokenExpired(token, tokenType)) {
@@ -242,19 +290,40 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new DataNotFoundException("User not found with user id: " + email));
     }
 
+    /**
+     * get thông tin user bằng access token
+     * @param token access token
+     * @return UserResponse
+     */
     @Override
     public UserResponse getInfoUserByAccessToken(String token) {
         UserEntity user = this.getUserFromToken(token, TokenType.ACCESS_TOKEN);
         return this.convertToUserResponse(user);
     }
 
+    /**
+     * Cập nhật refresh token của người dùng
+     * @param token token
+     * @param isLogout nếu true nghĩa là refreshToken == null
+     */
     @Override
-    public void updateRefreshToken(String refreshToken) {
-        UserEntity user = this.getUserFromToken(refreshToken, TokenType.REFRESH_TOKEN);
-        user.setRefreshToken(refreshToken);
+    public void updateRefreshToken(String token, boolean isLogout) {
+        UserEntity user;
+        if(isLogout){
+            user = this.getUserFromToken(token, TokenType.ACCESS_TOKEN);
+            user.setRefreshToken(null);
+        }else {
+            user = this.getUserFromToken(token, TokenType.REFRESH_TOKEN);
+            user.setRefreshToken(token);
+        }
         userRepository.save(user);
     }
 
+
+    /**
+     * Kích hoạt tài khoản người dùng --> status = active
+     * @param secretCode mã token đã gửi cho nguời dùng qua email
+     */
     @Override
     public void confirmEmail(String secretCode) {
         UserEntity user = this.getUserFromToken(secretCode, TokenType.VERIFY_EMAIL);
@@ -262,6 +331,12 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+
+    /**
+     * Hàm nội bộ để thực hiện convert 
+     * @param user UserEntity
+     * @return UserResponse
+     */
     private UserResponse convertToUserResponse(UserEntity user) {
         UserResponse userResponse = UserResponse.builder()
                 .userId(user.getUserId())
@@ -287,6 +362,11 @@ public class UserServiceImpl implements UserService {
     }
 
 
+    /**
+     * Kiểm tra sự tồn tại của tài khoản
+     * @param email email
+     * @param phoneNumber phoneNumber
+     */
     private void checkNewUser(String email, String phoneNumber) {
         userRepository.findByEmail(email)
                 .ifPresent(existingUser -> {
