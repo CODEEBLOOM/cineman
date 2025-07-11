@@ -38,6 +38,11 @@ public class MovieServiceImpl implements MovieService {
     private final ModelMapper modelMapper;
 
 
+    /**
+     * Find all movies
+     * @param request MoviePageQueryRequest
+     * @return request
+     */
     @Override
     public MoviePageableResponse findAllByPage(MoviePageQueryRequest request) {
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
@@ -47,6 +52,32 @@ public class MovieServiceImpl implements MovieService {
         return movieToMoviePageableResponse(moviePage);
     }
 
+    /**
+     * Find all movies
+     * @param request MoviePageQueryRequest
+     * @param movieTheaterId Integer
+     * @return MoviePageableResponse
+     */
+    @Override
+    public MoviePageableResponse findAllByPageAndFilter(MoviePageQueryRequest request, Integer movieTheaterId) {
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
+        MovieStatusEntity movieStatus = movieStatusService.findById(request.getStatus());
+
+        Page<MovieEntity> page;
+        if(request.getStatus().equals(MovieStatus.MOVIE_STATUS_SC)){
+            page = movieRepository.findAllByReleaseDateGreaterThanAndStatus(new Date(), movieStatus, pageable);
+        }else if (request.getStatus().equals(MovieStatus.MOVIE_STATUS_DB)){
+            page = movieRepository.findAllByStatus(movieStatus, pageable);
+        }else {
+            page = movieRepository.findAllByStatusAndMovieTheaterId(movieStatus, movieTheaterId, pageable);
+        }
+        return movieToMoviePageableResponse(page);
+    }
+
+    /**
+     * Find all movies
+     * @return List<MovieResponse>
+     */
     @Override
     public List<MovieResponse> findAll() {
         List<MovieEntity> movies = movieRepository.findAll();
@@ -56,15 +87,29 @@ public class MovieServiceImpl implements MovieService {
     }
 
 
+    /**
+     * Find movie
+     * @param id Integer
+     * @return MovieResponses
+     */
     @Override
     public MovieResponse findById(Integer id) {
         log.info("Movie found: {}", id);
         MovieEntity movie = movieRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Movie not found with id: " + id));
+        if(movie.getStatus().getStatusId().equals(MovieStatus.MOVIE_STATUS_CNS)){
+            throw new IllegalArgumentException("Movie is not available !");
+        }
         log.info("Movie director found: {}", movie.getMovieParticipants());
         return movieToMovieResponse(movie);
     }
 
+    /**
+     * Find movie
+     * @param id Integer
+     * @param isEntity boolean
+     * @return MovieEntity
+     */
     @Override
     public MovieEntity findById(Integer id, boolean isEntity) {
         return movieRepository.findById(id)
@@ -72,16 +117,21 @@ public class MovieServiceImpl implements MovieService {
     }
 
 
+    /**
+     * Create movie
+     * @param request MovieCreationRequest
+     * @return MovieEntity
+     */
     @Override
     @Transactional
     public MovieEntity save(MovieCreationRequest request) {
-        MovieStatusEntity status = null;
+        MovieStatusEntity status ;
         Optional<MovieStatusEntity> movieStatus = movieStatusRepository.findById(MovieStatus.MOVIE_STATUS_SC);
         if(movieStatus.isEmpty()){
             MovieStatusEntity movieStatusEntity = new MovieStatusEntity();
-            movieStatusEntity.setStatusId(MovieStatus.MOVIE_STATUS_SC);
-            movieStatusEntity.setName("Sắp chiếu");
-            movieStatusEntity.setDescription("Trạng thái dành cho các bộ phim sắp được chiếu tại rạp");
+            movieStatusEntity.setStatusId(MovieStatus.MOVIE_STATUS_DB);
+            movieStatusEntity.setName("Đặc biệt");
+            movieStatusEntity.setDescription("Trạng thái dành cho các bộ phim chưa có xuất chiếu tai rạp !");
             movieStatusEntity.setActive(true);
             status = movieStatusRepository.save(movieStatusEntity);
         }else {
@@ -94,6 +144,11 @@ public class MovieServiceImpl implements MovieService {
     }
 
 
+    /**
+     * Update movie
+     * @param request MovieUpdateRequest
+     * @return MovieResponse
+     */
     @Override
     public MovieResponse update(MovieUpdateRequest request) {
         MovieEntity movie = movieRepository.findById(request.getMovieId())
@@ -110,6 +165,10 @@ public class MovieServiceImpl implements MovieService {
     }
 
 
+    /**
+     * Delete movie
+     * @param id Integer
+     */
     @Override
     public void delete(Integer id) {
         MovieEntity movie = movieRepository.findById(id)
@@ -129,6 +188,11 @@ public class MovieServiceImpl implements MovieService {
     }
 
 
+    /**
+     * Convert MovieEntity to MovieResponse
+     * @param movie MovieEntity
+     * @return MovieResponse
+     */
     private MovieResponse movieToMovieResponse(MovieEntity movie) {
         List<GenresEntity> genres = new ArrayList<>();
         List<ParticipantEntity> directors = new ArrayList<>();
@@ -158,9 +222,15 @@ public class MovieServiceImpl implements MovieService {
         movieResponse.setDirectors(directors);
         movieResponse.setCasts(casts);
         movieResponse.setGenres(genres);
+        movieResponse.setMovieVariants(movie.getMovieVariation());
         return movieResponse;
     }
 
+    /**
+     * Convert MovieEntity to MoviePageableResponse
+     * @param page Page<MovieEntity>
+     * @return MoviePageableResponse
+     */
     private MoviePageableResponse movieToMoviePageableResponse(Page<MovieEntity> page) {
         List<MovieResponse> movieResponses = new ArrayList<>();
         page.getContent().forEach(movieEntity -> movieResponses.add(movieToMovieResponse(movieEntity)));

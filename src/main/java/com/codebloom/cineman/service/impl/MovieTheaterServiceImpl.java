@@ -1,5 +1,6 @@
 package com.codebloom.cineman.service.impl;
 
+import com.codebloom.cineman.controller.admin.MovieTheaterProvinceResponse;
 import com.codebloom.cineman.controller.request.MovieTheaterRequest;
 import com.codebloom.cineman.controller.request.PageRequest;
 import com.codebloom.cineman.controller.response.MetaResponse;
@@ -95,6 +96,7 @@ public class MovieTheaterServiceImpl implements MovieTheaterService {
         theater.setStatus(false);
         movieTheaterRepository.save(theater);
     }
+
 
     private MovieTheaterResponse convert(MovieTheaterEntity theater) {
         return MovieTheaterResponse.builder()

@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Cinema Theater Controller")
+@Tag(name = "Cinema Theater Controller", description = "Quản lý danh dách phòng chiếu Cineman")
 @RequestMapping("${api.path}/admin/cinema-theater")
 @Validated
 public class CinemaTheaterAController {

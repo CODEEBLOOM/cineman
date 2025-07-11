@@ -18,7 +18,7 @@ import java.util.LinkedHashMap;
 @RestController
 @RequestMapping("/admin/movie-participant")
 @RequiredArgsConstructor
-@Tag(name= "Movie Director Controller")
+@Tag(name= "Movie Participant Controller", description = "Quản lý vai trò của người tham gia bộ phim")
 @Validated
 public class MovieParticipantAController {
 

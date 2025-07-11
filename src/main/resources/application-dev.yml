@@ -8,6 +8,11 @@ spring:
     multipart:
       max-file-size: 10MB     # Giới hạn cho 1 file
       max-request-size: 20MB  # Tổng dung lượng toàn request
+#  tạo đường dẫn đến thư mục chứa script
+  flyway:
+    locations: classpath:/db/migration,classpath:/dev/db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
 
   # security oauth2
   security:

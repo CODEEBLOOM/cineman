@@ -18,7 +18,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 @RequiredArgsConstructor
-@Tag(name = "Province Controller")
+@Tag(name = "Province Controller", description = "Quản lý chi nhánh của hệ thống rạp chiếu phim")
 @RequestMapping("${api.path}/admin/province")
 @RestController
 @Validated

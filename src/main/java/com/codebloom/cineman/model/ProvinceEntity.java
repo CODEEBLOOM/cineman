@@ -43,6 +43,5 @@ public class ProvinceEntity {
     Date updateAt ;
 
     @OneToMany(mappedBy = "province")
-    @JsonIgnore
     List<MovieTheaterEntity> movieTheaters;
 }

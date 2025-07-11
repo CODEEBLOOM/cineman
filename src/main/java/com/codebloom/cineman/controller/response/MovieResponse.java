@@ -3,6 +3,7 @@ package com.codebloom.cineman.controller.response;
 
 import com.codebloom.cineman.common.enums.Rating;
 import com.codebloom.cineman.model.MovieRoleEntity;
+import com.codebloom.cineman.model.MovieVariationEntity;
 import com.codebloom.cineman.model.ParticipantEntity;
 import com.codebloom.cineman.model.GenresEntity;
 import lombok.*;
@@ -27,6 +28,7 @@ public class MovieResponse {
     private String trailerLink;
     private String posterImage;
     private String bannerImage;
+    private MovieVariationEntity movieVariants;
     private List<ParticipantEntity> directors;
     private List<ParticipantEntity> casts;
     private List<GenresEntity> genres ;

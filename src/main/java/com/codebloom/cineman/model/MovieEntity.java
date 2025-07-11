@@ -41,6 +41,9 @@ public class MovieEntity implements Serializable {
     @Temporal(TemporalType.DATE)
     private Date releaseDate;
 
+    @Column(name = "end_date", nullable = false)
+    private Date endDate;
+
     @Column(name = "language", columnDefinition = "NVARCHAR(50)", nullable = false)
     private String language;
 
@@ -84,5 +87,9 @@ public class MovieEntity implements Serializable {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "movie")
     @JsonIgnore
     private Set<MovieParticipantEntity> movieParticipants;
+
+    @ManyToOne
+    @JoinColumn(name = "movie_variation_id")
+    private MovieVariationEntity movieVariation;
 
 }

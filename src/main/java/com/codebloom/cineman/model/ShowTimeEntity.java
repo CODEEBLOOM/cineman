@@ -1,11 +1,14 @@
 package com.codebloom.cineman.model;
 
+import com.codebloom.cineman.common.enums.ShowTimeStatus;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Check;
 
 import java.io.Serializable;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 
@@ -16,7 +19,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "show_times")
-@Check(constraints = "origin_price > 0")
+@Check(constraints = "origin_price >= 0")
 public class ShowTimeEntity implements Serializable {
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,19 +27,24 @@ public class ShowTimeEntity implements Serializable {
     private Long id;
 
     @Column(name = "origin_price", nullable = false)
-    private Integer originPrice;
+    private Double originPrice;
 
     @Column(name = "show_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.DATE)
     private Date showDate;
 
     @Column(name = "start_time", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date startTime;
+    @Temporal(TemporalType.TIME)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
+    private LocalTime startTime;
 
     @Column(name = "end_time", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date endTime;
+    @Temporal(TemporalType.TIME)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
+    private LocalTime endTime;
+
+    @Column(name = "status", columnDefinition = "TINYINT", nullable = false)
+    private ShowTimeStatus status;
 
     @OneToMany(mappedBy = "showTime")
     @JsonIgnore
@@ -44,10 +52,12 @@ public class ShowTimeEntity implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "movie_id", nullable = false)
+    @JsonIgnore
     private MovieEntity movie;
 
     @ManyToOne
     @JoinColumn(name = "cinema_theater_id", nullable = false)
+    @JsonIgnore
     private CinemaTheaterEntity cinemaTheater;
 
 }

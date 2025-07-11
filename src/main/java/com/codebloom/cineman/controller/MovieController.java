@@ -33,6 +33,20 @@ public class MovieController {
         );
     }
 
+    @Operation(summary = "Get all movie by movie theater", description = "Api dùng để client lấy tất cả movie trong hệ thống theo id rạp chiếu")
+    @GetMapping("/movie-theater/{id}")
+    public ResponseEntity<ApiResponse> getAllMovieByMovieTheater(
+            @PathVariable @Min(value = 1, message = "Id's movie theater is must be greater than or equal 1") Integer id,
+            MoviePageQueryRequest req) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("success")
+                        .data(movieService.findAllByPageAndFilter(req, id))
+                        .build()
+        );
+    }
+
     @Operation(summary = "Get movie by id", description = "Api dùng để client lấy chi tiết của một bộ phim bằng id")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> getMovieById( @PathVariable @Min(value = 1, message = "Id's movie is must be greater than or equal 1") Integer id) {

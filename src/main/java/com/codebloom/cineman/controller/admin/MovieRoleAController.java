@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("${api.path}/admin/movie-role")
 @RequiredArgsConstructor
-@Tag(name = "Movie Role Controller")
+@Tag(name = "Movie Role Controller", description = "Quản lý vai trò tham gia của một phim")
 @Validated
 public class MovieRoleAController {
 
