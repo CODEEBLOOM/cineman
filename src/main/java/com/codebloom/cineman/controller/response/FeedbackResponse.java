@@ -20,5 +20,5 @@ public class FeedbackResponse {
     private Date dateFeedback;
     private String topicName;
     private String userEmail;
-    
+    private Integer userId;
 }

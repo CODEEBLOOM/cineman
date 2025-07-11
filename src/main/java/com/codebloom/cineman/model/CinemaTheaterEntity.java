@@ -26,13 +26,13 @@ public class CinemaTheaterEntity implements Serializable {
     @Column(name = "cinema_theater_id")
     Integer cinemaTheaterId;
 
-    @Column(name = "room_number")
-    Integer roomNumber;
+//    @Column(name = "room_number")
+//    Integer roomNumber;
 
     Boolean status;
 
-    @Column(name = "total_seats")
-    Integer totalSeats;
+//    @Column(name = "total_seats")
+//    Integer totalSeats;
 
     @Column(name = "number_of_rows")
     Integer numberOfRows;
