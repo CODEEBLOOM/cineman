@@ -4,6 +4,7 @@ package com.codebloom.cineman.repository;
 import com.codebloom.cineman.common.enums.ShowTimeStatus;
 import com.codebloom.cineman.model.CinemaTheaterEntity;
 import com.codebloom.cineman.model.MovieEntity;
+import com.codebloom.cineman.model.SeatEntity;
 import com.codebloom.cineman.model.ShowTimeEntity;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -49,6 +50,12 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> 
             """)
     List<ShowTimeEntity> findAllShowTimeByMovieIdAndMovieTheaterIdAndShowDateEqual(Integer movieId, Date showDate, Integer cinemaTheaterId, ShowTimeStatus showTimeStatus, Sort sort);
 
+    /**
+     * Tìm kiếm đếm lấy ra tổng số ghế trống của showtime theo showtime id và status đã xuất bản
+     * @param showTimeId id of showtime
+     * @param showTimeStatus status of showtime ( VALID )
+     * @return number of seat
+     */
     @Query("""
             SELECT COUNT(s.id)
             FROM ShowTimeEntity st JOIN CinemaTheaterEntity c ON c.cinemaTheaterId = st.cinemaTheater.cinemaTheaterId
@@ -57,6 +64,22 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> 
                         AND st.status = :showTimeStatus
                         AND s.id NOT IN (SELECT seat.id FROM TicketEntity t JOIN SeatEntity seat ON seat.id = t.seat.id WHERE t.showTime.id = :showTimeId)
             """)
-    Long countSeatByShowTimeId(@Param("showTimeId")Long showTimeId, @Param("showTimeStatus")ShowTimeStatus showTimeStatus);
+    Long countSeatByShowTimeId(@Param("showTimeId") Long showTimeId, @Param("showTimeStatus") ShowTimeStatus showTimeStatus);
+
+    /**
+     * Lấy ra tất cả ghế trống của showtime theo showtime id và status dah xuất bản
+     * @param showTimeId id of showtime
+     * @param showTimeStatus status of showtime
+     * @return seats empty
+     */
+    @Query("""
+            SELECT s
+            FROM ShowTimeEntity st JOIN CinemaTheaterEntity c ON c.cinemaTheaterId = st.cinemaTheater.cinemaTheaterId
+                        JOIN SeatEntity s ON s.cinemaTheater.cinemaTheaterId = c.cinemaTheaterId
+            WHERE st.id = :showTimeId
+                        AND st.status = :showTimeStatus
+                        AND s.id NOT IN (SELECT seat.id FROM TicketEntity t JOIN SeatEntity seat ON seat.id = t.seat.id WHERE t.showTime.id = :showTimeId)
+            """)
+    List<SeatEntity> findAllSeatByShowTimeId(@Param("showTimeId")Long showTimeId, @Param("showTimeStatus")ShowTimeStatus showTimeStatus);
 
 }
