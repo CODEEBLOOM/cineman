@@ -22,7 +22,8 @@ public class FeedbackAController {
 
     private final FeedbackService feedbackService;
 
-    @GetMapping
+    // Lấy toàn bộ Feedback có isActive = true
+    @GetMapping("/all/Active")
     public ResponseEntity<ApiResponse> getAllActiveFeedbacks() {
         return ResponseEntity.ok(
                 ApiResponse.builder()
@@ -33,6 +34,7 @@ public class FeedbackAController {
         );
     }
 
+    // Lấy tất cả Feedback, kể cả isActive = false
     @GetMapping("/all")
     public ResponseEntity<ApiResponse> getAllFeedbacksIncludeInactive() {
         return ResponseEntity.ok(
@@ -44,6 +46,7 @@ public class FeedbackAController {
         );
     }
 
+    // Lấy Feedback bằng id
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> getFeedbackById(@PathVariable("id") @Min(1) Integer id) {
         return ResponseEntity.ok(
@@ -55,6 +58,7 @@ public class FeedbackAController {
         );
     }
 
+    // Lấy toàn bộ Feedback theo email user
     @GetMapping("/by-email")
     public ResponseEntity<ApiResponse> getFeedbacksByUserEmail(@RequestParam String email) {
         return ResponseEntity.ok(
@@ -66,6 +70,7 @@ public class FeedbackAController {
         );
     }
 
+    // Lấy toàn bộ Feedback theo mức độ đánh giá
     @GetMapping("/satisfaction")
     public ResponseEntity<ApiResponse> getFeedbacksBySatisfaction(@RequestParam SatisfactionLevel level) {
         return ResponseEntity.ok(
@@ -77,6 +82,7 @@ public class FeedbackAController {
         );
     }
 
+    // Xóa Feedback - Xóa mềm - Chỉ dành cho admin
     @DeleteMapping("/{id}/delete")
     public ResponseEntity<ApiResponse> deleteFeedbackAsAdmin(@PathVariable("id") @Min(1) Integer id) {
         feedbackService.deleteByAdmin(id);
