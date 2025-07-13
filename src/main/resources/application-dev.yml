@@ -4,10 +4,23 @@ spring:
       on-profile: dev
   devtools:
     add-properties: true
+# tạo đường dẫn đến thư mục script
+  flyway:
+    locations: classpath:/db/migration,classpath:/dev/db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
   servlet:
     multipart:
       max-file-size: 10MB     # Giới hạn cho 1 file
       max-request-size: 20MB  # Tổng dung lượng toàn request
+
+
+
+
+
+
+
+
 # kêt nối database
   datasource:
     url: jdbc:sqlserver://localhost:1433;databaseName=cinema_app;encrypt=true;trustServerCertificate=true;
