@@ -1,8 +1,7 @@
 package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.controller.request.MovieStatusRequest;
-import com.codebloom.cineman.exception.DataExistingException;
-import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.Exception.*;
 import com.codebloom.cineman.model.MovieStatusEntity;
 import com.codebloom.cineman.repository.MovieStatusRepository;
 import com.codebloom.cineman.service.MovieStatusService;

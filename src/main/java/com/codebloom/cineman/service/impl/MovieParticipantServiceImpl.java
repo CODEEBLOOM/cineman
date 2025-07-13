@@ -1,7 +1,7 @@
 package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.controller.request.MovieParticipantRequest;
-import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.Exception.*;
 import com.codebloom.cineman.model.MovieRoleEntity;
 import com.codebloom.cineman.model.ParticipantEntity;
 import com.codebloom.cineman.model.MovieParticipantEntity;

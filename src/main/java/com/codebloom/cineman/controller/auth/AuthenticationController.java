@@ -7,7 +7,7 @@ import com.codebloom.cineman.controller.request.UserRegisterRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
 import com.codebloom.cineman.controller.response.TokenResponse;
 import com.codebloom.cineman.controller.response.UserResponse;
-import com.codebloom.cineman.exception.InvalidDataException;
+import com.codebloom.cineman.Exception.*;
 import com.codebloom.cineman.service.AuthService;
 import com.codebloom.cineman.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;

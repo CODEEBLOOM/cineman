@@ -4,7 +4,7 @@ import com.codebloom.cineman.common.enums.PromotionConditionType;
 import com.codebloom.cineman.common.enums.StatusPromotion;
 import com.codebloom.cineman.controller.request.PromotionRequest;
 import com.codebloom.cineman.controller.response.PromotionResponse;
-import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.Exception.*;
 import com.codebloom.cineman.model.InvoiceEntity;
 import com.codebloom.cineman.model.PromotionEntity;
 import com.codebloom.cineman.model.UserEntity;

@@ -87,7 +87,7 @@ public class GlobalExceptionHandler {
      * @param request: để lấy ra URI đích
      * @return errorResponse
      */
-    @ExceptionHandler(DataExistingException.class)
+    @ExceptionHandler(DataNotFoundException.class)
     @ResponseStatus(NOT_FOUND)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "Bad Request",
@@ -194,35 +194,35 @@ public class GlobalExceptionHandler {
      * @param request request
      * @return errorResponse
      */
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(INTERNAL_SERVER_ERROR)
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = {@Content(mediaType = APPLICATION_JSON_VALUE,
-                            examples = @ExampleObject(
-                                    name = "500 Response",
-                                    summary = "Handle exception when internal server error",
-                                    value = """
-                                            {
-                                              "timestamp": "2025-06-01T06:35:52.333+00:00",
-                                              "status": 500,
-                                              "path": "/api/v1/...",
-                                              "error": "Internal Server Error",
-                                              "message": "Connection timeout, please try again"
-                                            }
-                                            """
-                            ))})
-    })
-    public ErrorResponse handleException(Exception e, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setTimestamp(new Date());
-        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
-        errorResponse.setStatus(INTERNAL_SERVER_ERROR.value());
-        errorResponse.setError(INTERNAL_SERVER_ERROR.getReasonPhrase());
-        errorResponse.setMessage(e.getMessage());
-
-        return errorResponse;
-    }
+//    @ExceptionHandler(Exception.class)
+//    @ResponseStatus(INTERNAL_SERVER_ERROR)
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+//                    content = {@Content(mediaType = APPLICATION_JSON_VALUE,
+//                            examples = @ExampleObject(
+//                                    name = "500 Response",
+//                                    summary = "Handle exception when internal server error",
+//                                    value = """
+//                                            {
+//                                              "timestamp": "2025-06-01T06:35:52.333+00:00",
+//                                              "status": 500,
+//                                              "path": "/api/v1/...",
+//                                              "error": "Internal Server Error",
+//                                              "message": "Connection timeout, please try again"
+//                                            }
+//                                            """
+//                            ))})
+//    })
+//    public ErrorResponse handleException(Exception e, WebRequest request) {
+//        ErrorResponse errorResponse = new ErrorResponse();
+//        errorResponse.setTimestamp(new Date());
+//        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+//        errorResponse.setStatus(INTERNAL_SERVER_ERROR.value());
+//        errorResponse.setError(INTERNAL_SERVER_ERROR.getReasonPhrase());
+//        errorResponse.setMessage(e.getMessage());
+//
+//        return errorResponse;
+//    }
 
 
     @ExceptionHandler(ConfirmPasswordException.class)

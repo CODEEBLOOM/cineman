@@ -2,7 +2,7 @@ package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.controller.request.SnackRequest;
 import com.codebloom.cineman.controller.response.SnackResponse;
-import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.Exception.*;
 import com.codebloom.cineman.model.SnackEntity;
 import com.codebloom.cineman.model.SnackTypeEntity;
 import com.codebloom.cineman.repository.SnackRepository;

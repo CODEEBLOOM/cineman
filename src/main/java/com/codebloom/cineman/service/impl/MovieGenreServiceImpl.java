@@ -1,7 +1,7 @@
 package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.controller.request.MovieGenreRequest;
-import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.Exception.*;
 import com.codebloom.cineman.model.GenresEntity;
 import com.codebloom.cineman.model.MovieEntity;
 import com.codebloom.cineman.model.MovieGenresEntity;
