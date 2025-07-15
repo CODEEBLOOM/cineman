@@ -1,5 +1,6 @@
 package com.codebloom.cineman.service.impl;
 
+import com.codebloom.cineman.common.enums.InvoiceStatus;
 import com.codebloom.cineman.common.enums.PromotionConditionType;
 import com.codebloom.cineman.common.enums.StatusPromotion;
 import com.codebloom.cineman.controller.request.PromotionRequest;
@@ -13,16 +14,21 @@ import com.codebloom.cineman.repository.PromotionRepository;
 import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.service.PromotionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j(topic = "PROMOTION-SERVICE")
 public class PromotionServiceImpl implements PromotionService {
     private final PromotionRepository promotionRepository;
     private final UserRepository userRepository;
@@ -38,38 +44,19 @@ public class PromotionServiceImpl implements PromotionService {
         if (request.getCode() == null || request.getCode().isBlank()) {
             request.setCode(generateUniqueCode());
         } else if (promotionRepository.existsByCode(request.getCode())) {
-            throw new DataNotFoundException("Mã khuyến mãi đã tồn tại");
+            throw new DataExistingException("Promotion code already exists");
         }
-
-        if (request.getStartDay() == null) {
-            throw new DataNotFoundException("Ngày bắt đầu không được để trống");
-        } else {
-            // Gộp giờ hiện tại vào ngày bắt đầu
-            Calendar inputCal = Calendar.getInstance();
-            inputCal.setTime(request.getStartDay());
-
-            Calendar now = Calendar.getInstance();
-            inputCal.set(Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY));
-            inputCal.set(Calendar.MINUTE, now.get(Calendar.MINUTE));
-            inputCal.set(Calendar.SECOND, now.get(Calendar.SECOND));
-            inputCal.set(Calendar.MILLISECOND, now.get(Calendar.MILLISECOND));
-
-            Date fullStartDay = inputCal.getTime();
-            if (fullStartDay.before(new Date())) {
-                throw new DataNotFoundException("Ngày bắt đầu phải là hôm nay hoặc tương lai");
-            }
-            request.setStartDay(fullStartDay);
+        if(request.getStartDay() == null){
+            request.setStartDay(new Date());
         }
+        log.info(String.valueOf(request.getStartDay()));
 
-        if ("DAY_OF_WEEK".equals(request.getConditionType())) {
-            Date conditionDate = request.getConditionDate();
-            if (conditionDate == null) {
-                conditionDate = new Date();
-            }
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(conditionDate);
-            int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
-            request.setConditionValue((double) dayOfWeek);
+        // lấy ngày hôm qua để so sánh
+        LocalDate yesterdayLocal = LocalDate.now().minusDays(1);
+        Date yesterday = Date.from(yesterdayLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        if (request.getStartDay().before(yesterday)) {
+            throw new InvalidDataException("The start date must be today or in the future");
         }
 
         PromotionEntity promotion = new PromotionEntity();
@@ -84,13 +71,39 @@ public class PromotionServiceImpl implements PromotionService {
         promotion.setStaff(staff);
         updatePromotionStatus(promotion);
 
+        // kiểm tra từ ngày bắt đầu đến ngày kết thúc có thứ mà người dùng đã chọn hay không -> điều kiện ng dùng chọn DAY_OF_WEEK
+        if ("DAY_OF_WEEK".equals(request.getConditionType())) {
+            if (request.getConditionDay() == null) {
+                throw new InvalidDataException("If you chose DAY_OF_WEEK conditionDate can't not be null");
+            }
+
+            LocalDate start = request.getStartDay().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate end = request.getEndDay().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            int conditionDayOfWeek = request.getConditionDay();
+
+            boolean hasMatch = false;
+            while (!start.isAfter(end)) {
+                if (start.getDayOfWeek().getValue() == conditionDayOfWeek) {
+                    hasMatch = true;
+                    break;
+                }
+                start = start.plusDays(1);
+            }
+
+            if (!hasMatch) {
+                throw new InvalidDataException("There is no date within the selected time range that falls on the chosen");
+            }else {
+                promotion.setConditionValue(Double.valueOf(request.getConditionDay()));
+            }
+
+        }
+
         PromotionEntity saved = promotionRepository.save(promotion);
         PromotionResponse response = mapper.map(saved, PromotionResponse.class);
 
         if (saved.getConditionType() == PromotionConditionType.DAY_OF_WEEK) {
-            response.setConditionDayOfWeek(convertDayOfWeekToVietnamese(saved.getConditionValue().intValue()));
+            response.setConditionDayOfWeek(convertDayOfWeekToVietnamese(request.getConditionDay()));
         }
-
         return response;
     }
 
@@ -104,70 +117,72 @@ public class PromotionServiceImpl implements PromotionService {
         UserEntity staff = userRepository.findById(request.getStaffId())
                 .orElseThrow(() -> new DataNotFoundException("Staff not found"));
 
-        if ("DAY_OF_WEEK".equals(request.getConditionType())) {
-            Date conditionDate = request.getConditionDate();
-            if (conditionDate == null) {
-                conditionDate = new Date();
+        // Nếu code mới khác code cũ thì kiểm tra trùng lặp
+        if (!promotion.getCode().equals(request.getCode()) && request.getCode() != null) {
+            if (promotionRepository.existsByCode(request.getCode())) {
+                throw new DataExistingException("Promotion code already exists");
             }
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(conditionDate);
-            int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
-            request.setConditionValue((double) dayOfWeek);
+            promotion.setCode(request.getCode());
         }
 
+        if (request.getStartDay() == null) {
+            request.setStartDay(new Date());
+        }
+
+        LocalDate yesterdayLocal = LocalDate.now().minusDays(1);
+        Date yesterday = Date.from(yesterdayLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        if (request.getStartDay().before(yesterday)) {
+            throw new InvalidDataException("The start date must be today or in the future");
+        }
+
+        // Gán thông tin
         promotion.setName(request.getName());
         promotion.setContent(request.getContent());
-        promotion.setCode(request.getCode());
-        if (request.getStartDay() == null) {
-            throw new DataNotFoundException("Ngày bắt đầu không được để trống");
-        }
-        if (request.getEndDay() == null) {
-            throw new DataNotFoundException("Ngày kết thúc không được để trống");
-        }
+        promotion.setStartDay(request.getStartDay());
+        promotion.setEndDay(request.getEndDay());
         promotion.setDiscount(request.getDiscount());
         promotion.setConditionType(PromotionConditionType.valueOf(request.getConditionType()));
-        promotion.setConditionValue(request.getConditionValue());
         promotion.setStaff(staff);
+
+        // Kiểm tra điều kiện dạng DAY_OF_WEEK
+        if ("DAY_OF_WEEK".equals(request.getConditionType())) {
+            if (request.getConditionDay() == null) {
+                throw new InvalidDataException("If you chose DAY_OF_WEEK, conditionDay must not be null");
+            }
+
+            LocalDate start = request.getStartDay().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate end = request.getEndDay().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            int conditionDayOfWeek = request.getConditionDay();
+
+            boolean hasMatch = false;
+            while (!start.isAfter(end)) {
+                if (start.getDayOfWeek().getValue() == conditionDayOfWeek) {
+                    hasMatch = true;
+                    break;
+                }
+                start = start.plusDays(1);
+            }
+
+            if (!hasMatch) {
+                throw new InvalidDataException("No date within the selected time range matches the chosen day of week");
+            } else {
+                promotion.setConditionValue(Double.valueOf(request.getConditionValue()));
+            }
+        } else {
+            promotion.setConditionValue(request.getConditionValue());
+        }
+
         updatePromotionStatus(promotion);
+        PromotionEntity saved = promotionRepository.save(promotion);
 
-        PromotionEntity updated = promotionRepository.save(promotion);
-        PromotionResponse response = mapper.map(updated, PromotionResponse.class);
-
-        if (updated.getConditionType() == PromotionConditionType.DAY_OF_WEEK) {
-            response.setConditionDayOfWeek(convertDayOfWeekToVietnamese(updated.getConditionValue().intValue()));
+        PromotionResponse response = mapper.map(saved, PromotionResponse.class);
+        if (saved.getConditionType() == PromotionConditionType.DAY_OF_WEEK) {
+            response.setConditionDayOfWeek(convertDayOfWeekToVietnamese(request.getConditionDay()));
         }
 
         return response;
     }
-
-    private String convertDayOfWeekToVietnamese(int dayOfWeek) {
-        return switch (dayOfWeek) {
-            case Calendar.SUNDAY -> "Chủ nhật";
-            case Calendar.MONDAY -> "Thứ 2";
-            case Calendar.TUESDAY -> "Thứ 3";
-            case Calendar.WEDNESDAY -> "Thứ 4";
-            case Calendar.THURSDAY -> "Thứ 5";
-            case Calendar.FRIDAY -> "Thứ 6";
-            case Calendar.SATURDAY -> "Thứ 7";
-            default -> "Không xác định";
-        };
-    }
-
-    private void updatePromotionStatus(PromotionEntity promo) {
-        if (promo.getStatus() == StatusPromotion.DELETED) {
-            return;
-        }
-
-        Date now = new Date();
-        if (now.before(promo.getStartDay())) {
-            promo.setStatus(StatusPromotion.UPCOMING);
-        } else if (now.after(promo.getEndDay())) {
-            promo.setStatus(StatusPromotion.EXPIRED);
-        } else {
-            promo.setStatus(StatusPromotion.ACTIVE);
-        }
-    }
-
 
     @Override
     public void deletePromotion(Long id) {
@@ -185,14 +200,20 @@ public class PromotionServiceImpl implements PromotionService {
         promotionRepository.save(promo);
     }
 
+    // //////////////////////////// PHẦN CỦA NGƯỜI DÙNG ////////////////////////////////////////////////////////
+
     @Transactional
     @Override
     public void applyVoucherToInvoice(String code, Long invoiceId) {
         InvoiceEntity invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new DataNotFoundException("Invoice not found"));
 
-        if (invoice.getPromotion() != null) {
-            throw new DataNotFoundException("Hóa đơn này đã áp dụng voucher");
+        if (invoice.getPromotion() != null ) {
+            throw new DataExistingException("This invoice has applied a voucher");
+        }
+
+        if(!invoice.getStatus().equals(InvoiceStatus.PENDING)){
+            throw new InvalidDataException("Invalid invoice status");
         }
 
         PromotionEntity promo = promotionRepository.findByCode(code)
@@ -201,7 +222,7 @@ public class PromotionServiceImpl implements PromotionService {
         updatePromotionStatus(promo);
 
         if (promo.getStatus() != StatusPromotion.ACTIVE) {
-            throw new DataNotFoundException("Voucher hết hạn hoặc chưa hiệu lực");
+            throw new DataNotFoundException("Voucher has expired or is not coming up");
         }
 
         validatePromotionCondition(promo, invoice);
@@ -224,18 +245,19 @@ public class PromotionServiceImpl implements PromotionService {
                             String.format("Hóa đơn phải từ %.0f VNĐ trở lên để dùng voucher", conditionValue));
                 }
             }
+
             case MIN_TOTAL_TICKET -> {
                 if (invoice.getTotalTicket() < conditionValue) {
                     throw new DataNotFoundException(
                             String.format("Cần ít nhất %.0f vé để dùng voucher", conditionValue));
                 }
             }
+
             case DAY_OF_WEEK -> {
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(new Date());
-                int today = cal.get(Calendar.DAY_OF_WEEK); // 1: CN, 2: T2, ...
-                if ((int) conditionValue != today) {
-                    throw new DataNotFoundException("Voucher chỉ áp dụng cho " + convertDayOfWeekToVietnamese((int) conditionValue));
+                int conditionDay = promo.getConditionValue().intValue();
+                int today = LocalDate.now().getDayOfWeek().getValue();
+                if (today != conditionDay) {
+                    throw new DataNotFoundException("Voucher is only valid on specific days: " + convertDayOfWeekToVietnamese(conditionDay));
                 }
             }
         }
@@ -318,6 +340,7 @@ public class PromotionServiceImpl implements PromotionService {
         return response;
     }
 
+    // tạo mã code promotion random nếu người dùng ko nhâp
     @Override
     public String generateUniqueCode() {
         int length = 6;
@@ -334,4 +357,41 @@ public class PromotionServiceImpl implements PromotionService {
 
         return code;
     }
+
+    // chuyển từ dữ liệu front end gửi về từ int thành string thứ
+    public String convertDayOfWeekToVietnamese(int day) {
+        return switch (day) {
+            case 1 -> "Thứ hai";
+            case 2 -> "Thứ ba";
+            case 3 -> "Thứ tư";
+            case 4 -> "Thứ năm";
+            case 5 -> "Thứ sáu";
+            case 6 -> "Thứ bảy";
+            case 7 -> "Chủ nhật";
+            default -> "Không xác định";
+        };
+    }
+
+    // cập nhật lại trạng thái giảm giá theo thời hạn
+    private void updatePromotionStatus(PromotionEntity promo) {
+        if (promo.getStatus() == StatusPromotion.DELETED) {
+            return;
+        }
+
+        // lấy ngày hôm qua để so sánh
+        LocalDate yesterdayLocal = LocalDate.now().minusDays(1);
+        Date yesterday = Date.from(yesterdayLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        Date now = new Date();
+        if (yesterday.after(promo.getStartDay())) {
+            promo.setStatus(StatusPromotion.UPCOMING);
+        } else if (now.after(promo.getEndDay())) {
+            promo.setStatus(StatusPromotion.EXPIRED);
+        } else {
+            promo.setStatus(StatusPromotion.ACTIVE);
+        }
+    }
+
+
+
 }

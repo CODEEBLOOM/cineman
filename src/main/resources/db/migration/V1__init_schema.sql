@@ -1,1 +1,0 @@
---ghi cấu hình db mới ở đây
