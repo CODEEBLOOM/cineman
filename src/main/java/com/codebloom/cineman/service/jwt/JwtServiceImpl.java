@@ -1,7 +1,7 @@
 package com.codebloom.cineman.service.jwt;
 
 import com.codebloom.cineman.common.enums.TokenType;
-import com.codebloom.cineman.exception.InvalidDataException;
+import com.codebloom.cineman.Exception.*;
 import com.codebloom.cineman.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;

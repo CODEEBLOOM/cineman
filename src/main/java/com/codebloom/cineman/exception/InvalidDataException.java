@@ -1,4 +1,4 @@
-package com.codebloom.cineman.exception;
+package com.codebloom.cineman.Exception;
 
 public class InvalidDataException extends RuntimeException {
     public InvalidDataException(String message) {

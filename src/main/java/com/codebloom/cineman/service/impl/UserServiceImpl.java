@@ -2,7 +2,7 @@ package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.common.enums.TokenType;
 import com.codebloom.cineman.controller.response.MetaResponse;
-import com.codebloom.cineman.exception.*;
+import com.codebloom.cineman.Exception.*;
 import com.codebloom.cineman.service.JwtService;
 import com.codebloom.cineman.service.RoleService;
 

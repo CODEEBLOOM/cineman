@@ -1,4 +1,4 @@
-package com.codebloom.cineman.exception;
+package com.codebloom.cineman.Exception;
 
 public class AccessDeniedException extends RuntimeException {
     public AccessDeniedException(String message) {

@@ -25,8 +25,8 @@ public class FeatureEntity {
     @ManyToMany
     @JoinTable(
             name= "cinema_type_features",
-            joinColumns = @JoinColumn(name = "id"),
-            inverseJoinColumns = @JoinColumn(name = "cinema_tupe_id"))
+            joinColumns = @JoinColumn(name = "feature_id"),
+            inverseJoinColumns = @JoinColumn(name = "cinema_type_id"))
     @JsonIgnore
     private List<CinemaTypeEntity> cinemaTypes;
 
