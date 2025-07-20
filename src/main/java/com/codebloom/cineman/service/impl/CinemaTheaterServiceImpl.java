@@ -163,24 +163,6 @@ public class CinemaTheaterServiceImpl implements CinemaTheaterService {
                 () ->  new DataNotFoundException("Cinema Theater Not Found With Id: " + cinemaTheaterId));
 
         List<SeatEntity> seats = cinemaTheater.getSeats();
-//        for(int row = 0; row< cinemaTheater.getNumberOfRows() ; row++) {
-//            if (row <= cinemaTheater.getRegularSeatRow()) {
-//                seatType = "REGULAR";
-//            } else if (row < cinemaTheater.getRegularSeatRow() + cinemaTheater.getVipSeatRow()) {
-//                seatType = "VIP";
-//            } else {
-//                seatType = "DOUBLE";
-//            }
-//            for (int column = 0; column < cinemaTheater.getNumberOfColumns(); column++) {
-//                seat = DummySeat.builder()
-//                        .rowIndex(row)
-//                        .columnIndex(column)
-//                        .label(numberToLetter(row + 1) + (column + 1))
-//                        .seatType(seatType)
-//                        .build();
-//                seats.add(seat);
-//            }
-//        }
         return SeatMapResponse.builder()
                 .seats(seats)
                 .cinemaTheaterId(cinemaTheaterId)

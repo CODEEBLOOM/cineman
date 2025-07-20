@@ -1,8 +1,10 @@
 package com.codebloom.cineman.service;
 
 import com.codebloom.cineman.controller.request.ShowTimeRequest;
+import com.codebloom.cineman.controller.response.DummyTicket;
 import com.codebloom.cineman.controller.response.ShowTimeDetailResponse;
 import com.codebloom.cineman.controller.response.ShowTimeResponse;
+import com.codebloom.cineman.model.SeatMapResponse;
 import com.codebloom.cineman.model.ShowTimeEntity;
 
 import java.util.Date;
@@ -21,4 +23,5 @@ public interface ShowTimeService {
     List<ShowTimeDetailResponse> findAllShowTimeByMovieIdAndMovieTheaterIdAndShowDateEqual(Integer movieId, Integer cinemaTheaterId, Date showDate);
     Long findCountByShowTimeId(Long showTimeId);
 
+    SeatMapResponse findSeatMapByShowTimeIdAndCinemaTheaterId(Long id, Integer cinemaTheaterId);
 }

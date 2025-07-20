@@ -15,16 +15,11 @@ import java.util.Date;
 public class ShowTimeResponse {
 
     private Long id;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private LocalTime startTime;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private LocalTime endTime;
-
     private Date showDate;
     private Double originPrice;
-    private MovieEntity movie;
+    private MovieResponse movie;
     private CinemaTheaterEntity cinemaTheater;
     private ShowTimeStatus status;
 

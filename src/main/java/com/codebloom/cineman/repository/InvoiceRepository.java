@@ -1,10 +1,17 @@
 package com.codebloom.cineman.repository;
 
+import com.codebloom.cineman.common.enums.InvoiceStatus;
 import com.codebloom.cineman.model.InvoiceEntity;
+import com.codebloom.cineman.model.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 public interface InvoiceRepository extends JpaRepository<InvoiceEntity,Long> {
 
+    Optional<InvoiceEntity> findByIdAndStatus(Long id, InvoiceStatus status);
+
+    Optional<InvoiceEntity> findByCustomerOrStaffAndStatus(UserEntity customer, UserEntity staff, InvoiceStatus status);
 }

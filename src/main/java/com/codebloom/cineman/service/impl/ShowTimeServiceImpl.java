@@ -5,15 +5,15 @@ import com.codebloom.cineman.common.constant.MovieTheaterOfficeHours;
 import com.codebloom.cineman.common.enums.CinemaTheaterStatus;
 import com.codebloom.cineman.common.enums.ShowTimeStatus;
 import com.codebloom.cineman.controller.request.ShowTimeRequest;
+import com.codebloom.cineman.controller.response.MovieResponse;
 import com.codebloom.cineman.controller.response.ShowTimeDetailResponse;
 import com.codebloom.cineman.controller.response.ShowTimeResponse;
 import com.codebloom.cineman.exception.DataNotFoundException;
-import com.codebloom.cineman.model.CinemaTheaterEntity;
-import com.codebloom.cineman.model.MovieEntity;
-import com.codebloom.cineman.model.ShowTimeEntity;
+import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.CinemaTheatersRepository;
 import com.codebloom.cineman.repository.MovieRepository;
 import com.codebloom.cineman.repository.ShowTimeRepository;
+import com.codebloom.cineman.service.MovieService;
 import com.codebloom.cineman.service.ShowTimeService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +33,7 @@ public class ShowTimeServiceImpl implements ShowTimeService {
     private final ShowTimeRepository showTimeRepository;
     private final CinemaTheatersRepository cinemaTheaterRepository;
     private final MovieRepository movieRepository;
+    private final MovieService movieService;
 
     /**
      * Tạo một lịch chiếu phim
@@ -215,7 +216,6 @@ public class ShowTimeServiceImpl implements ShowTimeService {
 
     /**
      * Find all seat by showtime id
-     *
      * @param showTimeId cinema theater id
      * @return showtime response
      */
@@ -225,12 +225,41 @@ public class ShowTimeServiceImpl implements ShowTimeService {
     }
 
     /**
+     * Find seat map by showtime id
+     * @param id showtime id
+     * @param cinemaTheaterId cinema theater id
+     * @return SeatMapResponse
+     */
+    @Override
+    public SeatMapResponse findSeatMapByShowTimeIdAndCinemaTheaterId(Long id, Integer cinemaTheaterId) {
+//        CinemaTheaterEntity cinemaTheater = cinemaTheaterRepository.findByStatusNotAndCinemaTheaterId(CinemaTheaterStatus.INVALID, cinemaTheaterId)
+//                .orElseThrow(
+//                () ->  new DataNotFoundException("Cinema Theater Not Found With Id: " + cinemaTheaterId));
+//
+//        List<SeatEntity> seats = cinemaTheater.getSeats();
+//        return SeatMapResponse.builder()
+//                .seats(seats)
+//                .cinemaTheaterId(cinemaTheaterId)
+//                .numberOfColumn(cinemaTheater.getNumberOfColumns())
+//                .numberOfRows(cinemaTheater.getNumberOfRows())
+//                .doubleSeatRow(cinemaTheater.getDoubleSeatRow())
+//                .vipSeatRow(cinemaTheater.getVipSeatRow())
+//                .regularSeatRow(cinemaTheater.getRegularSeatRow())
+//                .status(cinemaTheater.getStatus())
+//                .build();
+//        return null;
+        return null;
+    }
+
+
+    /**
      * Convert ShowTimeEntity to ShowTimeResponse
      *
      * @param showTimeEntity ShowTimeEntity
      * @return ShowTimeResponse
      */
     private ShowTimeResponse convertToShowTimeResponse(ShowTimeEntity showTimeEntity) {
+        MovieResponse movieResponse = movieService.findById(showTimeEntity.getMovie().getMovieId());
         return ShowTimeResponse.builder()
                 .id(showTimeEntity.getId())
                 .showDate(showTimeEntity.getShowDate())
@@ -238,7 +267,7 @@ public class ShowTimeServiceImpl implements ShowTimeService {
                 .endTime(showTimeEntity.getEndTime())
                 .status(showTimeEntity.getStatus())
                 .originPrice(showTimeEntity.getOriginPrice())
-                .movie(showTimeEntity.getMovie())
+                .movie(movieResponse)
                 .cinemaTheater(showTimeEntity.getCinemaTheater())
                 .build();
     }

@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.Check;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -20,15 +21,14 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @Entity
-@Check(constraints = "total_ticket > 0 AND customer_id IS NOT NULL OR staff_id IS NOT NULL")
-@Table(name = "invoices", uniqueConstraints = { @UniqueConstraint(columnNames = {"customer_id", "promotion_id"})})
+@Check(constraints = "total_ticket >= 0 AND customer_id IS NOT NULL OR staff_id IS NOT NULL")
+@Table(name = "invoices", uniqueConstraints = { @UniqueConstraint(columnNames = {"customer_id", "promotion_id", "invoice_id", "staff_id"}) })
 public class InvoiceEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "invoice_id")
-    private Long invoiceId;
-
+    private Long id;
 
     @Column(name = "email", nullable = false, unique = true, length = 150)
     private String email;
@@ -47,10 +47,12 @@ public class InvoiceEntity implements Serializable {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", columnDefinition = "DATETIME")
+    @CreationTimestamp
     private Date createdAt;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at", columnDefinition = "DATETIME")
+    @CreationTimestamp
     private Date updatedAt;
 
     @ManyToOne

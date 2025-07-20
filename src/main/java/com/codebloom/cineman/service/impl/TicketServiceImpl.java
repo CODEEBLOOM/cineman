@@ -1,0 +1,110 @@
+package com.codebloom.cineman.service.impl;
+
+import com.codebloom.cineman.common.enums.InvoiceStatus;
+import com.codebloom.cineman.common.enums.SeatStatus;
+import com.codebloom.cineman.common.enums.ShowTimeStatus;
+import com.codebloom.cineman.common.enums.TicketStatus;
+import com.codebloom.cineman.controller.request.TicketRequest;
+import com.codebloom.cineman.controller.response.TicketResponse;
+import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.model.*;
+import com.codebloom.cineman.repository.*;
+import com.codebloom.cineman.service.TicketService;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j(topic = "TICKET-SERVICE")
+public class TicketServiceImpl implements TicketService {
+
+    private final TicketRepository ticketRepository;
+    private final ShowTimeRepository showTimeRepository;
+    private final SeatRepository seatRepository;
+    private final TicketTypeRepository ticketTypeRepository;
+    private final InvoiceRepository invoiceRepository;
+
+
+    @Override
+    public TicketResponse findById(Integer ticketId) {
+        return null;
+    }
+
+
+    @Override
+    public List<TicketResponse> findAllByShowTimeId(Long showTimeId) {
+        return List.of();
+    }
+
+    /**
+     * Tạo vé mới
+     * @param request thông tin vé
+     * @return vé mới
+     */
+    @Override
+    @Transactional
+    public TicketResponse create(TicketRequest request) {
+        ShowTimeEntity showTimeEntity = showTimeRepository.findByIdAndStatus(request.getShowTimeId(), ShowTimeStatus.VALID)
+                .orElseThrow(() -> new DataNotFoundException("Show time not found or invalid"));
+
+        SeatEntity seatEntity = seatRepository.findByIdAndStatus(request.getSeatId(), SeatStatus.ACTIVE)
+                .orElseThrow(() -> new DataNotFoundException("Seat not found or invalid"));
+
+        TicketTypeEntity ticketTypeEntity = ticketTypeRepository.findByNameAndStatus(request.getTicketType(), true)
+                .orElseThrow(() -> new DataNotFoundException("Ticket type not found or invalid"));
+
+        InvoiceEntity invoiceEntity = invoiceRepository.findByIdAndStatus(request.getInvoiceId(), InvoiceStatus.PENDING)
+                .orElseThrow(() -> new DataNotFoundException("Invoice not found"));
+
+        // Tính tiền giá vé //
+        // giá cơ bản (showtime) + giá loại vé  (ticket type) + tính giá loại ghế (seat type)
+        Double price = showTimeEntity.getOriginPrice() + ticketTypeEntity.getPrice() + seatEntity.getSeatType().getPrice();
+
+        // Tạo ticket //
+        TicketEntity ticketEntity = TicketEntity.builder()
+                .showTime(showTimeEntity)
+                .ticketType(ticketTypeEntity)
+                .invoice(invoiceEntity)
+                .seat(seatEntity)
+                .price(price)
+                .status(TicketStatus.SELECTED)
+                .limitTime(10)
+                .build();
+
+        TicketEntity savedTicket = ticketRepository.save(ticketEntity);
+        return convertToTicketResponse(savedTicket);
+    }
+
+
+
+    @Override
+    public TicketResponse update(Integer ticketId, TicketRequest request) {
+        return null;
+    }
+
+    @Override
+    public void delete(Integer ticketId) {
+
+    }
+
+    /**
+     * Chuyển đổi từ TicketEntity sang TicketResponse
+     * @param savedTicket TicketEntity sau khi được lưu
+     * @return TicketResponse
+     */
+    private TicketResponse convertToTicketResponse(TicketEntity savedTicket) {
+        return TicketResponse.builder()
+                .id(savedTicket.getId())
+                .showTime(savedTicket.getShowTime())
+                .ticketType(savedTicket.getTicketType())
+                .price(savedTicket.getPrice())
+                .status(savedTicket.getStatus())
+                .limitTime(savedTicket.getLimitTime())
+                .createBooking(savedTicket.getCreateBooking())
+                .build();
+    }
+}

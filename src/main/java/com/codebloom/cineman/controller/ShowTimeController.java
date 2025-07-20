@@ -55,6 +55,19 @@ public class ShowTimeController {
     }
 
 
+    @GetMapping("/{id}/count")
+    @Operation(summary = "Find count show time id", description = "API dùng để lấy  show time theo show time id ")
+    public ResponseEntity<ApiResponse> findCountByShowTimeId(
+            @PathVariable @Min(value = 1, message = "Id's movie is must be greater than 0") Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Success")
+                        .data(showTimeService.findCountByShowTimeId(id))
+                        .build()
+        );
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Find show time by show time id", description = "API dùng để lấy  show time theo show time id ")
     public ResponseEntity<ApiResponse> findAllByShowTimeId(
@@ -63,7 +76,21 @@ public class ShowTimeController {
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
                         .message("Success")
-                        .data(showTimeService.findCountByShowTimeId(id))
+                        .data(showTimeService.findById(id))
+                        .build()
+        );
+    }
+
+    @GetMapping("/{id}/cinema-theater/{cinemaTheaterId}/seat-map")
+    @Operation(summary = "Find show time by show time id", description = "API dùng để lấy  show time theo show time id ")
+    public ResponseEntity<ApiResponse> findSeatMapByShowTimeIdAndCinemaTheaterId(
+            @PathVariable @Min(value = 1, message = "Id's show time is must be greater than 0") Long id,
+            @PathVariable @Min(value = 1, message = "Id's cinema theater is must be greater than 0") Integer cinemaTheaterId) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Success")
+                        .data(showTimeService.findSeatMapByShowTimeIdAndCinemaTheaterId(id, cinemaTheaterId))
                         .build()
         );
     }

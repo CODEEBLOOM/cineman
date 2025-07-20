@@ -110,6 +110,9 @@ public class JwtFilter extends OncePerRequestFilter {
                 Pair.of(String.format("%s/auth/social-login",apiPath),Method.GET),
                 Pair.of(String.format("%s/auth/social/callback",apiPath),Method.GET),
 
+                // API for customer
+                Pair.of(String.format("%s/movie/movie-theater/**",apiPath),Method.GET),
+
                 // Swagger
                 Pair.of("/api-docs",Method.GET),
                 Pair.of("/api-docs/**",Method.GET),

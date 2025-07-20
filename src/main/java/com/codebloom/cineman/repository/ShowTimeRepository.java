@@ -21,6 +21,7 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> 
 
     List<ShowTimeEntity> findAllByCinemaTheaterAndShowDateAndStatusNot(CinemaTheaterEntity cinemaTheater, Date showDate, ShowTimeStatus showTimeStatus, Sort sort);
 
+    Optional<ShowTimeEntity> findByIdAndStatus(Long id, ShowTimeStatus showTimeStatus);
 
     List<ShowTimeEntity> findAllByStatusNot(ShowTimeStatus showTimeStatus);
 
@@ -67,7 +68,7 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> 
     Long countSeatByShowTimeId(@Param("showTimeId") Long showTimeId, @Param("showTimeStatus") ShowTimeStatus showTimeStatus);
 
     /**
-     * Lấy ra tất cả ghế trống của showtime theo showtime id và status dah xuất bản
+     * Lấy ra tất cả ghế trống của showtime theo showtime id và status đã xuất bản
      * @param showTimeId id of showtime
      * @param showTimeStatus status of showtime
      * @return seats empty
@@ -80,6 +81,9 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> 
                         AND st.status = :showTimeStatus
                         AND s.id NOT IN (SELECT seat.id FROM TicketEntity t JOIN SeatEntity seat ON seat.id = t.seat.id WHERE t.showTime.id = :showTimeId)
             """)
-    List<SeatEntity> findAllSeatByShowTimeId(@Param("showTimeId")Long showTimeId, @Param("showTimeStatus")ShowTimeStatus showTimeStatus);
+    List<SeatEntity> findAllSeatByShowTimeId(@Param("showTimeId")Long showTimeId, @Param("showTimeStatus") ShowTimeStatus showTimeStatus);
+
+
+
 
 }

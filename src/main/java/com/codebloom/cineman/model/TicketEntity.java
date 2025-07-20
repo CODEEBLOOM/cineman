@@ -40,9 +40,6 @@ public class TicketEntity implements Serializable {
     @Column(name = "limit_time", nullable = false)
     Integer limitTime;
 
-    @Column(name = "expired", nullable = false)
-    Boolean expired;
-
     @ManyToOne
     @JoinColumn(name = "show_time_id", nullable = false)
     private ShowTimeEntity showTime;

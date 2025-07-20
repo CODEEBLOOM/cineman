@@ -123,7 +123,7 @@ public class GlobalExceptionHandler {
      * @return errorResponse
      */
 
-    @ExceptionHandler(IOException.class)
+    @ExceptionHandler(FileNotFoundException.class)
     @ResponseStatus(BAD_REQUEST)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "Lỗi khi xử lý file hoặc Google Drive",

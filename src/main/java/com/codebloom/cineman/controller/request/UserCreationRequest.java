@@ -5,10 +5,7 @@ import com.codebloom.cineman.common.enums.UserType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,6 +19,7 @@ public class UserCreationRequest {
 
     @NotBlank(message = "User's email is is not blank !")
     @NotNull( message = "User's email is is not null !")
+    @Email(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", message = "User's email invalid !")
     private String email;
 
     @NotBlank(message = "User's fullName is is not blank !")
