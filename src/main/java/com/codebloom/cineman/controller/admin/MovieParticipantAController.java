@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.LinkedHashMap;
 
 @RestController
-@RequestMapping("/admin/movie-participant")
+@RequestMapping("${api.path}/admin/movie-participant")
 @RequiredArgsConstructor
 @Tag(name= "Movie Director Controller")
 @Validated
@@ -35,7 +35,7 @@ public class MovieParticipantAController {
         );
     }
 
-    @PutMapping("${api.path}/{id}/update")
+    @PutMapping("/{id}/update")
     public ResponseEntity<ApiResponse> updateDirectorForMovie(
             @PathVariable @Min(value = 1, message = "Id of movie participant is must be greater than 0") Integer id,
             @RequestBody @Valid MovieParticipantRequest request) {

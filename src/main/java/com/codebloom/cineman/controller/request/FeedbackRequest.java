@@ -16,6 +16,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class FeedbackRequest {
 
     @NotNull(message = "Content must not be null")

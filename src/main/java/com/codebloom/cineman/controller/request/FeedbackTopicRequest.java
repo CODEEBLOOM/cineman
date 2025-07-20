@@ -11,8 +11,10 @@ import lombok.*;
 @AllArgsConstructor
 public class FeedbackTopicRequest {
 
+    @NotBlank(message = "Tên chủ đề không được để trống.")
     @Size(max = 100, message = "Title of movie must be less than 100 character !")
     private String topicName;
-    
+
+    @Size(max = 200, message = "Mô tả tối đa 200 ký tự.")
     private String description;
 }

@@ -3,6 +3,7 @@ package com.codebloom.cineman.service.impl;
 import com.codebloom.cineman.controller.request.FeedbackTopicRequest;
 import com.codebloom.cineman.controller.response.FeedbackTopicResponse;
 import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.exception.InvalidDataException;
 import com.codebloom.cineman.model.FeedbackTopicEntity;
 import com.codebloom.cineman.repository.FeedbackTopicRepository;
 import com.codebloom.cineman.service.FeedbackTopicService;
@@ -14,7 +15,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class FeedbackTopicServiceImpl implements FeedbackTopicService {
+    public class FeedbackTopicServiceImpl implements FeedbackTopicService {
 
     private final FeedbackTopicRepository feedbackTopicRepository;
     private final ModelMapper modelMapper;
@@ -67,13 +68,13 @@ public class FeedbackTopicServiceImpl implements FeedbackTopicService {
      *
      * @param feedbackTopicDto Dữ liệu chủ đề mới
      * @return Thông tin chủ đề feedback sau khi tạo
-     * @throws IllegalArgumentException nếu tên chủ đề đã tồn tại
+     * @throws InvalidDataException nếu tên chủ đề đã tồn tại
      */
     @Override
     public FeedbackTopicResponse save(FeedbackTopicRequest feedbackTopicDto) {
         feedbackTopicRepository.findByTopicName(feedbackTopicDto.getTopicName())
                 .ifPresent(existing -> {
-                    throw new IllegalArgumentException("Chủ đề " + " / " + feedbackTopicDto.getTopicName() + " / " + "đã tồn tại!");
+                    throw new InvalidDataException("Chủ đề " + " / " + feedbackTopicDto.getTopicName() + " / " + "đã tồn tại!");
                 });
 
         FeedbackTopicEntity entity = modelMapper.map(feedbackTopicDto, FeedbackTopicEntity.class);
@@ -99,7 +100,7 @@ public class FeedbackTopicServiceImpl implements FeedbackTopicService {
         boolean exists = feedbackTopicRepository.isTopicNameDuplicated(request.getTopicName(), id);
 
         if (exists) {
-            throw new RuntimeException("Tên chủ đề đã tồn tại, vui lòng chọn tên khác.");
+            throw new InvalidDataException("Tên chủ đề đã tồn tại, vui lòng chọn tên khác.");
         }
 
         entity.setTopicName(request.getTopicName());

@@ -12,6 +12,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 public class MovieCreationRequest {
 
     @NotBlank(message = "Title's movie is not blank !")
