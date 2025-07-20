@@ -16,6 +16,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Builder
 @Table(name = "movies")
 public class MovieEntity implements Serializable {
 
