@@ -1,6 +1,7 @@
 package com.codebloom.cineman.service;
 
 import com.codebloom.cineman.controller.request.TicketRequest;
+import com.codebloom.cineman.controller.response.DummyTicket;
 import com.codebloom.cineman.controller.response.TicketResponse;
 
 import java.util.List;
@@ -9,7 +10,7 @@ public interface TicketService {
 
     TicketResponse findById(Integer ticketId);
 
-    List<TicketResponse> findAllByShowTimeId(Long showTimeId);
+    List<DummyTicket> findAllByShowTimeId(Long showTimeId);
 
     TicketResponse create(TicketRequest request);
 

@@ -5,6 +5,8 @@ import com.codebloom.cineman.common.enums.SeatStatus;
 import com.codebloom.cineman.common.enums.ShowTimeStatus;
 import com.codebloom.cineman.common.enums.TicketStatus;
 import com.codebloom.cineman.controller.request.TicketRequest;
+import com.codebloom.cineman.controller.response.DummyTicket;
+import com.codebloom.cineman.controller.response.SeatResponse;
 import com.codebloom.cineman.controller.response.TicketResponse;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.*;
@@ -15,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -36,12 +39,57 @@ public class TicketServiceImpl implements TicketService {
 
 
     @Override
-    public List<TicketResponse> findAllByShowTimeId(Long showTimeId) {
-        return List.of();
+    public List<DummyTicket> findAllByShowTimeId(Long showTimeId) {
+        List <SeatEntity> emptySeats = showTimeRepository.findAllSeatByShowTimeId(showTimeId, ShowTimeStatus.VALID);
+        List <DummyTicket> tickets = new ArrayList<>();
+        DummyTicket dummyTicket;
+
+        // Tạo ra các vé trống //
+        for(SeatEntity seat : emptySeats) {
+            dummyTicket = DummyTicket.builder()
+                    .id(null)
+                    .seat(
+                            SeatResponse.builder()
+                                    .id(seat.getId())
+                                    .rowIndex(seat.getRowIndex())
+                                    .columnIndex(seat.getColumnIndex())
+                                    .label(seat.getLabel())
+                                    .seatType(seat.getSeatType())
+                                    .status(seat.getStatus())
+                                    .build()
+                    )
+                    .status(TicketStatus.EMPTY)
+                    .build();
+            tickets.add(dummyTicket);
+        }
+        ShowTimeEntity showTime = showTimeRepository.findByIdAndStatus(showTimeId, ShowTimeStatus.VALID)
+                .orElseThrow(() -> new DataNotFoundException("Show time not found"));
+        List<TicketEntity> listTicket = ticketRepository.findByShowTime(showTime);
+
+        // Tạo ra các vé đã dat //
+        for(TicketEntity ticket : listTicket) {
+            dummyTicket = DummyTicket.builder()
+                    .id(ticket.getId())
+                    .seat(
+                            SeatResponse.builder()
+                                    .id(ticket.getSeat().getId())
+                                    .rowIndex(ticket.getSeat().getRowIndex())
+                                    .columnIndex(ticket.getSeat().getColumnIndex())
+                                    .label(ticket.getSeat().getLabel())
+                                    .seatType(ticket.getSeat().getSeatType())
+                                    .status(ticket.getSeat().getStatus())
+                                    .build()
+                    )
+                    .status(ticket.getStatus())
+                    .build();
+            tickets.add(dummyTicket);
+        }
+
+        return tickets;
     }
 
     /**
-     * Tạo vé mới
+     * Tạo vé mới với trạng thái PENDING
      * @param request thông tin vé
      * @return vé mới
      */

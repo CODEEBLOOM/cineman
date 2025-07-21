@@ -13,6 +13,7 @@ import java.util.List;
 
 @Repository
 public interface TicketRepository extends JpaRepository<TicketEntity, Long> {
+
     List<TicketEntity> findByShowTime(ShowTimeEntity showTime);
 
     @Modifying
