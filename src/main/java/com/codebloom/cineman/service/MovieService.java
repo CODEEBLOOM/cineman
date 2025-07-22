@@ -12,6 +12,7 @@ import java.util.List;
 public interface MovieService  {
 
     MoviePageableResponse findAllByPage(MoviePageQueryRequest request);
+    MoviePageableResponse findAllByPageAndFilter(MoviePageQueryRequest request, Integer movieTheaterId);
     List<MovieResponse> findAll();
     MovieResponse findById(Integer id);
     MovieEntity findById(Integer id, boolean isEntity);

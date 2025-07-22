@@ -28,7 +28,7 @@ public class MovieEntity implements Serializable {
     @JoinColumn(name = "status_id", nullable = false)
     private MovieStatusEntity status;
 
-    @Column(name = "title", columnDefinition = "NVARCHAR(100)")
+    @Column(name = "title", columnDefinition = "NVARCHAR(100)", nullable = false)
     private String title;
 
     @Column(name = "synopsis", columnDefinition = "NVARCHAR(500)")
@@ -37,29 +37,33 @@ public class MovieEntity implements Serializable {
     @Column(name = "detail_description", columnDefinition = "NVARCHAR(1000)")
     private String detailDescription;
 
-    @Column(name = "release_date")
+    @Column(name = "release_date", nullable = false)
     @Temporal(TemporalType.DATE)
     private Date releaseDate;
 
-    @Column(name = "language", columnDefinition = "NVARCHAR(50)")
+    @Column(name = "end_date", nullable = false)
+    private Date endDate;
+
+    @Column(name = "language", columnDefinition = "NVARCHAR(50)", nullable = false)
     private String language;
 
-    @Column(name = "duration")
+    @Column(name = "duration", nullable = false)
     private Integer duration;
 
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "rating")
     private Rating rating;
 
+    @Column(name = "age", nullable = false)
     private Integer age;
 
-    @Column(name = "trailer_link", length = 200)
+    @Column(name = "trailer_link", length = 200, nullable = false)
     private String trailerLink;
 
-    @Column(name = "poster_image", length = 200)
+    @Column(name = "poster_image", length = 200,  nullable = false)
     private String posterImage;
 
-    @Column(name = "banner_image", length = 200)
+    @Column(name = "banner_image", length = 200, nullable = false)
     private String bannerImage;
 
     @Column(name = "created_at")
@@ -83,5 +87,9 @@ public class MovieEntity implements Serializable {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "movie")
     @JsonIgnore
     private Set<MovieParticipantEntity> movieParticipants;
+
+    @ManyToOne
+    @JoinColumn(name = "movie_variation_id")
+    private MovieVariationEntity movieVariation;
 
 }

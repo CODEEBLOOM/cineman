@@ -23,12 +23,13 @@ public class ProvinceEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
+    @Column(name = "code", nullable = false)
     Integer code;
 
-    @Column(columnDefinition = "NVARCHAR(150)")
+    @Column(columnDefinition = "NVARCHAR(150)", nullable = false)
     String name;
 
-    @Column(name = "active")
+    @Column(name = "active", nullable = false)
     Boolean active;
 
     @Column(name = "create_at")
@@ -42,6 +43,5 @@ public class ProvinceEntity {
     Date updateAt ;
 
     @OneToMany(mappedBy = "province")
-    @JsonIgnore
     List<MovieTheaterEntity> movieTheaters;
 }

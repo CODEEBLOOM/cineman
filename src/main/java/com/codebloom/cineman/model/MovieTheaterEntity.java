@@ -25,19 +25,19 @@ public class MovieTheaterEntity implements Serializable {
     @Column(name = "movie_theater_id")
     Integer movieTheaterId;
 
-    @Column(columnDefinition = "nvarchar(200)")
+    @Column(columnDefinition = "nvarchar(200)", nullable = false)
     String name;
 
-    @Column(columnDefinition = "nvarchar(200)")
+    @Column(columnDefinition = "nvarchar(200)", nullable = false)
     String address;
 
-    @Column(name = "hotline", length = 20)
+    @Column(name = "hotline", length = 20, nullable = false)
     String hotline;
 
-    @Column(name = "status")
+    @Column(name = "status", nullable = false)
     Boolean status;
 
-    @Column(name = "iframe_code", length = 300)
+    @Column(name = "iframe_code", length = 300, nullable = false)
     String iframeCode;
 
     @ManyToOne

@@ -28,7 +28,7 @@ public class ProvinceServiceImpl implements ProvinceService {
      */
     @Override
     public List<ProvinceEntity> findAll() {
-        return provinceRepository.findAll();
+        return provinceRepository.findAllByActive(true);
     }
 
     /**

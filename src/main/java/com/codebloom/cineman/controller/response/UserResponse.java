@@ -19,10 +19,11 @@ public class UserResponse implements Serializable {
     private Date dateOfBirth;
     private String gender;
     private Integer savePoint;
-    private Integer facebookId;
-    private Integer googleId;
+    private String facebookId;
+    private String googleId;
     private Date createdAt;
     private Date updatedAt;
     private String status;
+    private String avatar;
     private List<RoleEntity> roles;
 }

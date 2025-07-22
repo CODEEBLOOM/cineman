@@ -14,7 +14,6 @@ import java.util.Date;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @Entity
 @Table(name = "tickets")
@@ -26,10 +25,10 @@ public class TicketEntity implements Serializable {
     @Column(name = "ticket_id")
     private Long id;
 
-    @Column(name = "status", columnDefinition = "TINYINT")
+    @Column(name = "status", columnDefinition = "TINYINT", nullable = false)
     private TicketStatus status;
 
-    @Column(name = "price")
+    @Column(name = "price", nullable = false)
     private Double price;
 
     @Column(name = "create_booking")
@@ -39,8 +38,6 @@ public class TicketEntity implements Serializable {
 
     @Column(name = "limit_time", nullable = false)
     Integer limitTime;
-
-    Boolean expired;
 
     @ManyToOne
     @JoinColumn(name = "show_time_id", nullable = false)
@@ -55,7 +52,7 @@ public class TicketEntity implements Serializable {
     private SeatEntity seat;
 
     @ManyToOne
-    @JoinColumn(name = "invoice_id")
+    @JoinColumn(name = "invoice_id", nullable = false)
     private InvoiceEntity invoice;
 
 

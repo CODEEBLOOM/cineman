@@ -17,6 +17,7 @@ public class ProvinceRequest {
 
     @NotBlank(message = "Name's province is not blank !")
     @Size(max = 150, message = "Name's province greater less than or equal 150 character !")
+    @NotNull(message = "Name's province is not null !")
     private String name;
 
 }

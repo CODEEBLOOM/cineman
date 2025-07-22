@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("${api.path}/admin/movie-theater")
-@Tag(name = "Movie Theater Controller")
+@Tag(name = "Movie Theater Controller", description = "Quản lý rạp chiếu phim.")
 public class MovieTheaterAController {
 
     private final MovieTheaterService movieTheaterService;
@@ -88,5 +88,6 @@ public class MovieTheaterAController {
                         .build()
         );
     }
+
 
 }

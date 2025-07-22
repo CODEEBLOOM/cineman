@@ -26,7 +26,7 @@ public class CinemaTypeServiceImpl implements CinemaTypeService {
      */
     @Override
     public CinemaTypeEntity findById(Integer id) {
-        return cinemaTypeRepository.findById(id)
+        return cinemaTypeRepository.findByCinemaTypeIdAndStatus(id, true)
                 .orElseThrow(() -> new DataNotFoundException("Cinema Type Not Found With Id: " + id));
     }
 
@@ -36,7 +36,7 @@ public class CinemaTypeServiceImpl implements CinemaTypeService {
      */
     @Override
     public List<CinemaTypeEntity> findAll() {
-        return cinemaTypeRepository.findAll();
+        return cinemaTypeRepository.findAllByStatus(true);
     }
 
 
@@ -47,9 +47,14 @@ public class CinemaTypeServiceImpl implements CinemaTypeService {
      */
     @Override
     public CinemaTypeEntity create(CinemaTypeRequest cinemaTypeEntity) {
-        CinemaTypeEntity cinemaType = cinemaTypeRepository.findByCode(cinemaTypeEntity.getCode())
-                .orElseThrow(() -> new DataExistingException("Cinema type already Exists With Code: " + cinemaTypeEntity.getCode()));
-        cinemaType.setStatus(true);
+        cinemaTypeRepository.findByCodeAndStatus(cinemaTypeEntity.getCode(), true)
+                .ifPresent((cinemaTypeEntity1) -> {throw new DataExistingException("Cinema type already Exists With Code: " + cinemaTypeEntity.getCode());});
+        CinemaTypeEntity cinemaType = CinemaTypeEntity.builder()
+                .name(cinemaTypeEntity.getName())
+                .description(cinemaTypeEntity.getDescription())
+                .code(cinemaTypeEntity.getCode())
+                .status(true)
+                .build();
         return cinemaTypeRepository.save(cinemaType);
     }
 
@@ -61,12 +66,13 @@ public class CinemaTypeServiceImpl implements CinemaTypeService {
      */
     @Override
     public CinemaTypeEntity update(Integer id, CinemaTypeRequest cinemaTypeEntity) {
-        CinemaTypeEntity cinemaType = cinemaTypeRepository.findByCodeAndCinemaTypeIdNot(cinemaTypeEntity.getCode(), id)
+        CinemaTypeEntity cinemaType = cinemaTypeRepository.findByCodeAndStatusAndCinemaTypeIdNot(cinemaTypeEntity.getCode(), true, id)
                 .orElseThrow(() -> new DataExistingException("Cinema type already Exists With Code: " + cinemaTypeEntity.getCode()));
         cinemaType.setName(cinemaTypeEntity.getName());
         cinemaType.setDescription(cinemaTypeEntity.getDescription());
         cinemaType.setCode(cinemaTypeEntity.getCode());
-        return null;
+        cinemaType.setStatus(true);
+        return cinemaTypeRepository.save(cinemaType);
     }
 
     /**
@@ -75,7 +81,7 @@ public class CinemaTypeServiceImpl implements CinemaTypeService {
      */
     @Override
     public void delete(Integer id) {
-        CinemaTypeEntity cinemaType = cinemaTypeRepository.findById(id)
+        CinemaTypeEntity cinemaType = cinemaTypeRepository.findByCinemaTypeIdAndStatus(id, true)
                 .orElseThrow(() -> new DataNotFoundException("Cinema Type Not Found With Id: " + id));
         cinemaType.setStatus(false);
         cinemaTypeRepository.save(cinemaType);

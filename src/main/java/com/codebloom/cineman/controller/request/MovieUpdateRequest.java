@@ -18,6 +18,7 @@ public class MovieUpdateRequest {
 
     @NotBlank(message = "Title's movie is not blank !")
     @Size(max = 100, message = "Title of movie must be less than 100 character !")
+    @NotNull(message = "Title's movie is not null !")
     private String title;
 
     @NotBlank(message = "Synopsis's movie is not blank !")
@@ -28,14 +29,14 @@ public class MovieUpdateRequest {
     private String detailDescription;
 
     @NotNull(message = "Release date of movie is not null !")
-    @FutureOrPresent(message = "Release date of movie must be a date in the future or present!")
     private Date releaseDate;
 
     @NotBlank(message = "Language's movie is not blank !")
+    @NotNull(message = "Language's movie is not null !")
     private String language;
 
-    @NotNull(message = "")
     @Min(value = 1, message = "Duration's movie is must be greater than 1 !")
+    @NotNull(message = "Duration's movie is not null !")
     private Integer duration;
 
     @NotNull(message = "Age limit of movie is not null !")
@@ -45,12 +46,15 @@ public class MovieUpdateRequest {
 
     @NotBlank(message = "Trailer link of movie is not blank!")
     @Pattern(regexp = "^(https?|ftp)://.*$", message = "Trailer link of movie incorrect format!")
+    @NotNull(message = "Trailer link of movie is not null !")
     private String trailerLink;
 
     @NotBlank(message = "Poster's movie is not blank!")
+    @NotNull(message = "Poster's movie is not null !")
     private String posterImage;
 
     @NotBlank(message = "Banner's movie is not blank!")
+    @NotNull(message = "Banner's movie is not null !")
     private String bannerImage;
 
     @NotBlank(message = "Status's movie is not blank !")

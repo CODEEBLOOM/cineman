@@ -1,10 +1,18 @@
 package com.codebloom.cineman.common.enums;
 
 public enum InvoiceStatus {
-    DRAFT,
+    /*Trạng thái chờ thanh toán*/
     PENDING,
-    OVERDUE,
+
+    /* Trạng thái đã thanh toán */
+    PAID,
+
+    /* Trạng thái đã hủy */
     CANCELLED,
+
+    /*Trạng thái đã hoàn tiền*/
     REFUNDED,
-    REJECTED
+
+    /*Trạng thái đang xử lý*/
+    PROCESSING
 }

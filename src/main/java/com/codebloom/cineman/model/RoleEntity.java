@@ -1,7 +1,6 @@
 package com.codebloom.cineman.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -23,7 +22,7 @@ public class RoleEntity implements Serializable {
     @Column(name = "role_id", length = 25)
     String roleId;
 
-    @Column(name = "name_role", columnDefinition = "NVARCHAR(100)")
+    @Column(name = "name_role", columnDefinition = "NVARCHAR(100)", nullable = false)
     String name;
 
 

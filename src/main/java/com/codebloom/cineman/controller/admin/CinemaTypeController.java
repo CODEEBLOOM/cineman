@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Cinema Type Controller")
+@Tag(name = "Cinema Type Controller", description = "Quản lý loại phòng chiếu trong hệ thống Cineman")
 @RequestMapping("${api.path}/admin/cinema-type")
 @Validated
 public class CinemaTypeController {

@@ -11,11 +11,8 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -38,10 +35,10 @@ public class UserEntity implements  Serializable {
     @Column(name = "email", unique = true, nullable = false, length = 150)
     String email;
 
-    @Column(name = "password", length = 250)
+    @Column(name = "password", length = 250, nullable = false)
     String password;
 
-    @Column(name = "fullname", columnDefinition = "NVARCHAR(100)")
+    @Column(name = "fullname", columnDefinition = "NVARCHAR(100)", nullable = false)
     String fullName;
 
     @Column(name = "phone_number", length = 20, unique = true)
@@ -50,23 +47,26 @@ public class UserEntity implements  Serializable {
     @Column(name = "address", columnDefinition = "NVARCHAR(200)")
     String address;
 
+    @Column(name = "avatar", length = 250)
+    private String avatar;
+
     @Column(name = "date_of_birth")
     @Temporal(TemporalType.DATE)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     Date dateOfBirth;
 
-    @Column(name = "gender", columnDefinition = "TINYINT")
+    @Column(name = "gender", columnDefinition = "TINYINT", nullable = false)
     @Enumerated(EnumType.ORDINAL)
     GenderUser gender;
 
     @Column(name = "save_point")
     Integer savePoint;
 
-    @Column(name = "facebook_id")
-    Integer facebookId;
+    @Column(name = "facebook_id", length = 250)
+    String facebookId;
 
-    @Column(name = "google_id")
-    Integer googleId;
+    @Column(name = "google_id", length = 250)
+    String googleId;
 
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
@@ -98,7 +98,7 @@ public class UserEntity implements  Serializable {
     @JsonIgnore
     List<FeedbackEntity> feedbacks;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
     List<SocialAccountEntity> socialAccounts;
 

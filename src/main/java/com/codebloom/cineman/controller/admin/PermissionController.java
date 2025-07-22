@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("${api.path}/admin/permissions")
 @Validated
 @RequiredArgsConstructor
-@Tag(name = "Permission Controller")
+@Tag(name = "Permission Controller", description = "Quản lý quyền truy cập các api của hệ thống")
 public class PermissionController {
 
     private final PermissionService permissionService;

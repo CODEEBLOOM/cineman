@@ -14,4 +14,6 @@ public interface ProvinceRepository extends JpaRepository<ProvinceEntity, Intege
     Optional<ProvinceEntity> findByCode(Integer code);
 
     Optional<ProvinceEntity> findByNameAndCodeAndIdNot(String name, Integer code, Integer id);
+
+    List<ProvinceEntity> findAllByActive(Boolean active);
 }

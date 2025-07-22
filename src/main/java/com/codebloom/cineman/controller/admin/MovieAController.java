@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("${api.path}/admin/movie")
 @Validated
 @RequiredArgsConstructor
-@Tag(name = "Movie Controller")
+@Tag(name = "Movie Controller", description = "Quản lý phim của Cineman")
 public class MovieAController {
 
     private final MovieService movieService;

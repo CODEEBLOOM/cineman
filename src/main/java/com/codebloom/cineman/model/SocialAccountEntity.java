@@ -21,7 +21,7 @@ public class SocialAccountEntity implements Serializable {
     private Integer id;
 
 
-    @Column(name = "provider", length = 20)
+    @Column(name = "provider", length = 20, nullable = false)
     private String provider;
 
     @Column(name = "provider_id")
@@ -30,7 +30,7 @@ public class SocialAccountEntity implements Serializable {
     @Column(name = "email", length = 150, unique = true)
     private String email;
 
-    @Column(name = "name", length=100)
+    @Column(name = "name", length=100, nullable = false)
     private String name;
 
     @ManyToOne

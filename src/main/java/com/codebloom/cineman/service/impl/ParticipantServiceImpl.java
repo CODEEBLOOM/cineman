@@ -32,8 +32,8 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     @Transactional
-    public ParticipantEntity save(ParticipantRequest director) {
-        ParticipantEntity participantEntity = modelMapper.map(director, ParticipantEntity.class);
+    public ParticipantEntity save(ParticipantRequest participant) {
+        ParticipantEntity participantEntity = modelMapper.map(participant, ParticipantEntity.class);
         participantEntity.setActive(true);
         return participantRepository.save(participantEntity);
     }

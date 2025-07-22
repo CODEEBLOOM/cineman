@@ -29,11 +29,11 @@ public class FeedbackEntity implements Serializable {
     @Column(name = "content", columnDefinition = "NVARCHAR(500)")
     String content;
 
-    @Column(name = "satisfaction_level", columnDefinition = "TINYINT")
+    @Column(name = "satisfaction_level", columnDefinition = "TINYINT", nullable = false)
     @Enumerated(EnumType.ORDINAL)
     SatisfactionLevel satisfactionLevel;
 
-    @Column(name = "reason_for_review", columnDefinition = "NVARCHAR(100)")
+    @Column(name = "reason_for_review", columnDefinition = "NVARCHAR(100)", nullable = false)
     String reasonForReview;
 
     @Temporal(TemporalType.TIMESTAMP)

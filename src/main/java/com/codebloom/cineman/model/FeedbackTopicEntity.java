@@ -1,6 +1,7 @@
 package com.codebloom.cineman.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -12,7 +13,6 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @Entity
 @Table(name = "feedback_topics")
@@ -23,12 +23,13 @@ public class FeedbackTopicEntity implements Serializable {
     @Column(name = "topic_id")
     private Integer topicId;
 
-    @Column(name = "topic_name", columnDefinition = "NVARCHAR(100)")
+    @Column(name = "topic_name", columnDefinition = "NVARCHAR(100)", nullable = false)
     private String topicName;
 
     @Column(name = "description", columnDefinition = "NVARCHAR(200)")
     private String description;
 
     @OneToMany(mappedBy = "topic")
+    @JsonIgnore
     private List<FeedbackEntity> feedbacks;
 }

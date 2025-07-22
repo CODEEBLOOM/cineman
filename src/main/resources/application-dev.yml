@@ -8,11 +8,30 @@ spring:
     multipart:
       max-file-size: 10MB     # Giới hạn cho 1 file
       max-request-size: 20MB  # Tổng dung lượng toàn request
+#  tạo đường dẫn đến thư mục chứa script
+  flyway:
+    locations: classpath:/db/migration,classpath:/dev/db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+
+  # security oauth2
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 313620644939-tv7e1h8s17cpj07s732bp029joi11dg1.apps.googleusercontent.com
+            client-secret: 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
+            redirect-uri: http://localhost:3000/auth/google/callback
+        provider:
+          google:
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+
 # kêt nối database
   datasource:
-    url: jdbc:sqlserver://localhost:1433;databaseName=cinema_app;encrypt=true;trustServerCertificate=true;
+    url: jdbc:sqlserver://localhost:1433;databaseName=cinema_app_test;encrypt=true;trustServerCertificate=true;
     username: sa
-    password: 123456
+    password: Son15@2
 
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   jpa:
@@ -24,10 +43,10 @@ spring:
       hibernate:
         format_sql: false
   sendgrid:
-    api-key: xxx xxx xxx
+    api-key: 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
     from-email: admin@em7802.cineman.io.vn
     template-id: d-c59a7109d01d40ca97cd20310ad512f7
-    verification-link: http://localhost:8081/user/confirm-email
+    verification-link: http://localhost:8081/api/v01/auth/confirm-email
 jwt:
   expirationDay: 30
   expirationMinutes: 15
@@ -55,4 +74,5 @@ google:
   service:
     account:
       key: classpath:service_account.json
+
 

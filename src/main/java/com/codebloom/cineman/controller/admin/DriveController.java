@@ -5,7 +5,6 @@ import com.codebloom.cineman.service.GoogleDriveService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -20,8 +19,7 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @Validated
-@Tag(name = "Upload file to gg drive")
-@Slf4j(topic = "DRIVE-CONTROLLER")
+@Tag(name = "Upload File To Google Drive", description = "API dùng để upload file gg drive.")
 @RequestMapping("${api.path}/drive")
 public class DriveController {
 
@@ -59,7 +57,7 @@ public class DriveController {
 
     @Operation(summary = "download file from drive", description = "API dùng để tải file của người dùng trên gg drive.")
     @GetMapping("/download/{fileId}")
-    public ResponseEntity<ApiResponse> downloadFile(@PathVariable String fileId) throws IOException{
+    public ResponseEntity<ApiResponse> downloadFile(@PathVariable String fileId) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
@@ -71,7 +69,7 @@ public class DriveController {
 
     @Operation(summary = "download file from drive", description = "API dùng để tải file của người dùng trên gg drive.")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse> getAllFileIMG(@Re) throws IOException{
+    public ResponseEntity<ApiResponse> getAllFileIMG() throws IOException{
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())

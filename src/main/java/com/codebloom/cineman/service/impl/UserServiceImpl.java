@@ -29,9 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Slf4j(topic = "USER-SERVICE")
@@ -128,8 +126,8 @@ public class UserServiceImpl implements UserService {
         UserEntity user = modelMapper.map(request, UserEntity.class);
         user.setSavePoint(0);
         user.setStatus(UserStatus.ACTIVE);
-        user.setFacebookId(0);
-        user.setGoogleId(0);
+        user.setFacebookId("");
+        user.setGoogleId("");
         checkNewUser(user.getEmail(), user.getPhoneNumber());
         user = userRepository.save(user);
 
@@ -234,7 +232,7 @@ public class UserServiceImpl implements UserService {
             userRepository.save(userEntity);
         } else {
             checkNewUser(user.getEmail(), user.getPhoneNumber());
-            if (user.getFacebookId() == 0 && user.getGoogleId() == 0) {
+            if (user.getFacebookId() == null && user.getGoogleId() == null) {
                 String passwordEncode = passwordEncoder.encode(user.getPassword());
                 user.setPassword(passwordEncode);
             }
@@ -246,8 +244,8 @@ public class UserServiceImpl implements UserService {
                     .dateOfBirth(user.getDateOfBirth())
                     .gender(user.getGender())
                     .savePoint(0)
-                    .facebookId(user.getFacebookId())
-                    .googleId(user.getGoogleId())
+                    .facebookId(user.getFacebookId() == null ? "" : user.getFacebookId())
+                    .googleId(user.getGoogleId() == null ? "" : user.getGoogleId())
                     .status(UserStatus.PENDING)
                     .phoneNumber(user.getPhoneNumber())
                     .address(user.getAddress())
@@ -331,6 +329,71 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public LoginRequest loginSocial(UserCreationRequest userLoginDTO) {
+        Optional<UserEntity> optionalUser = Optional.empty();
+        RoleEntity roleUser = roleService.findById(UserType.USER);
+
+
+        // Kiểm tra Google Account ID
+        if (userLoginDTO.isGoogleAccountIdValid()) {
+            optionalUser = userRepository.findByGoogleId(userLoginDTO.getGoogleId());
+
+            // Tạo người dùng mới nếu không tìm thấy
+            if (optionalUser.isEmpty() ) {
+                checkNewUser(userLoginDTO.getEmail(), userLoginDTO.getPhoneNumber());
+                String password = passwordEncoder.encode(userLoginDTO.getPassword());
+                UserEntity newUser = UserEntity.builder()
+                        .email(userLoginDTO.getEmail())
+                        .password(password)
+                        .fullName(userLoginDTO.getFullName())
+                        .dateOfBirth(userLoginDTO.getDateOfBirth())
+                        .gender(userLoginDTO.getGender())
+                        .savePoint(0)
+                        .facebookId(userLoginDTO.getFacebookId() == null ? "" : userLoginDTO.getFacebookId())
+                        .googleId(userLoginDTO.getGoogleId())
+                        .status(UserStatus.ACTIVE)
+                        .phoneNumber(userLoginDTO.getPhoneNumber())
+                        .address(userLoginDTO.getAddress())
+                        .userType(UserType.USER)
+                        .avatar(userLoginDTO.getAvatar())
+                        .build();
+
+                // Lưu người dùng mới
+                newUser = userRepository.save(newUser);
+
+                // Add role user for account //
+                UserRoleEntity userRoleEntity = new UserRoleEntity();
+                userRoleEntity.setRole(roleUser);
+                userRoleEntity.setUser(newUser);
+                userRoleEntity.setName(roleUser.getName());
+                userRoleEntity.setDescription("Tài khoản dành cho khách hàng đăng kí tại nhà ( online )");
+                userRoleRepository.save(userRoleEntity);
+
+                // GÁN NGƯỢC LẠI VÀO user (bộ nhớ)
+                Set<UserRoleEntity> userRoles = new HashSet<>();
+                userRoles.add(userRoleEntity);
+                newUser.setUserRoles(userRoles);
+                optionalUser = Optional.of(newUser);
+            }
+        }
+
+        UserEntity user = optionalUser
+                .orElseThrow(() -> new DataNotFoundException("User not found with google id: " + userLoginDTO.getGoogleId()));
+
+        // Kiểm tra nếu tài khoản bị khóa
+        if (user.getStatus().equals(UserStatus.LOCKED)) {
+            throw new DataNotFoundException("Tài khoản đã bị khóa!");
+        }
+
+        return LoginRequest.builder()
+                .email(user.getEmail())
+                .password(userLoginDTO.getPassword())
+                .build();
+
+    }
+
 
     /**
      * Hàm nội bộ để thực hiện convert 
@@ -347,15 +410,14 @@ public class UserServiceImpl implements UserService {
                 .dateOfBirth(user.getDateOfBirth())
                 .gender(user.getGender().name())
                 .savePoint(user.getSavePoint())
-                .facebookId(user.getFacebookId())
-                .googleId(user.getGoogleId())
+                .facebookId(user.getFacebookId() == null ? "" : user.getFacebookId())
+                .googleId(user.getGoogleId() == null ? "" : user.getGoogleId())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
+                .avatar(user.getAvatar())
                 .build();
         List<RoleEntity> roles = new ArrayList<>();
-        user.getUserRoles().forEach(userRoleEntity -> {
-            roles.add(userRoleEntity.getRole());
-        });
+        user.getUserRoles().forEach(userRoleEntity -> roles.add(userRoleEntity.getRole()));
         userResponse.setRoles(roles);
         userResponse.setStatus(user.getStatus().toString());
         return userResponse;

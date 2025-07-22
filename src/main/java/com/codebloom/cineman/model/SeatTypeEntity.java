@@ -1,8 +1,9 @@
 package com.codebloom.cineman.model;
 
+import com.codebloom.cineman.common.enums.SeatType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.Check;
 
 import java.io.Serializable;
@@ -12,7 +13,6 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @Entity
 @Table(name = "seat_types")
@@ -20,17 +20,21 @@ import java.util.List;
 public class SeatTypeEntity implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "seat_type_id")
-    private Integer seatTypeId;
+    @Column(name = "id", length = 25)
+    @Enumerated(EnumType.STRING)
+    private SeatType id;
 
-    @Column(name = "name", columnDefinition = "NVARCHAR(200)")
+    @Column(name = "name", columnDefinition = "NVARCHAR(150)", nullable = false)
     private String name;
 
-    @Column(name = "price")
+    @Column(name = "price", nullable = false)
     private Double price;
 
+    @Column(name = "status", nullable = false)
+    private Boolean status;
+
     @OneToMany(mappedBy = "seatType")
+    @JsonIgnore
     private List<SeatEntity> seats;
 
 }

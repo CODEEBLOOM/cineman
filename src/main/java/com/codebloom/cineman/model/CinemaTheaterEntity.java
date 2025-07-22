@@ -1,6 +1,7 @@
 package com.codebloom.cineman.model;
 
 
+import com.codebloom.cineman.common.enums.CinemaTheaterStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,7 +19,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "cinema_theaters")
-@Check(constraints = "total_seats > 0 and number_of_rows >= 0 and number_of_columns>0")
+@Check(constraints = "number_of_rows > 0 and number_of_columns > 0 and regular_seat_row > 0 and vip_seat_row > 0 and double_seat_row > 0")
 public class CinemaTheaterEntity implements Serializable {
 
     @Id
@@ -26,27 +27,34 @@ public class CinemaTheaterEntity implements Serializable {
     @Column(name = "cinema_theater_id")
     Integer cinemaTheaterId;
 
-    @Column(name = "room_number")
-    Integer roomNumber;
+    @Column(name = "name", columnDefinition = "NVARCHAR(100)")
+    String name;
 
-    Boolean status;
+    @Enumerated(EnumType.ORDINAL)
+    CinemaTheaterStatus status;
 
-    @Column(name = "total_seats")
-    Integer totalSeats;
-
-    @Column(name = "number_of_rows")
+    /* Bổ sung */
+    @Column(name = "number_of_rows", nullable = false)
     Integer numberOfRows;
 
-    @Column(name = "number_of_columns")
+    @Column(name = "number_of_columns", nullable = false)
     Integer numberOfColumns;
 
+    @Column(name = "regular_seat_row", nullable = false)
+    Integer regularSeatRow;
+
+    @Column(name = "vip_seat_row", nullable = false)
+    Integer vipSeatRow;
+
+    @Column(name = "double_seat_row", nullable = false)
+    Integer doubleSeatRow;
 
     @ManyToOne
-    @JoinColumn(name = "movie_theater_id")
+    @JoinColumn(name = "movie_theater_id", nullable = false)
     MovieTheaterEntity movieTheater;
 
     @ManyToOne
-    @JoinColumn(name = "cinema_type_id")
+    @JoinColumn(name = "cinema_type_id", nullable = false)
     CinemaTypeEntity cinemaType;
 
     @OneToMany(mappedBy = "cinemaTheater")

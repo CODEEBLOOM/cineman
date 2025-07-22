@@ -16,11 +16,11 @@ import lombok.Setter;
 public class SnackTypeRequest {
 
     @NotBlank(message = "Tên loại sản phẩm snack không được để trống.")
-    @Size(min = 0, max = 100, message = "Tên loại sản phẩm snack tối đa 100 kí tự !")
+    @Size(min = 1, max = 100, message = "Tên loại sản phẩm snack tối đa 100 kí tự !")
     @NotNull(message = "Tên sản phẩm không được phép null !")
     private String name;
 
-    @Size(min = 0, max = 200, message = "Mô tả sản phẩm snack tối đa 200 kí tự !")
+    @Size(min = 1, max = 200, message = "Mô tả sản phẩm snack tối đa 200 kí tự !")
     @NotBlank(message = "Tên loại sản phẩm snack không được để trống.")
     @NotNull(message = "Mô tả sản phẩm không được phép null !")
     private String description;

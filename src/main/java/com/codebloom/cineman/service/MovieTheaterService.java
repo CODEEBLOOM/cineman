@@ -7,6 +7,7 @@ import com.codebloom.cineman.controller.response.MovieTheaterPage;
 import com.codebloom.cineman.controller.response.MovieTheaterResponse;
 
 
+
 public interface MovieTheaterService {
 
     MovieTheaterPage findAllByPage(PageRequest pageRequest);
@@ -14,5 +15,6 @@ public interface MovieTheaterService {
     MovieTheaterResponse save(MovieTheaterRequest movie);
     MovieTheaterResponse update(Integer id, MovieTheaterRequest movie);
     void delete(Integer id);
+
 
 }

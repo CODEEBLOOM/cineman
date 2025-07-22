@@ -103,6 +103,15 @@ public class JwtFilter extends OncePerRequestFilter {
     private boolean isBypassToken(@NonNull HttpServletRequest request, List<Pair<String, Method>> bypassTokens) {
         bypassTokens = Arrays.asList(
 
+                Pair.of(String.format("%s/auth/login",apiPath),Method.POST),
+                Pair.of(String.format("%s/auth/register",apiPath),Method.POST),
+                Pair.of(String.format("%s/auth/refresh-token",apiPath),Method.POST),
+                Pair.of(String.format("%s/auth/confirm-email",apiPath),Method.GET),
+                Pair.of(String.format("%s/auth/social-login",apiPath),Method.GET),
+                Pair.of(String.format("%s/auth/social/callback",apiPath),Method.GET),
+
+                // API for customer
+                Pair.of(String.format("%s/movie/movie-theater/**",apiPath),Method.GET),
 
                 // Swagger
                 Pair.of("/api-docs",Method.GET),

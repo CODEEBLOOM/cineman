@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@Tag(name = "Movie Genre Controller")
+@Tag(name = "Movie Genre Controller", description = "Quản lý thể loại phim")
 @RequestMapping("${api.path}/admin/movie-genre")
 @Validated
 @RequiredArgsConstructor

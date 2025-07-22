@@ -4,7 +4,6 @@ import com.codebloom.cineman.controller.request.MovieRoleRequest;
 import com.codebloom.cineman.exception.DataExistingException;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.MovieRoleEntity;
-import com.codebloom.cineman.repository.MovieParticipantRepository;
 import com.codebloom.cineman.repository.MovieRoleRepository;
 import com.codebloom.cineman.service.MovieRoleService;
 import lombok.RequiredArgsConstructor;
@@ -19,23 +18,22 @@ import java.util.List;
 public class MovieRoleServiceImpl implements MovieRoleService {
 
     private final MovieRoleRepository movieRoleRepository;
-    private final MovieParticipantRepository movieParticipantRepository;
     private final ModelMapper modelMapper;
 
     @Override
     public List<MovieRoleEntity> findAll() {
-        return movieRoleRepository.findAll();
+        return movieRoleRepository.findAllByActive(true);
     }
 
     @Override
     public MovieRoleEntity findById(Integer id) {
-        return movieRoleRepository.findById(id)
+        return movieRoleRepository.findByMovieRoleIdAndActive(id, true)
                 .orElseThrow(() -> new DataNotFoundException("Movie Role Not Found with id: " + id));
     }
 
     @Override
     public MovieRoleEntity create(MovieRoleRequest movieRole) {
-        movieRoleRepository.findByName(movieRole.getName().trim())
+        movieRoleRepository.findByNameAndActive(movieRole.getName().trim(), true)
                 .ifPresent((role) -> {throw new DataExistingException("Movie Role already exist with name: " + movieRole.getName());
                 });
         movieRole.setName(movieRole.getName().trim());
