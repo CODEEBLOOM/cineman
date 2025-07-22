@@ -16,10 +16,7 @@ public class InvoiceCreateRequest {
     @Email(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", message = "User's email invalid !")
     private String email;
 
-    @NotBlank(message = "User's fullName is is not blank !")
-    @NotNull(message = "User's fullName is is not null !")
-    @Size(min = 1, max = 20, message = "FullName is must be less than or equal 100 character !")
-    @Pattern(regexp = "^0[0-9]{9,10}+$", message = "FullName is incorrect format !")
+    @Pattern(regexp = "^(|0[0-9]{9,10}+)$", message = "Phone number is incorrect format !")
     private String phoneNumber;
     private PaymentMethod paymentMethod;
     private Long customerId;

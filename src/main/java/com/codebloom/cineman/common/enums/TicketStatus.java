@@ -5,5 +5,11 @@ public enum TicketStatus {
     SELECTED,
     HOLDED,
     SOLD,
-    BOOKED
+    BOOKED,
+
+    /* Trạng thái chờ thanh toán */
+    PENDING,
+
+    /* Vé đã có hóa đơn được thanh toán thành công*/
+    USED
 }

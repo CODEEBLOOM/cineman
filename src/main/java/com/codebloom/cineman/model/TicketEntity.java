@@ -14,7 +14,6 @@ import java.util.Date;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @Entity
 @Table(name = "tickets")

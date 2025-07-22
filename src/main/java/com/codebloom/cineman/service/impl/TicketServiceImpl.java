@@ -1,9 +1,6 @@
 package com.codebloom.cineman.service.impl;
 
-import com.codebloom.cineman.common.enums.InvoiceStatus;
-import com.codebloom.cineman.common.enums.SeatStatus;
-import com.codebloom.cineman.common.enums.ShowTimeStatus;
-import com.codebloom.cineman.common.enums.TicketStatus;
+import com.codebloom.cineman.common.enums.*;
 import com.codebloom.cineman.controller.request.TicketRequest;
 import com.codebloom.cineman.controller.response.DummyTicket;
 import com.codebloom.cineman.controller.response.SeatResponse;
@@ -30,7 +27,7 @@ public class TicketServiceImpl implements TicketService {
     private final SeatRepository seatRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final InvoiceRepository invoiceRepository;
-
+    private final UserRepository userRepository;
 
     @Override
     public TicketResponse findById(Integer ticketId) {
@@ -39,7 +36,7 @@ public class TicketServiceImpl implements TicketService {
 
 
     @Override
-    public List<DummyTicket> findAllByShowTimeId(Long showTimeId) {
+    public List<DummyTicket> findAllTicketsByShowTimeIdAndUserId(Long showTimeId, Long userId) {
         List <SeatEntity> emptySeats = showTimeRepository.findAllSeatByShowTimeId(showTimeId, ShowTimeStatus.VALID);
         List <DummyTicket> tickets = new ArrayList<>();
         DummyTicket dummyTicket;
@@ -68,6 +65,30 @@ public class TicketServiceImpl implements TicketService {
 
         // Tạo ra các vé đã dat //
         for(TicketEntity ticket : listTicket) {
+
+            UserEntity customer = ticket.getInvoice().getCustomer();
+            UserEntity staff = ticket.getInvoice().getStaff();
+
+            // Kiểm tra nếu vé của người dùng đang gọi request thì --> trạng thái vé là SELECTED //
+            if((customer != null && customer.getUserId().equals(userId) )
+                    || (staff != null && staff.getUserId() != null && staff.getUserId().equals(userId))) {
+                dummyTicket = DummyTicket.builder()
+                        .id(ticket.getId())
+                        .seat(
+                                SeatResponse.builder()
+                                        .id(ticket.getSeat().getId())
+                                        .rowIndex(ticket.getSeat().getRowIndex())
+                                        .columnIndex(ticket.getSeat().getColumnIndex())
+                                        .label(ticket.getSeat().getLabel())
+                                        .seatType(ticket.getSeat().getSeatType())
+                                        .status(ticket.getSeat().getStatus())
+                                        .build()
+                        )
+                        .status(TicketStatus.SELECTED)
+                        .build();
+                tickets.add(dummyTicket);
+                continue;
+            }
             dummyTicket = DummyTicket.builder()
                     .id(ticket.getId())
                     .seat(
@@ -80,7 +101,7 @@ public class TicketServiceImpl implements TicketService {
                                     .status(ticket.getSeat().getStatus())
                                     .build()
                     )
-                    .status(ticket.getStatus())
+                    .status(ticket.getStatus().equals(TicketStatus.PENDING) ? TicketStatus.HOLDED : TicketStatus.SOLD)
                     .build();
             tickets.add(dummyTicket);
         }
@@ -95,7 +116,7 @@ public class TicketServiceImpl implements TicketService {
      */
     @Override
     @Transactional
-    public TicketResponse create(TicketRequest request) {
+    public TicketEntity create(TicketRequest request) {
         ShowTimeEntity showTimeEntity = showTimeRepository.findByIdAndStatus(request.getShowTimeId(), ShowTimeStatus.VALID)
                 .orElseThrow(() -> new DataNotFoundException("Show time not found or invalid"));
 
@@ -119,25 +140,36 @@ public class TicketServiceImpl implements TicketService {
                 .invoice(invoiceEntity)
                 .seat(seatEntity)
                 .price(price)
-                .status(TicketStatus.SELECTED)
+                .status(TicketStatus.PENDING)
                 .limitTime(10)
                 .build();
 
-        TicketEntity savedTicket = ticketRepository.save(ticketEntity);
-        return convertToTicketResponse(savedTicket);
+        return ticketRepository.save(ticketEntity);
     }
 
 
 
     @Override
-    public TicketResponse update(Integer ticketId, TicketRequest request) {
+    public TicketResponse update(Long ticketId, TicketRequest request) {
         return null;
     }
 
-    @Override
-    public void delete(Integer ticketId) {
 
+    /**
+     * Xóa vé theo ID
+     * @param ticketId ID của vé cần xóa
+     */
+    @Override
+    public void delete(Long ticketId) {
+        TicketEntity ticketEntity = ticketRepository.findByIdAndStatus(ticketId, TicketStatus.SELECTED)
+                .orElseThrow(() -> new DataNotFoundException("Ticket not found"));
+
+        if(ticketEntity.getInvoice().getStatus() != InvoiceStatus.PENDING) {
+            throw new DataNotFoundException("Ticket must not be deleted");
+        }
+        ticketRepository.delete(ticketEntity);
     }
+
 
     /**
      * Chuyển đổi từ TicketEntity sang TicketResponse

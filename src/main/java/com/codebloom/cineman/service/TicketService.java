@@ -3,6 +3,7 @@ package com.codebloom.cineman.service;
 import com.codebloom.cineman.controller.request.TicketRequest;
 import com.codebloom.cineman.controller.response.DummyTicket;
 import com.codebloom.cineman.controller.response.TicketResponse;
+import com.codebloom.cineman.model.TicketEntity;
 
 import java.util.List;
 
@@ -10,13 +11,12 @@ public interface TicketService {
 
     TicketResponse findById(Integer ticketId);
 
-    List<DummyTicket> findAllByShowTimeId(Long showTimeId);
+    List<DummyTicket> findAllTicketsByShowTimeIdAndUserId(Long showTimeId, Long userId);
 
-    TicketResponse create(TicketRequest request);
+    TicketEntity create(TicketRequest request);
 
-    TicketResponse update(Integer ticketId, TicketRequest request);
+    TicketResponse update(Long ticketId, TicketRequest request);
 
-    void delete(Integer ticketId);
-
+    void delete(Long ticketId);
 
 }

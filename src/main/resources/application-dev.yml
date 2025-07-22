@@ -75,3 +75,4 @@ google:
     account:
       key: classpath:service_account.json
 
+

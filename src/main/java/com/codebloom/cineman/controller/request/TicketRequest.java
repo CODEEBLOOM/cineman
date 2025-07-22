@@ -11,7 +11,8 @@ import lombok.Setter;
 public class TicketRequest {
 
     private Long showTimeId;
-    private TicketType ticketType;
+    @Builder.Default
+    private TicketType ticketType = TicketType.ADULT;
     private Long seatId;
     private Long invoiceId;
 
