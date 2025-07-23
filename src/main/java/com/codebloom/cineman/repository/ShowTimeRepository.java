@@ -81,6 +81,19 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> 
                         AND st.status = :showTimeStatus
                         AND s.id NOT IN (SELECT seat.id FROM TicketEntity t JOIN SeatEntity seat ON seat.id = t.seat.id WHERE t.showTime.id = :showTimeId)
             """)
+//    @Query("""
+//    SELECT s
+//    FROM SeatEntity s
+//    WHERE s.cinemaTheater.cinemaTheaterId = (
+//        SELECT st.cinemaTheater.cinemaTheaterId
+//        FROM ShowTimeEntity st
+//        WHERE st.id = :showTimeId AND st.status = :showTimeStatus
+//    )
+//    AND NOT EXISTS (
+//        SELECT 1 FROM TicketEntity t
+//        WHERE t.seat.id = s.id AND t.showTime.id = :showTimeId
+//    )
+//    """)
     List<SeatEntity> findAllSeatByShowTimeId(@Param("showTimeId")Long showTimeId, @Param("showTimeStatus") ShowTimeStatus showTimeStatus);
 
 

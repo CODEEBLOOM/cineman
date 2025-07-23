@@ -3,7 +3,7 @@ package com.codebloom.cineman.controller.websocket;
 import com.codebloom.cineman.common.enums.TicketStatus;
 import com.codebloom.cineman.controller.response.DummyTicket;
 import com.codebloom.cineman.controller.response.SeatResponse;
-import com.codebloom.cineman.controller.response.TicketResponse;
+import com.codebloom.cineman.message.TicketCancelResponse;
 import com.codebloom.cineman.message.TicketMessage;
 import com.codebloom.cineman.message.TicketResponseMessage;
 import com.codebloom.cineman.model.TicketEntity;
@@ -16,6 +16,7 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Controller;
 
 import static com.codebloom.cineman.message.TicketResponseMessage.MessageType.TICKET_CREATED;
+import static com.codebloom.cineman.message.TicketResponseMessage.MessageType.TICKET_DELETED;
 
 @Controller
 @RequiredArgsConstructor
@@ -47,7 +48,26 @@ public class ChooseSeatWSController {
                                 .status(TicketStatus.SELECTED)
                                 .build()
                 )
+                .totalMoney(ticketService.getTotalMoneyOfTickets(ticketEntity.getInvoice().getId()))
                 .userId(message.getUserId())
+                .build();
+        messagingTemplate.convertAndSend(
+                "/cineman/topic/seat-map/show-time/" + message.getContent().getShowTimeId(),
+                ticketMessage
+        );
+    }
+
+    @MessageMapping("/seat/cancel-seat") /* /cineman/app/seat/cancel-seat*/
+    public void cancelSeat(@Payload TicketMessage message) {
+        log.info("cancelSeat(), message: {}", message);
+        TicketEntity ticketEntity = ticketService.delete(message.getTicketId());
+        TicketCancelResponse ticketMessage = TicketCancelResponse.builder()
+                .type(TICKET_DELETED)
+                .ticketId(message.getTicketId())
+                .userId(message.getUserId())
+                .columnIndex(ticketEntity.getSeat().getColumnIndex())
+                .rowIndex(ticketEntity.getSeat().getRowIndex())
+                .totalMoney(ticketService.getTotalMoneyOfTickets(ticketEntity.getInvoice().getId()))
                 .build();
         messagingTemplate.convertAndSend(
                 "/cineman/topic/seat-map/show-time/" + message.getContent().getShowTimeId(),

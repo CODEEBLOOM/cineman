@@ -5,6 +5,7 @@ import com.codebloom.cineman.controller.request.TicketRequest;
 import com.codebloom.cineman.controller.response.DummyTicket;
 import com.codebloom.cineman.controller.response.SeatResponse;
 import com.codebloom.cineman.controller.response.TicketResponse;
+import com.codebloom.cineman.exception.DataExistingException;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.*;
@@ -27,7 +28,6 @@ public class TicketServiceImpl implements TicketService {
     private final SeatRepository seatRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final InvoiceRepository invoiceRepository;
-    private final UserRepository userRepository;
 
     @Override
     public TicketResponse findById(Integer ticketId) {
@@ -37,6 +37,8 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public List<DummyTicket> findAllTicketsByShowTimeIdAndUserId(Long showTimeId, Long userId) {
+
+        // TODO: Cần phải tối ưu lại để chạy nhanh hơn
         List <SeatEntity> emptySeats = showTimeRepository.findAllSeatByShowTimeId(showTimeId, ShowTimeStatus.VALID);
         List <DummyTicket> tickets = new ArrayList<>();
         DummyTicket dummyTicket;
@@ -117,6 +119,9 @@ public class TicketServiceImpl implements TicketService {
     @Override
     @Transactional
     public TicketEntity create(TicketRequest request) {
+
+        log.info("Create new ticket");
+
         ShowTimeEntity showTimeEntity = showTimeRepository.findByIdAndStatus(request.getShowTimeId(), ShowTimeStatus.VALID)
                 .orElseThrow(() -> new DataNotFoundException("Show time not found or invalid"));
 
@@ -127,7 +132,12 @@ public class TicketServiceImpl implements TicketService {
                 .orElseThrow(() -> new DataNotFoundException("Ticket type not found or invalid"));
 
         InvoiceEntity invoiceEntity = invoiceRepository.findByIdAndStatus(request.getInvoiceId(), InvoiceStatus.PENDING)
-                .orElseThrow(() -> new DataNotFoundException("Invoice not found"));
+                    .orElseThrow(() -> new DataNotFoundException("Invoice not found"));
+
+        ticketRepository.findByShowTimeAndSeat(showTimeEntity, seatEntity)
+                .ifPresent(ticket -> {
+                    throw new DataExistingException("Ticket already exist");
+                });
 
         // Tính tiền giá vé //
         // giá cơ bản (showtime) + giá loại vé  (ticket type) + tính giá loại ghế (seat type)
@@ -160,14 +170,53 @@ public class TicketServiceImpl implements TicketService {
      * @param ticketId ID của vé cần xóa
      */
     @Override
-    public void delete(Long ticketId) {
-        TicketEntity ticketEntity = ticketRepository.findByIdAndStatus(ticketId, TicketStatus.SELECTED)
+    public TicketEntity delete(Long ticketId) {
+        TicketEntity ticketEntity = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new DataNotFoundException("Ticket not found"));
 
         if(ticketEntity.getInvoice().getStatus() != InvoiceStatus.PENDING) {
             throw new DataNotFoundException("Ticket must not be deleted");
         }
         ticketRepository.delete(ticketEntity);
+        return ticketEntity;
+    }
+
+    /**
+     * Dọn dẹp những vé quá thời gian chờ hợp lệ --> mặc định là 10 phút
+     */
+    @Override
+    @Transactional
+    public void clearTicketOutTimeLimit() {
+        log.info("Clear ticket out time limit");
+        ticketRepository.deleteAllTicketOutOfLimitTime(TicketStatus.PENDING);
+        log.info("Clear ticket out time limit successfully");
+    }
+
+    /**
+     * Lấy tất cả vé theo invoiceId có trạng thái là PENDING
+     * @param invoiceId ID hóa đơn
+     * @return  Danh sách vé
+     */
+    @Override
+    public List<TicketEntity> findByInvoiceId(Long invoiceId) {
+        InvoiceEntity invoiceEntity = invoiceRepository.findByIdAndStatus(invoiceId, InvoiceStatus.PENDING)
+                .orElseThrow(() -> new DataNotFoundException("Invoice not found or invalid"));
+        List<TicketEntity> tickets = ticketRepository.findByInvoice(invoiceEntity);
+        return !tickets.isEmpty() ? tickets : null;
+    }
+
+    /**
+     * Hàm tính tổng tiền vé theo invoiceId
+     * @param invoiceId ID hóa đơn
+     * @return Tính tổng tiền vé
+     */
+    @Override
+    public Double getTotalMoneyOfTickets(Long invoiceId) {
+        List<TicketEntity> tickets = this.findByInvoiceId(invoiceId);
+        return tickets != null ? tickets
+                .stream()
+                .map(TicketEntity::getPrice)
+                .reduce(0.0, Double::sum) : 0.0;
     }
 
 

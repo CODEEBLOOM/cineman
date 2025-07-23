@@ -13,6 +13,7 @@ public class TicketMessage {
     @Builder.Default
     private MessageType type = MessageType.TICKET_CREATE;
     private TicketRequest content;
+    private Long ticketId;
     private Long userId;
 
 

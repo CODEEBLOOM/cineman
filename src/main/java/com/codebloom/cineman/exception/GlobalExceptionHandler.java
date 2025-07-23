@@ -107,6 +107,9 @@ public class GlobalExceptionHandler {
                             ))})
     })
     public ErrorResponse handleDataNotFoundException(com.codebloom.cineman.exception.DataNotFoundException e, WebRequest request) {
+        if (!(request instanceof org.springframework.web.context.request.ServletWebRequest)) {
+            throw e;
+        }
         errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
@@ -213,7 +216,11 @@ public class GlobalExceptionHandler {
                                             """
                             ))})
     })
-    public ErrorResponse handleException(Exception e, WebRequest request) {
+    public ErrorResponse handleException(Exception e, WebRequest request) throws Exception {
+
+        if (!(request instanceof org.springframework.web.context.request.ServletWebRequest)) {
+            throw e;
+        }
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));

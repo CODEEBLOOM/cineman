@@ -24,13 +24,16 @@ public class InvoiceController {
     private final InvoiceService invoiceService;
 
     @Operation(summary = "Create invoice", description = "Api dùng để tạo một hóa đơn.")
-    @PostMapping("/add")
-    public ResponseEntity<ApiResponse> createInvoice(@RequestBody @Validated InvoiceCreateRequest req) {
+    @PostMapping("/show-time/{showTimeId}/add")
+    public ResponseEntity<ApiResponse> createInvoice(
+            @RequestBody @Validated InvoiceCreateRequest req,
+            @PathVariable @Min(value = 1, message = "Id's show time is must be greater than 0 !") Long showTimeId
+    ) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
                         .message("success")
-                        .data(invoiceService.create(req))
+                        .data(invoiceService.create(req, showTimeId))
                         .build()
         );
     }

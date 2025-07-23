@@ -17,6 +17,12 @@ public interface TicketService {
 
     TicketResponse update(Long ticketId, TicketRequest request);
 
-    void delete(Long ticketId);
+    TicketEntity delete(Long ticketId);
+
+    void clearTicketOutTimeLimit();
+
+    List<TicketEntity> findByInvoiceId(Long invoiceId);
+
+    Double getTotalMoneyOfTickets(Long invoiceId);
 
 }

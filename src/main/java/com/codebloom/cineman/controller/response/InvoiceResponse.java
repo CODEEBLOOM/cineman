@@ -21,6 +21,7 @@ public class InvoiceResponse {
     private Long customerId;
     private Long staffId;
     private Double totalMoney;
+    private Double totalMoneyTicket;
     private InvoiceStatus status;
     private Date createdAt;
     private Date updatedAt;

@@ -1,16 +1,11 @@
 package com.codebloom.cineman.service.impl;
 
-import com.codebloom.cineman.controller.response.InvoiceResponse;
-import com.codebloom.cineman.model.TicketEntity;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import com.codebloom.cineman.common.enums.InvoiceStatus;
 import com.codebloom.cineman.controller.request.InvoiceCreateRequest;
@@ -21,6 +16,9 @@ import com.codebloom.cineman.model.UserEntity;
 import com.codebloom.cineman.repository.InvoiceRepository;
 import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.service.InvoiceService;
+import com.codebloom.cineman.controller.response.InvoiceResponse;
+import com.codebloom.cineman.model.TicketEntity;
+import com.codebloom.cineman.service.TicketService;
 
 @Slf4j(topic = "INVOICE_SERVICE")
 @Service
@@ -29,6 +27,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
     private final UserRepository userRepository;
+    private final TicketService ticketService;
 
 
     /**
@@ -38,7 +37,7 @@ public class InvoiceServiceImpl implements InvoiceService {
      */
     @Transactional
     @Override
-    public InvoiceResponse create(InvoiceCreateRequest invoice) {
+    public InvoiceResponse create(InvoiceCreateRequest invoice, Long showTimeId) {
         UserEntity customer = null;
         UserEntity staff = null;
 
@@ -59,7 +58,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         // Kiểm tra xem hóa đơn đã có sẵn hay chưa nếu có thì cập nhật không tạo mới một hóa đơn //
         InvoiceEntity invoiceEntity = this.getInvoice(customer, staff);
         if(invoiceEntity != null) {
-            Date now = new Date();  
+            Date now = new Date();
 
             // Cập nhật hóa đơn //
             invoiceEntity.setCustomer(customer);
@@ -125,9 +124,39 @@ public class InvoiceServiceImpl implements InvoiceService {
         return toInvoiceResponse(invoiceRepository.save(invoiceEntity));
     }
 
-    private InvoiceEntity getInvoice(UserEntity customer, UserEntity staff ){
-        return invoiceRepository.findByCustomerAndStaffAndStatus(customer, staff, InvoiceStatus.PENDING)
-                .orElse(null);
+    /**
+     * Tính tổng tiền của hóa đơn
+     * @param invoiceId id hóa đơn
+     * @return Double
+     */
+    @Override
+    public Double getTotalMoney(Long invoiceId) {
+        InvoiceEntity invoice = invoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> new DataNotFoundException("Invoice not found"));
+       return Optional.ofNullable(invoice.getTickets())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(TicketEntity::getPrice)
+                .filter(Objects::nonNull)
+                .reduce(0.0, Double::sum);
+    }
+
+
+    private InvoiceEntity getInvoice(UserEntity customer, UserEntity staff){
+        List<InvoiceEntity> invoices = invoiceRepository.findByCustomerAndStaffAndStatus(customer, staff, InvoiceStatus.PENDING);
+        InvoiceEntity existingInvoice = null;
+        for (InvoiceEntity invoice : invoices) {
+            // Chỉ lấy invoice đang ở trang thái PENDING đầu tiên //
+            if (invoice.getTickets().isEmpty() ) {
+                if(existingInvoice == null) {
+                    existingInvoice = invoice;
+                }else{
+                    // Xóa những invoice ở khác ở trang thái PENDING //
+                    invoiceRepository.delete(invoice);
+                }
+            }
+        }
+        return existingInvoice;
     }
 
     /**
@@ -136,6 +165,9 @@ public class InvoiceServiceImpl implements InvoiceService {
      * @return InvoiceResponse
      */
     private InvoiceResponse toInvoiceResponse(InvoiceEntity invoice) {
+
+        Double totalMoneyOfTickets = ticketService.getTotalMoneyOfTickets(invoice.getId());
+
         return InvoiceResponse.builder()
                 .id(invoice.getId())
                 .email(invoice.getEmail())
@@ -153,6 +185,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                                 .filter(Objects::nonNull)
                                 .reduce(0.0, Double::sum)
                 )
+                .totalMoneyTicket(totalMoneyOfTickets)
                 .createdAt(invoice.getCreatedAt())
                 .updatedAt(invoice.getUpdatedAt())
                 .build();

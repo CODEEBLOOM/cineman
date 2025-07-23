@@ -7,8 +7,10 @@ import com.codebloom.cineman.model.InvoiceEntity;
 
 public interface InvoiceService {
 
-    InvoiceResponse create(InvoiceCreateRequest invoice);
+    InvoiceResponse create(InvoiceCreateRequest invoice, Long showTimeId);
 
     InvoiceResponse update(Long id, InvoiceUpdateRequest invoice);
+
+    Double getTotalMoney(Long invoiceId);
 
 }

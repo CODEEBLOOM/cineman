@@ -42,7 +42,8 @@
         public void configureMessageBroker(MessageBrokerRegistry registry) {
             log.info("Cấu hình Message Broker /cineman/topic và /cineman/app");
             registry.setApplicationDestinationPrefixes("/cineman/app");
-            registry.enableSimpleBroker("/cineman/topic");
+            registry.enableSimpleBroker("/cineman/topic", "/queue");
+            registry.setUserDestinationPrefix("/user");
         }
     
     }
