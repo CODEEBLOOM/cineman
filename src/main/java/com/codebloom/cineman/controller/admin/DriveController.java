@@ -1,7 +1,7 @@
 package com.codebloom.cineman.controller.admin;
 
 import com.codebloom.cineman.controller.response.ApiResponse;
-import com.codebloom.cineman.service.GoogleDriveService;
+import com.codebloom.cineman.service.GoogleDriveService2;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ import java.util.Map;
 @RequestMapping("${api.path}/drive")
 public class DriveController {
 
-    private final GoogleDriveService googleDriveService;
+    private final GoogleDriveService2 googleDriveService;
 
     @Operation(summary = "upload file to drive", description = "API dùng để upload file ảnh của người dùng lên gg drive.")
     @PostMapping("/upload")

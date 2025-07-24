@@ -60,5 +60,7 @@ openapi:
 google:
   service:
     account:
-      key: classpath:credentials/drive-service-account.json
+      key: classpath:credentials/credentials.json
+
+
 
