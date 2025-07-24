@@ -1,7 +1,7 @@
 package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.controller.request.MovieRoleRequest;
-import com.codebloom.cineman.Exception.*;
+import com.codebloom.cineman.exception.*;
 import com.codebloom.cineman.model.MovieRoleEntity;
 import com.codebloom.cineman.repository.MovieParticipantRepository;
 import com.codebloom.cineman.repository.MovieRoleRepository;

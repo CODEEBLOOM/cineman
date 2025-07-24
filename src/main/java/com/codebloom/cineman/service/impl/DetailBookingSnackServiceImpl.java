@@ -2,7 +2,7 @@ package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.controller.request.DetailBookingSnackRequest;
 import com.codebloom.cineman.controller.response.DetailBookingSnackResponse;
-import com.codebloom.cineman.Exception.*;
+import com.codebloom.cineman.exception.*;
 import com.codebloom.cineman.model.DetailBookingSnackEntity;
 import com.codebloom.cineman.model.InvoiceEntity;
 import com.codebloom.cineman.model.SnackEntity;

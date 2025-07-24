@@ -5,7 +5,7 @@ import com.codebloom.cineman.common.enums.PromotionConditionType;
 import com.codebloom.cineman.common.enums.StatusPromotion;
 import com.codebloom.cineman.controller.request.PromotionRequest;
 import com.codebloom.cineman.controller.response.PromotionResponse;
-import com.codebloom.cineman.Exception.*;
+import com.codebloom.cineman.exception.*;
 import com.codebloom.cineman.model.InvoiceEntity;
 import com.codebloom.cineman.model.PromotionEntity;
 import com.codebloom.cineman.model.UserEntity;
@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;

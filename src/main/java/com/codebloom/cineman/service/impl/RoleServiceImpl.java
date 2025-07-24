@@ -1,7 +1,7 @@
 package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.common.enums.UserType;
-import com.codebloom.cineman.Exception.*;
+import com.codebloom.cineman.exception.*;
 import com.codebloom.cineman.model.RoleEntity;
 import com.codebloom.cineman.repository.RoleRepository;
 import com.codebloom.cineman.service.RoleService;

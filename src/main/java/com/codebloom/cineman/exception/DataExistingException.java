@@ -1,4 +1,4 @@
-package com.codebloom.cineman.Exception;
+package com.codebloom.cineman.exception;
 
 public class DataExistingException extends RuntimeException {
     public DataExistingException(String message) {

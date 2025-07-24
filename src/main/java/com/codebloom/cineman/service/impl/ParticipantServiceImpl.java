@@ -1,7 +1,7 @@
 package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.controller.request.ParticipantRequest;
-import com.codebloom.cineman.Exception.*;
+import com.codebloom.cineman.exception.*;
 import com.codebloom.cineman.repository.ParticipantRepository;
 import com.codebloom.cineman.service.ParticipantService;
 import lombok.RequiredArgsConstructor;

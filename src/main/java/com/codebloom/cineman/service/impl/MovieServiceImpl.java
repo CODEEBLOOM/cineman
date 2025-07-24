@@ -7,7 +7,7 @@ import com.codebloom.cineman.controller.request.MoviePageQueryRequest;
 import com.codebloom.cineman.controller.response.MetaResponse;
 import com.codebloom.cineman.controller.response.MoviePageableResponse;
 import com.codebloom.cineman.controller.response.MovieResponse;
-import com.codebloom.cineman.Exception.*;
+import com.codebloom.cineman.exception.*;
 import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.MovieRepository;
 import com.codebloom.cineman.repository.MovieStatusRepository;

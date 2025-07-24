@@ -5,7 +5,7 @@ import com.codebloom.cineman.controller.request.PageRequest;
 import com.codebloom.cineman.controller.response.MetaResponse;
 import com.codebloom.cineman.controller.response.MovieTheaterPage;
 import com.codebloom.cineman.controller.response.MovieTheaterResponse;
-import com.codebloom.cineman.Exception.*;
+import com.codebloom.cineman.exception.*;
 import com.codebloom.cineman.model.MovieTheaterEntity;
 import com.codebloom.cineman.model.ProvinceEntity;
 import com.codebloom.cineman.repository.MovieTheaterRepository;
