@@ -33,4 +33,4 @@ build/
 .vscode/
 
 ### bỏ qua commit file chứa key upload file gg để tránh lộ key ###
-src/main/resources/credentials/drive-service-account.json
+src/main/resources/credentials.json
