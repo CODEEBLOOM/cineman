@@ -27,7 +27,7 @@ public class RoleEntity implements Serializable {
     String name;
 
 
-	@ManyToMany
+	@ManyToMany()
 	@JoinTable(
             name= "role_permissions",
             joinColumns = @JoinColumn(name = "role_id"),

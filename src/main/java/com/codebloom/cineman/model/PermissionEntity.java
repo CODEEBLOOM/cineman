@@ -46,7 +46,7 @@ public class PermissionEntity implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     Date updatedAt;
 
-	@ManyToMany(mappedBy = "permissions")
+	@ManyToMany(mappedBy = "permissions",fetch = FetchType.EAGER )
     @JsonIgnore
     Set<RoleEntity> roles;
 }

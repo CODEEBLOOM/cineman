@@ -16,7 +16,7 @@ spring:
 
 # kêt nối database
   datasource:
-    url: jdbc:sqlserver://localhost:1433;databaseName=cinema_app;encrypt=true;trustServerCertificate=true;
+    url: jdbc:sqlserver://localhost:1433;databaseName=CINEMA_APP_TEST;encrypt=true;trustServerCertificate=true;
     username: sa
     password: 123456
 
@@ -60,5 +60,5 @@ openapi:
 google:
   service:
     account:
-      key: classpath:service_account.json
+      key: classpath:credentials/drive-service-account.json
 

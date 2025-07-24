@@ -47,7 +47,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Value("${api.path}")
     private String apiPath;
 
-
+// /admin/user/all      /admin/ticket/detail/{id}
     /**
      * Hàm filter đứng trước spring security để thực hiện check access token và authority
      * @param request request
@@ -102,7 +102,6 @@ public class JwtFilter extends OncePerRequestFilter {
     /* Những request sau không cần check token*/
     private boolean isBypassToken(@NonNull HttpServletRequest request, List<Pair<String, Method>> bypassTokens) {
         bypassTokens = Arrays.asList(
-
 
                 // Swagger
                 Pair.of("/api-docs",Method.GET),

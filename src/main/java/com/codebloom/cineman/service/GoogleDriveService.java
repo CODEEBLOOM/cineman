@@ -72,10 +72,21 @@ public class GoogleDriveService {
         // Nội dung
         FileContent mediaContent = new FileContent(contentType, tempFile);
 
-        // Upload lên Drive
-        com.google.api.services.drive.model.File uploadedFile = googleDrive.files().create(fileMetadata, mediaContent)
-                .setFields("id")
-                .execute();
+//        // Upload lên Drive
+//        com.google.api.services.drive.model.File uploadedFile = googleDrive.files().create(fileMetadata, mediaContent)
+//                .setFields("id")
+//                .execute();
+
+        com.google.api.services.drive.model.File uploadedFile;
+        try {
+             uploadedFile = googleDrive.files().create(fileMetadata, mediaContent)
+                    .setFields("id")
+                    .execute();
+
+        } catch (Exception e) {
+            log.error("Error uploading file to Drive", e);
+            throw e; // hoặc return thông báo lỗi gọn gàng
+        }
 
         // Cấp quyền công khai
         Permission permission = new Permission()
