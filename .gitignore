@@ -34,3 +34,4 @@ build/
 
 ### bỏ qua commit file chứa key upload file gg để tránh lộ key ###
 src/main/resources/credentials.json
+src/main/resources/tokens
