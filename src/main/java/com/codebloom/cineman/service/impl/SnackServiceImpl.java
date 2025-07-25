@@ -66,7 +66,7 @@ public class SnackServiceImpl implements SnackService {
 
     @Override
     public SnackResponse findById(int id) {
-        SnackEntity snack = snackRepository.findByIdAndIsActiveTrue(id)
+        SnackEntity snack = snackRepository.findByIdAndIsActive(id, true)
                 .orElseThrow(() -> new DataNotFoundException("Snack not found or inactive"));
         return convert(snack);
     }
@@ -77,6 +77,16 @@ public class SnackServiceImpl implements SnackService {
                 .stream()
                 .map(this::convert)
                 .toList();
+    }
+
+    @Override
+    public List<SnackResponse> findAllComboSnacks() {
+        SnackTypeEntity snackType = snackTypeRepository.findByNameAndIsActive("Combo", true);
+        List<SnackEntity> snacks = snackRepository.findBySnackTypeAndIsActive(snackType, true);
+        List<SnackResponse> response = snacks.stream()
+                .map(this::convert)
+                .toList();
+        return response.isEmpty() ? null : response;
     }
 
     private SnackResponse convert(SnackEntity snack) {

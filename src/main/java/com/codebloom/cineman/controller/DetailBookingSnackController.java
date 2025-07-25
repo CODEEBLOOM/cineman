@@ -1,4 +1,4 @@
-package com.codebloom.cineman.controller.customer;
+package com.codebloom.cineman.controller;
 
 import com.codebloom.cineman.controller.request.DetailBookingSnackRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
@@ -13,27 +13,37 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.List;
 
 @RestController
-@RequestMapping("${api.path}/invoices/detail-snacks")
+@RequestMapping("${api.path}/detail-booking-snack")
 @Validated
 @RequiredArgsConstructor
-@Tag(name = "Invoice Snack (Customer)")
-public class CustomerInvoiceSnackController {
+@Tag(name = "Detail Booking Snack", description = "Detail Booking Snack API")
+public class DetailBookingSnackController {
 
     private final DetailBookingSnackService detailBookingSnackService;
 
     @Operation(summary = "Add Snack to Invoice")
-    @PostMapping("/{id}/add")
-    public ResponseEntity<ApiResponse> addToInvoice(@PathVariable @Min(1) Long id,
-                                                    @Valid @RequestBody DetailBookingSnackRequest request) {
+    @PostMapping("/add")
+    public ResponseEntity<ApiResponse> addToInvoice( @RequestBody @Valid DetailBookingSnackRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.builder()
                         .status(HttpStatus.CREATED.value())
                         .message("Snack added to Invoice successfully")
-                        .data(detailBookingSnackService.addToInvoice(id, request))
+                        .data(detailBookingSnackService.create(request))
+                        .build()
+        );
+    }
+
+    @Operation(summary = "Create multiple Snack to Invoice")
+    @PutMapping("/create-multiple")
+    public ResponseEntity<ApiResponse> createMultiple(@RequestBody @Valid List<DetailBookingSnackRequest> request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.CREATED.value())
+                        .message("Snack added to Invoice successfully")
+                        .data(detailBookingSnackService.createMultiple(request))
                         .build()
         );
     }

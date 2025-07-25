@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface SnackTypeRepository extends JpaRepository<SnackTypeEntity,Integer> {
 
+    SnackTypeEntity findByNameAndIsActive(String combo, Boolean active);
 }

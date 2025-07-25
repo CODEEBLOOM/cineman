@@ -23,4 +23,6 @@ public interface InvoiceRepository extends JpaRepository<InvoiceEntity, Long> {
     Optional<InvoiceEntity> findByShowTimeIdAndStatus(Long showTimeId, InvoiceStatus status, ShowTimeStatus showTimeStatus);
 
         List<InvoiceEntity> findByCustomerAndStaffAndStatus(UserEntity customer, UserEntity staff, InvoiceStatus status);
+
+    Optional<InvoiceEntity> findByIdAndStatusNot(Long id, InvoiceStatus status);
 }

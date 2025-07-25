@@ -14,9 +14,9 @@ public class TicketCleanupScheduler {
     private final TicketService ticketService;
 
     /**
-     * Lên lịch cứ 5 phút kiểm tra xóa ticket quá thời gian chờ hợp lệ
+     * Lên lịch sau 20 giây kiểm tra xóa ticket quá thời gian chờ hợp lệ
      */
-    @Scheduled(fixedDelay = 1000 * 60 * 5, initialDelay = 10000)
+    @Scheduled(fixedDelay = 20000, initialDelay = 10000)
     public void cleanupTickets() {
         log.info("Cleanup tickets");
         ticketService.clearTicketOutTimeLimit();

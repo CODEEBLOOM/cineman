@@ -21,4 +21,8 @@ public class DetailBookingSnackRequest {
     @NotNull(message = "Số lượng snack không được để trống.")
     @Min(value = 1, message = "Số lượng snack phải lớn hơn 0 !")
     private Integer totalSnack;
+
+    @NotNull(message = "Id hóa đơn khách hàng không được phép null !")
+    @Min(value = 1, message = "Id hóa đơn khách hàng phải lớn hơn 0 !")
+    private Long invoiceId;
 }

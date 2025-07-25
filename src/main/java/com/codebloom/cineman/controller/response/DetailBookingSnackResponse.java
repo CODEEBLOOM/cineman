@@ -12,9 +12,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DetailBookingSnackResponse {
+
     private Long id;
     private Integer totalSnack;
-    private Integer totalMoney;
     private Integer snackId;
     private Long invoiceId;
 

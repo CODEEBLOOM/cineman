@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -57,6 +58,7 @@ public class TicketServiceImpl implements TicketService {
                                     .status(seat.getStatus())
                                     .build()
                     )
+                    .price(0.0)
                     .status(TicketStatus.EMPTY)
                     .build();
             tickets.add(dummyTicket);
@@ -67,6 +69,7 @@ public class TicketServiceImpl implements TicketService {
 
         // Tạo ra các vé đã dat //
         for(TicketEntity ticket : listTicket) {
+            Date now = new Date();
 
             UserEntity customer = ticket.getInvoice().getCustomer();
             UserEntity staff = ticket.getInvoice().getStaff();
@@ -74,6 +77,8 @@ public class TicketServiceImpl implements TicketService {
             // Kiểm tra nếu vé của người dùng đang gọi request thì --> trạng thái vé là SELECTED //
             if((customer != null && customer.getUserId().equals(userId) )
                     || (staff != null && staff.getUserId() != null && staff.getUserId().equals(userId))) {
+                ticket.setCreateBooking(now);
+                ticket = ticketRepository.save(ticket);
                 dummyTicket = DummyTicket.builder()
                         .id(ticket.getId())
                         .seat(
@@ -87,6 +92,7 @@ public class TicketServiceImpl implements TicketService {
                                         .build()
                         )
                         .status(TicketStatus.SELECTED)
+                        .price(ticket.getPrice())
                         .build();
                 tickets.add(dummyTicket);
                 continue;
@@ -103,6 +109,7 @@ public class TicketServiceImpl implements TicketService {
                                     .status(ticket.getSeat().getStatus())
                                     .build()
                     )
+                    .price(ticket.getPrice())
                     .status(ticket.getStatus().equals(TicketStatus.PENDING) ? TicketStatus.HOLDED : TicketStatus.SOLD)
                     .build();
             tickets.add(dummyTicket);

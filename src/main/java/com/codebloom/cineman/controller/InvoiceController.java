@@ -38,7 +38,7 @@ public class InvoiceController {
         );
     }
 
-    @Operation(summary = "Create invoice", description = "Api dùng để tạo một hóa đơn.")
+    @Operation(summary = "Update invoice", description = "Api dùng để cập nhật thông tin hóa đơn.")
     @PutMapping("/{id}/update")
     public ResponseEntity<ApiResponse> updateInvoice(
             @PathVariable @Min(value = 1, message = "Id's invoice is must be greater than 0 !") Long id,

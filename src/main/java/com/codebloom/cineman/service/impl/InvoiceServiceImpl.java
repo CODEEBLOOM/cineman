@@ -1,5 +1,7 @@
 package com.codebloom.cineman.service.impl;
 
+import com.codebloom.cineman.model.PromotionEntity;
+import com.codebloom.cineman.repository.PromotionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final InvoiceRepository invoiceRepository;
     private final UserRepository userRepository;
     private final TicketService ticketService;
+    private final PromotionRepository promotionRepository;
 
 
     /**
@@ -95,6 +98,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     public InvoiceResponse update(Long id, InvoiceUpdateRequest invoice) {
         UserEntity customer = null;
         UserEntity staff = null;
+        PromotionEntity promotion = null;
 
         if(invoice.getCustomerId() == null && invoice.getStaffId() == null) {
             throw new DataNotFoundException("Customer or Staff not found");
@@ -111,14 +115,20 @@ public class InvoiceServiceImpl implements InvoiceService {
                     .orElseThrow(() -> new DataNotFoundException("Staff not found"));
         }
 
+        if(invoice.getPromotionId() != null) {
+            promotion = promotionRepository.findById(invoice.getPromotionId())
+                    .orElseThrow(() -> new DataNotFoundException("Promotion not found"));
+        }
+
         InvoiceEntity invoiceEntity = invoiceRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Invoice not found"));
         invoiceEntity.setEmail(invoice.getEmail());
         invoiceEntity.setPhoneNumber(invoice.getPhoneNumber());
         invoiceEntity.setPaymentMethod(invoice.getPaymentMethod());
+        invoiceEntity.setTotalTicket(invoice.getTotalTicket());
         invoiceEntity.setCustomer(customer);
         invoiceEntity.setStaff(staff);
-        invoiceEntity.setTotalTicket(invoice.getTotalTicket());
+        invoiceEntity.setPromotion(promotion);
         invoiceEntity.setUpdatedAt(new Date());
 
         return toInvoiceResponse(invoiceRepository.save(invoiceEntity));
@@ -188,6 +198,8 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .totalMoneyTicket(totalMoneyOfTickets)
                 .createdAt(invoice.getCreatedAt())
                 .updatedAt(invoice.getUpdatedAt())
+                .tickets(Optional.ofNullable(invoice.getTickets())
+                        .orElse(Collections.emptyList()))
                 .build();
     }
 

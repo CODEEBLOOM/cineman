@@ -11,6 +11,7 @@ import lombok.Setter;
 public class DummyTicket {
 
     private Long id;
+    private Double price;
     private SeatResponse seat;
     private TicketStatus status;
 

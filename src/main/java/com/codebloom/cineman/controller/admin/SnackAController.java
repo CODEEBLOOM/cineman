@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Tag(name = "Snack Controller")
 
-public class SnackController {
+public class SnackAController {
 
     private final SnackService snackService;
 

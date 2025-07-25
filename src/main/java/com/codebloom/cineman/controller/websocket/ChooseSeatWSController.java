@@ -18,6 +18,7 @@ import org.springframework.stereotype.Controller;
 import static com.codebloom.cineman.message.TicketResponseMessage.MessageType.TICKET_CREATED;
 import static com.codebloom.cineman.message.TicketResponseMessage.MessageType.TICKET_DELETED;
 
+
 @Controller
 @RequiredArgsConstructor
 @Slf4j(topic = "CHOOSE_SEAT_WS_CONTROLLER")
@@ -45,11 +46,13 @@ public class ChooseSeatWSController {
                                                 .status(ticketEntity.getSeat().getStatus())
                                                 .build()
                                 )
+                                .price(ticketEntity.getPrice())
                                 .status(TicketStatus.SELECTED)
                                 .build()
                 )
                 .totalMoney(ticketService.getTotalMoneyOfTickets(ticketEntity.getInvoice().getId()))
                 .userId(message.getUserId())
+                .ticketId(ticketEntity.getId())
                 .build();
         messagingTemplate.convertAndSend(
                 "/cineman/topic/seat-map/show-time/" + message.getContent().getShowTimeId(),

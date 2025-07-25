@@ -2,11 +2,13 @@ package com.codebloom.cineman.controller.response;
 
 import com.codebloom.cineman.common.enums.InvoiceStatus;
 import com.codebloom.cineman.common.enums.PaymentMethod;
+import com.codebloom.cineman.model.TicketEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -25,5 +27,6 @@ public class InvoiceResponse {
     private InvoiceStatus status;
     private Date createdAt;
     private Date updatedAt;
+    private List<TicketEntity> tickets;
 
 }

@@ -1,4 +1,4 @@
-package com.codebloom.cineman.service.util;
+package com.codebloom.cineman.service;
 
 import com.codebloom.cineman.controller.request.PaymentDTO;
 import jakarta.servlet.http.HttpServletRequest;
