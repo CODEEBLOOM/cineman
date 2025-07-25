@@ -36,7 +36,7 @@ public class SnackTypeController {
     }
 
     @Operation(summary = "Lấy một loại snack theo ID")
-    @GetMapping("/{id}")
+    @GetMapping("/detail/{id}")
     public ResponseEntity<ApiResponse> getSnackTypeById(@PathVariable @Min(1) int id) {
         return ResponseEntity.ok(
                 ApiResponse.builder()

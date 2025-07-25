@@ -43,7 +43,7 @@ public class UserAController {
     }
 
     @Operation(summary = "Find User By User Id", description = "API dùng để lấy ra user theo user_id")
-    @GetMapping("/{userId}")
+    @GetMapping("/detail/{userId}")
     public ResponseEntity<ApiResponse> getUserDetail(@PathVariable @Min(1) Long userId) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
