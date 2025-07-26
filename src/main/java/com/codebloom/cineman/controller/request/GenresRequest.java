@@ -2,11 +2,13 @@ package com.codebloom.cineman.controller.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class GenresRequest {
 
     @NotBlank(message = "Name's genre is not blank !")

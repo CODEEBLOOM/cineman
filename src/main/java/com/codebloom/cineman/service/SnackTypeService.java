@@ -15,4 +15,6 @@ public interface SnackTypeService {
     SnackTypeResponse save(SnackTypeRequest snackTypeDto);
 
     SnackTypeResponse update(Integer id, SnackTypeRequest request);
+
+
 }
