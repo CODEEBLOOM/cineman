@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 @Tag(name = "Genre of movie Controller", description = "API dùng để quản lý thể loại phim.")
 @RequestMapping("${api.path}/admin/genre")
+//@RequestMapping("/api/v01/admin/genre")
+
 public class GenreAController {
 
     private final GenreService genreService;

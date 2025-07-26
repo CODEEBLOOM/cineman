@@ -19,4 +19,5 @@ public interface PromotionService {
     List<PromotionResponse> getAvailablePromotions();
     PromotionResponse validateVoucherCode(String code);
     String generateUniqueCode();
+
 }

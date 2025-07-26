@@ -306,7 +306,6 @@ public class PromotionServiceImpl implements PromotionService {
                 .orElseThrow(() -> new DataNotFoundException("Invalid voucher code"));
 
         updatePromotionStatus(promo);
-
         if (promo.getStatus() != StatusPromotion.ACTIVE) {
             throw new DataNotFoundException("Voucher is expired or inactive");
         }
@@ -331,7 +330,7 @@ public class PromotionServiceImpl implements PromotionService {
             }
             code = sb.toString();
         } while (promotionRepository.existsByCode(code));
-
+        // kểm tra mã đã tồn tại trong cơ sở dữ liệu
         return code;
     }
 }
