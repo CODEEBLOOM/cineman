@@ -44,6 +44,7 @@ public class DriveController {
                         .build()
         );
     }
+
     @Operation(summary = "delete file from drive", description = "API dùng để xóa file ảnh của người dùng trên gg drive.")
     @DeleteMapping("/delete/{fileId}")
     public ResponseEntity<ApiResponse> deleteFile(@PathVariable String fileId) throws IOException{

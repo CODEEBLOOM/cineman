@@ -3,9 +3,12 @@ package com.codebloom.cineman.config;
 import com.codebloom.cineman.common.enums.Method;
 import com.codebloom.cineman.common.enums.TokenType;
 import com.codebloom.cineman.model.PermissionEntity;
+import com.codebloom.cineman.model.UserEntity;
 import com.codebloom.cineman.repository.PermissionRepository;
+import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.service.JwtService;
 import com.codebloom.cineman.service.MyUserDetailsService;
+import com.codebloom.cineman.service.PermissionService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jakarta.servlet.FilterChain;
@@ -31,6 +34,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -42,7 +46,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final ApplicationContext context;
+    private final PermissionService permissionService;
     private final PermissionRepository permissionRepository;
+    private final UserRepository userRepository;
 
     @Value("${api.path}")
     private String apiPath;
@@ -70,6 +76,8 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
+
+
         final String authHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
@@ -88,13 +96,30 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
+            Optional<UserEntity> userEntity = userRepository.findByEmail(username); // bạn cần có getId()
+            Long userId = userEntity.get().getUserId();
 
             if(jwtService.validateToken(token,TokenType.ACCESS_TOKEN, userDetails)){
+                // 🔹 Gọi hàm kiểm tra permission
+                boolean allowed = permissionService.hasPermission(
+                        userId,
+                        Method.valueOf(request.getMethod()),  // hoặc enum Method bạn dùng
+                        request.getRequestURI()
+                );
+
+                if (!allowed) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.getWriter().write("Access Denied");
+                    return; // Dừng filter chain, không cho đi tiếp
+                }
+
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
+
         }
+
         filterChain.doFilter(request, response);
     }
 
