@@ -1,6 +1,7 @@
 package com.codebloom.cineman.model;
 
 import com.codebloom.cineman.common.enums.TicketStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -49,10 +50,12 @@ public class TicketEntity implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "seat_id", nullable = false)
+    @JsonIgnore
     private SeatEntity seat;
 
     @ManyToOne
     @JoinColumn(name = "invoice_id", nullable = false)
+    @JsonIgnore
     private InvoiceEntity invoice;
 
 

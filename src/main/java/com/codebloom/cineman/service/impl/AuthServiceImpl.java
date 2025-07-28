@@ -131,6 +131,11 @@ public class AuthServiceImpl implements AuthService {
         return null;
     }
 
+    /**
+     * Hàm generate auth url
+     * @param loginType : google
+     * @return auth url
+     */
     @Override
     public String generateAuthUrl(String loginType) {
         String url = "";

@@ -16,14 +16,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "EMAIL-SERVICE")
 public class EmailServiceImpl implements EmailService {
+
 
 
     @Value("${spring.sendgrid.from-email}")
@@ -84,14 +83,14 @@ public class EmailServiceImpl implements EmailService {
     public void emailVerification(String to, String phoneNumber, String name) throws IOException {
         log.info("Email verification started with email to: " + to);
 
-        Email fromEmail = new Email(from, "QuangSon");
+        Email fromEmail = new Email(from, "Phòng dịch vụ Cineman");
         Email toEmail = new Email(to);
 
+        // Tạo token verify có thời hạn 10 phút //
         String subject = "Xác thực tài khoản";
         String tokenVerify = jwtService.generateTokenToVerify(phoneNumber, to);
         String secretCode = String.format("?secretCode=%s", tokenVerify);
 
-        //TODO generate secretCode and save to database
 
         Map<String, String> map = new HashMap<>();
         map.put("name", name);

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -55,13 +56,45 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors(Customizer.withDefaults());
-        http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(request ->
+        http.csrf(AbstractHttpConfigurer::disable);
+        http.authorizeHttpRequests(requests -> requests
 
-                        request.requestMatchers("/**").permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers(
+                                "/cineman-ws",
+                                "/qrcode/**",
+                                String.format("%s/auth/login", apiPath),
+                                String.format("%s/auth/user", apiPath),
+                                String.format("%s/auth/logout", apiPath),
+                                String.format("%s/auth/register", apiPath),
+                                String.format("%s/auth/refresh-token", apiPath),
+                                String.format("%s/auth/confirm-email", apiPath),
+                                String.format("%s/auth/social-login", apiPath),
+                                String.format("%s/auth/social/callback", apiPath),
+                                String.format("%s/admin/province/all", apiPath),
+
+                                // Swagger
+                                String.format("%s/api-docs", apiPath),
+                                String.format("%s/api-docs/**", apiPath),
+                                String.format("%s/swagger-resources/**", apiPath),
+                                String.format("%s/configuration/ui", apiPath),
+                                String.format("%s/configuration/security", apiPath),
+                                String.format("%s/swagger-ui/**", apiPath),
+                                String.format("%s/swagger-ui.html", apiPath),
+                                String.format("%s/swagger-ui/index.html", apiPath)
+                                ).permitAll()
+
+                        .requestMatchers(HttpMethod.GET, String.format("%s/movie/movie-theater/**", apiPath)).permitAll()
+                        .requestMatchers(HttpMethod.GET, String.format("%s/movie/all", apiPath)).permitAll()
+                        .requestMatchers(HttpMethod.GET, String.format("%s/movie/*", apiPath)).permitAll()
+                        .requestMatchers(HttpMethod.GET, String.format("%s/show-times/movie/*/movie-theater/*", apiPath)).permitAll()
+                        .requestMatchers(HttpMethod.GET, String.format("%s/show-times/movie/*/movie-theater/*/by-date/**", apiPath)).permitAll()
+                        .requestMatchers(HttpMethod.POST, String.format("/mail/send")).permitAll()
+
+                .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+//        http.exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(customAuthenticatedEntryPoint)
+//                .accessDeniedHandler(customAccessDeniedHandler));
         return http.build();
     }
 

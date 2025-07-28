@@ -28,6 +28,11 @@ public class DetailBookingSnackServiceImpl implements DetailBookingSnackService 
     private final InvoiceRepository invoiceRepository;
     private final ModelMapper mapper;
 
+    /**
+     * Create detail booking snack
+     * @param request DetailBookingSnackRequest
+     * @return DetailBookingSnackResponse
+     */
     @Override
     public DetailBookingSnackResponse create(DetailBookingSnackRequest request) {
         InvoiceEntity invoice = invoiceRepository.findByIdAndStatusNot(request.getInvoiceId(), InvoiceStatus.CANCELLED)
@@ -42,9 +47,15 @@ public class DetailBookingSnackServiceImpl implements DetailBookingSnackService 
                 .build();
 
         DetailBookingSnackEntity saved = detailRepository.save(detail);
-        return mapper.map(saved, DetailBookingSnackResponse.class);
+        return convert(saved);
     }
 
+    /**
+     * Update detail booking ticket
+     * @param id id of detail booking snack
+     * @param request DetailBookingSnackRequest
+     * @return DetailBookingSnackResponse
+     */
     @Override
     @Transactional
     public DetailBookingSnackResponse update(Long id, DetailBookingSnackRequest request) {
@@ -52,17 +63,33 @@ public class DetailBookingSnackServiceImpl implements DetailBookingSnackService 
                 .orElseThrow(() -> new DataNotFoundException("Detail not found"));
         detail.setTotalSnack(request.getTotalSnack());
         detailRepository.save(detail);
-        return mapper.map(detail, DetailBookingSnackResponse.class);
+        return convert(detail);
     }
 
+    /**
+     * Create multiple details
+     * @param requests List<DetailBookingSnackRequest>
+     * @return List<DetailBookingSnackResponse>
+     */
     @Override
     public List<DetailBookingSnackResponse> createMultiple(List<DetailBookingSnackRequest> requests) {
         if (requests.isEmpty()) return null;
         detailRepository.deleteByInvoiceId(requests.get(0).getInvoiceId());
         List<DetailBookingSnackResponse> responses = new ArrayList<>();
-        requests.forEach(request -> {
-            responses.add(create(request));
-        });
+        requests.forEach(request -> responses.add(create(request)));
         return responses.isEmpty() ? null : responses;
+    }
+
+
+    /**
+     * Convert DetailBookingSnackEntity to DetailBookingSnackResponse
+     * @param entity DetailBookingSnackEntity
+     * @return DetailBookingSnackResponse
+     */
+    private DetailBookingSnackResponse convert(DetailBookingSnackEntity entity) {
+         DetailBookingSnackResponse response = mapper.map(entity, DetailBookingSnackResponse.class);
+         Double totalMoney = entity.getTotalSnack() * entity.getSnack().getUnitPrice();
+         response.setTotalMoney(totalMoney);
+         return response;
     }
 }

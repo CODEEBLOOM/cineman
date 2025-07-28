@@ -329,6 +329,12 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+
+    /**
+     * Đăng nhập người dùng bằng google
+     * @param userLoginDTO thống tin người dùng
+     * @return LoginRequest
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public LoginRequest loginSocial(UserCreationRequest userLoginDTO) {
@@ -341,7 +347,7 @@ public class UserServiceImpl implements UserService {
             optionalUser = userRepository.findByGoogleId(userLoginDTO.getGoogleId());
 
             // Tạo người dùng mới nếu không tìm thấy
-            if (optionalUser.isEmpty() ) {
+            if (optionalUser.isEmpty()) {
                 checkNewUser(userLoginDTO.getEmail(), userLoginDTO.getPhoneNumber());
                 String password = passwordEncoder.encode(userLoginDTO.getPassword());
                 UserEntity newUser = UserEntity.builder()
@@ -436,7 +442,9 @@ public class UserServiceImpl implements UserService {
                 });
         userRepository.findByPhoneNumber(phoneNumber)
                 .ifPresent(existingUser -> {
-                    throw new DataExistingException("Phone Number already exists at least one user!");
+                    if(!existingUser.getFacebookId().equals("") && !existingUser.getGoogleId().equals("")) {{
+                        throw new DataExistingException("Phone number already exists at least one user!");
+                    }}
                 });
     }
 }

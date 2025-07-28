@@ -17,5 +17,6 @@ public class DetailBookingSnackResponse {
     private Integer totalSnack;
     private Integer snackId;
     private Long invoiceId;
+    private Double totalMoney;
 
 }

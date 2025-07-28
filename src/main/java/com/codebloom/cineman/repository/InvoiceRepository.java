@@ -22,7 +22,25 @@ public interface InvoiceRepository extends JpaRepository<InvoiceEntity, Long> {
             """)
     Optional<InvoiceEntity> findByShowTimeIdAndStatus(Long showTimeId, InvoiceStatus status, ShowTimeStatus showTimeStatus);
 
-        List<InvoiceEntity> findByCustomerAndStaffAndStatus(UserEntity customer, UserEntity staff, InvoiceStatus status);
+    List<InvoiceEntity> findByCustomerAndStaffAndStatus(UserEntity customer, UserEntity staff, InvoiceStatus status);
 
     Optional<InvoiceEntity> findByIdAndStatusNot(Long id, InvoiceStatus status);
+
+    Optional<InvoiceEntity> findByVnTxnRefAndStatus(String vnTxnRef, InvoiceStatus invoiceStatus);
+
+    Optional<InvoiceEntity> findByQrCode(String qrCode);
+
+    @Query("""
+            SELECT i FROM InvoiceEntity i INNER JOIN TicketEntity t ON t.invoice.id = i.id
+                        WHERE (i.customer.userId = :id OR i.staff.userId = :id)
+                                    AND t.showTime.id = :showTimeId 
+                                    AND i.status = :status
+            """)
+    Optional<InvoiceEntity> findByUserIdAndShowTimeIdAndStatus(Long id, Long showTimeId, InvoiceStatus status);
+
+    @Query("""
+            SELECT i FROM InvoiceEntity i
+                        WHERE i.customer.userId = :id OR i.staff.userId = :id
+            """)
+    List<InvoiceEntity> findByCustomerOrStaff(Long id);
 }

@@ -8,6 +8,20 @@ spring:
     multipart:
       max-file-size: 10MB     # Giới hạn cho 1 file
       max-request-size: 20MB  # Tổng dung lượng toàn request
+# JavaMailSender
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: giamsatson@gmail.com
+    password: fvgy bywn ozwr qxqm
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            protocols: TLSv1.2
 #  tạo đường dẫn đến thư mục chứa script
   flyway:
     locations: classpath:/db/migration,classpath:/dev/db/migration
@@ -43,7 +57,7 @@ spring:
       hibernate:
         format_sql: false
   sendgrid:
-    api-key: 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
+    api-key: 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
     from-email: admin@em7802.cineman.io.vn
     template-id: d-c59a7109d01d40ca97cd20310ad512f7
     verification-link: http://localhost:8081/api/v01/auth/confirm-email
@@ -76,9 +90,11 @@ google:
       key: classpath:service_account.json
 vnpay:
   pay-url: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
-  return-url: "${VNPAY_RETURN_URI:http://localhost:4200/payments/payment-callback}"
+  return-url: "http://localhost:3000/payment/payment-callback"
   tmn-code: "OMZF7JB7" # Add your TMN code here
   secret-key: "J6S80U7KQ2LKSIK0Q8QJK6K8LVVGPUVD" # Add your secret key here
   api-url: "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction"
+
+
 
 

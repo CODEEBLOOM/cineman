@@ -37,6 +37,7 @@ public class InvoiceEntity implements Serializable {
     private String phoneNumber;
 
     @Column(name = "status", columnDefinition = "TINYINT", nullable = false)
+    @Enumerated(EnumType.ORDINAL)
     private InvoiceStatus status;
 
     @Column(name = "total_ticket", nullable = false)
@@ -44,6 +45,12 @@ public class InvoiceEntity implements Serializable {
 
     @Column(name = "payment_method", columnDefinition = "TINYINT")
     private PaymentMethod paymentMethod;
+
+    @Column(name = "vn_txn_ref")
+    private String vnTxnRef;
+
+    @Column(name = "qr_code", length = 50)
+    private String qrCode;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", columnDefinition = "DATETIME")

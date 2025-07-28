@@ -75,8 +75,8 @@ public class TicketServiceImpl implements TicketService {
             UserEntity staff = ticket.getInvoice().getStaff();
 
             // Kiểm tra nếu vé của người dùng đang gọi request thì --> trạng thái vé là SELECTED //
-            if((customer != null && customer.getUserId().equals(userId) )
-                    || (staff != null && staff.getUserId() != null && staff.getUserId().equals(userId))) {
+            if(((customer != null && customer.getUserId().equals(userId) && ticket.getStatus() == TicketStatus.PENDING) )
+                    || ((staff != null && staff.getUserId() != null && staff.getUserId().equals(userId)) && ticket.getStatus() == TicketStatus.PENDING )) {
                 ticket.setCreateBooking(now);
                 ticket = ticketRepository.save(ticket);
                 dummyTicket = DummyTicket.builder()
@@ -138,7 +138,7 @@ public class TicketServiceImpl implements TicketService {
         TicketTypeEntity ticketTypeEntity = ticketTypeRepository.findByNameAndStatus(request.getTicketType(), true)
                 .orElseThrow(() -> new DataNotFoundException("Ticket type not found or invalid"));
 
-        InvoiceEntity invoiceEntity = invoiceRepository.findByIdAndStatus(request.getInvoiceId(), InvoiceStatus.PENDING)
+        InvoiceEntity invoiceEntity = invoiceRepository.findByIdAndStatusNot(request.getInvoiceId(), InvoiceStatus.CANCELLED)
                     .orElseThrow(() -> new DataNotFoundException("Invoice not found"));
 
         ticketRepository.findByShowTimeAndSeat(showTimeEntity, seatEntity)
@@ -181,7 +181,7 @@ public class TicketServiceImpl implements TicketService {
         TicketEntity ticketEntity = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new DataNotFoundException("Ticket not found"));
 
-        if(ticketEntity.getInvoice().getStatus() != InvoiceStatus.PENDING) {
+        if(ticketEntity.getInvoice().getStatus() == InvoiceStatus.PAID) {
             throw new DataNotFoundException("Ticket must not be deleted");
         }
         ticketRepository.delete(ticketEntity);
@@ -206,7 +206,7 @@ public class TicketServiceImpl implements TicketService {
      */
     @Override
     public List<TicketEntity> findByInvoiceId(Long invoiceId) {
-        InvoiceEntity invoiceEntity = invoiceRepository.findByIdAndStatus(invoiceId, InvoiceStatus.PENDING)
+        InvoiceEntity invoiceEntity = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new DataNotFoundException("Invoice not found or invalid"));
         List<TicketEntity> tickets = ticketRepository.findByInvoice(invoiceEntity);
         return !tickets.isEmpty() ? tickets : null;

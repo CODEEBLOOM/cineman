@@ -92,5 +92,17 @@ public class UserAController {
         );
     }
 
+    @Operation(summary = "Find User", description = "API dùng để tìm kiếm thông tin người dùng")
+    @GetMapping("/{email}/find")
+    public ResponseEntity<ApiResponse> findUser(@PathVariable String email) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Success")
+                        .data(userService.findByEmail(email))
+                        .build()
+        );
+    }
+
 
 }

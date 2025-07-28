@@ -39,7 +39,7 @@ import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequestMapping("${api.path}/auth")
-@Slf4j (topic = "AUTHENTICATION-CONTROLLER")
+@Slf4j(topic = "AUTHENTICATION-CONTROLLER")
 @RequiredArgsConstructor
 @Tag(name = "Authentication Controller")
 public class AuthenticationController {
@@ -96,10 +96,10 @@ public class AuthenticationController {
     }
 
     @Operation(summary = "Get information of user", description = "API get information of user by accessToken ")
-    @PostMapping("/user")
+    @GetMapping("/user")
     public ResponseEntity<ApiResponse> getInfoUser(HttpServletRequest request) {
         final String authHeader = request.getHeader("Authorization");
-        if(authHeader != null && authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             UserResponse userRes = userService.getInfoUserByAccessToken(token);
             return ResponseEntity.status(HttpStatus.OK).body(
@@ -139,7 +139,7 @@ public class AuthenticationController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             String email = authentication.getName();
-            if(email.isEmpty()){
+            if (email.isEmpty()) {
                 throw new InvalidDataException("Access Token Invalid");
             }
             userService.updateRefreshToken(token.substring(7), true);
@@ -162,9 +162,9 @@ public class AuthenticationController {
         try {
             userService.confirmEmail(secretCode);
             response.sendRedirect("http://localhost:3000");
-        }catch(Exception e) {
+        } catch (Exception e) {
             log.error("Error occur confirm email, error: {}", e.getMessage());
-        }finally {
+        } finally {
             response.sendRedirect("https://www.facebook.com");
         }
     }
@@ -173,7 +173,7 @@ public class AuthenticationController {
     @GetMapping("/social-login")
     public ResponseEntity<ApiResponse> socialAuth(
             @RequestParam("login_type") String loginType
-    ){
+    ) {
         loginType = loginType.trim().toLowerCase();  // Loại bỏ dấu cách và chuyển thành chữ thường
         String url = authService.generateAuthUrl(loginType);
         return ResponseEntity.status(HttpStatus.OK).body(
@@ -187,7 +187,7 @@ public class AuthenticationController {
 
     private ResponseEntity<TokenResponse> loginSocial(
             @Valid @RequestBody UserCreationRequest userLoginDTO
-    )  {
+    ) {
         // Gọi hàm loginSocial từ UserService cho đăng nhập mạng xã hội
         LoginRequest loginRequest = userService.loginSocial(userLoginDTO);
         return this.getAccessToken(loginRequest);

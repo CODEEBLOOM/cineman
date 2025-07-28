@@ -3,9 +3,13 @@ package com.codebloom.cineman.config;
 import com.codebloom.cineman.common.enums.Method;
 import com.codebloom.cineman.common.enums.TokenType;
 import com.codebloom.cineman.model.PermissionEntity;
+import com.codebloom.cineman.model.UserEntity;
 import com.codebloom.cineman.repository.PermissionRepository;
+import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.service.JwtService;
 import com.codebloom.cineman.service.MyUserDetailsService;
+import com.codebloom.cineman.service.PermissionService;
+import com.codebloom.cineman.service.UserService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jakarta.servlet.FilterChain;
@@ -43,6 +47,8 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final ApplicationContext context;
     private final PermissionRepository permissionRepository;
+    private final UserRepository userRepository;
+    private final PermissionService permissionService;
 
     @Value("${api.path}")
     private String apiPath;
@@ -59,6 +65,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("{} {}", request.getMethod(), request.getRequestURI());
+        // TODO: authority
 
         List<PermissionEntity> guestPermissions = permissionRepository.findAllByRoleGuest();
         List<Pair<String, Method>> bypassTokens = guestPermissions.stream()
@@ -74,6 +81,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = null;
         String username = null;
 
+        // Nếu có Authorization header và bắt đầu bằng "Bearer " thì extract username từ token //
         if(authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
             try {
@@ -94,6 +102,25 @@ public class JwtFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
+
+            // đã qua bước authentication //
+            // Authority check
+            UserEntity userEntity = userRepository.findByEmail(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            Long userId = userEntity.getUserId();
+
+            // Gọi hàm kiểm tra permission
+            boolean allowed = permissionService.hasPermission(
+                    userId,
+                    Method.valueOf(request.getMethod()),
+                    request.getRequestURI()
+            );
+
+            if (!allowed) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.getWriter().write("Access Denied");
+                return; // Dừng filter chain, không cho đi tiếp
+            }
         }
         filterChain.doFilter(request, response);
     }
@@ -104,7 +131,9 @@ public class JwtFilter extends OncePerRequestFilter {
         bypassTokens = Arrays.asList(
 
                 Pair.of(String.format("%s/auth/login",apiPath),Method.POST),
+                Pair.of(String.format("%s/auth/logout",apiPath),Method.POST),
                 Pair.of(String.format("%s/auth/register",apiPath),Method.POST),
+                Pair.of(String.format("%s/auth/user",apiPath),Method.GET),
                 Pair.of(String.format("%s/auth/refresh-token",apiPath),Method.POST),
                 Pair.of(String.format("%s/auth/confirm-email",apiPath),Method.GET),
                 Pair.of(String.format("%s/auth/social-login",apiPath),Method.GET),
@@ -112,7 +141,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 // API for customer
                 Pair.of(String.format("%s/movie/movie-theater/**",apiPath),Method.GET),
-                Pair.of(String.format("%s/movie/movie-theater/**",apiPath),Method.GET),
+                Pair.of(String.format("%s/show-times/movie/**/movie-theater/**",apiPath),Method.GET),
+                Pair.of(String.format("%s/movie/all",apiPath),Method.GET),
+                Pair.of(String.format("%s/movie/**",apiPath),Method.GET),
+                Pair.of(String.format("%s/admin/province/all", apiPath),Method.GET),
 
                 // Swagger
                 Pair.of("/api-docs",Method.GET),

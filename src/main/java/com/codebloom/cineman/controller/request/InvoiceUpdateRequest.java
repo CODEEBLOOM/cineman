@@ -1,5 +1,6 @@
 package com.codebloom.cineman.controller.request;
 
+import com.codebloom.cineman.common.enums.InvoiceStatus;
 import com.codebloom.cineman.common.enums.PaymentMethod;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
@@ -16,7 +17,7 @@ public class InvoiceUpdateRequest {
     @Email(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", message = "User's email invalid !")
     private String email;
 
-    @Size(min = 1, max = 20, message = "Phone number is must be less than or equal 20 character !")
+//    @Size(min = 1, max = 20, message = "Phone number is must be less than or equal 20 character !")
     private String phoneNumber;
 
     @Builder.Default
@@ -25,6 +26,9 @@ public class InvoiceUpdateRequest {
     @Min(value = 1, message = "Total ticket is must be greater than 0")
     @NotNull(message = "Total ticket is must not null !")
     private Integer totalTicket;
+
+    @Builder.Default
+    private InvoiceStatus invoiceStatus = InvoiceStatus.PENDING;
 
     private Long customerId;
     private Long staffId;

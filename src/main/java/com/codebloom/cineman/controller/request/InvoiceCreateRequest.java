@@ -1,5 +1,6 @@
 package com.codebloom.cineman.controller.request;
 
+import com.codebloom.cineman.common.enums.InvoiceStatus;
 import com.codebloom.cineman.common.enums.PaymentMethod;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
@@ -21,6 +22,9 @@ public class InvoiceCreateRequest {
     private PaymentMethod paymentMethod;
     private Long customerId;
     private Long staffId;
+
+
+    private InvoiceStatus invoiceStatus = InvoiceStatus.PENDING;
 
     @Min(value = 1, message = "Id's movie is must be greater than 0")
     private Integer totalTicket ;
