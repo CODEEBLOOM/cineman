@@ -14,7 +14,7 @@ public interface InvoiceService {
 
     InvoiceResponse update(Long id, InvoiceUpdateRequest invoice);
 
-    InvoiceResponse updateTnx(Long id, String tnxRef);
+    InvoiceResponse updateTnx(Long id, String tnxRef, Object... args);
 
     InvoiceResponse updateStatusPaymentSuccess(String txnRef);
 

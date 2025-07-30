@@ -60,6 +60,7 @@ public class MovieServiceImpl implements MovieService {
      */
     @Override
     public MoviePageableResponse findAllByPageAndFilter(MoviePageQueryRequest request, Integer movieTheaterId) {
+        log.info("movieTheaterId: {}", movieTheaterId);
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
         MovieStatusEntity movieStatus = movieStatusService.findById(request.getStatus());
 
@@ -71,6 +72,7 @@ public class MovieServiceImpl implements MovieService {
         }else {
             page = movieRepository.findAllByStatusAndMovieTheaterId(movieStatus, movieTheaterId, pageable);
         }
+        log.info("end findAllByPageAndFilter");
         return movieToMoviePageableResponse(page);
     }
 

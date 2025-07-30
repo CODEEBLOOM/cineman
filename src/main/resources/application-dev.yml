@@ -43,13 +43,12 @@ spring:
 
 # kêt nối database
   datasource:
-    url: jdbc:sqlserver://localhost:1433;databaseName=cinema_app_test;encrypt=true;trustServerCertificate=true;
+    url: jdbc:sqlserver://localhost:1433;databaseName=CINEMA_APP;encrypt=true;trustServerCertificate=true;
     username: sa
-    password: Son15@2
-
+    password: 111111
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   jpa:
-    database-platform: org.hibernate.dialect.SQLServer2012Dialect
+#    database-platform: org.hibernate.dialect.SQLServer2012Dialect
     hibernate:
       ddl-auto: none
     show-sql: true
