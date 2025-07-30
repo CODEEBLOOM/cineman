@@ -25,6 +25,7 @@ public class InvoiceResponse {
     private Double totalMoney;
     private Double totalMoneyTicket;
     private InvoiceStatus status;
+    private Long promotionId;
     private Date createdAt;
     private Date updatedAt;
     private List<TicketEntity> tickets;

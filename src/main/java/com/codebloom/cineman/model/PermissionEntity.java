@@ -38,6 +38,9 @@ public class PermissionEntity implements Serializable {
     @Column(name = "url", columnDefinition = "VARCHAR(200)", nullable = false)
     String url;
 
+    @Column(name = "category", columnDefinition = "NVARCHAR(255)")
+    String category;
+
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     Date createdAt;

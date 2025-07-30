@@ -18,6 +18,8 @@ public interface InvoiceService {
 
     InvoiceResponse updateStatusPaymentSuccess(String txnRef);
 
+    InvoiceResponse applyPromotionToInvoice(Long id, Long promotionId);
+
     Double getTotalMoney(Long invoiceId);
 
 }

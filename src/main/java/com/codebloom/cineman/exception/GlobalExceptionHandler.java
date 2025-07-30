@@ -1,5 +1,6 @@
 package com.codebloom.cineman.exception;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -7,7 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.ConstraintViolationException;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
-import java.io.IOException;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 
 import static org.springframework.http.HttpStatus.*;
@@ -29,7 +30,7 @@ public class GlobalExceptionHandler {
     /**
      * Handle exception when validate data
      *
-     * @param e: exception cần được xử lý
+     * @param e:       exception cần được xử lý
      * @param request: để lấy ra URI đích
      * @return errorResponse
      */
@@ -81,9 +82,9 @@ public class GlobalExceptionHandler {
     }
 
 
-
     /**
      * Hàm xử lý bắt ngoại lệ dữ liệu đã không được tìm thấy trong hệ thống
+     *
      * @param request: để lấy ra URI đích
      * @return errorResponse
      */
@@ -122,6 +123,7 @@ public class GlobalExceptionHandler {
 
     /**
      * Hàm xử lý bắt ngoại lệ liên quan tới xử lí file
+     *
      * @param request: để lấy ra URI đích
      * @return errorResponse
      */
@@ -135,14 +137,14 @@ public class GlobalExceptionHandler {
                                     name = "404 Response",
                                     summary = "Handle exception when upload fails",
                                     value = """
-                                        {
-                                          "timestamp": "2025-06-27T10:00:00.000+00:00",
-                                          "status": 404,
-                                          "path": "/api/v1/drive/upload",
-                                          "error": "Internal Server Error",
-                                          "message": "Không thể upload file: file quá lớn hoặc lỗi hệ thống"
-                                        }
-                                        """
+                                            {
+                                              "timestamp": "2025-06-27T10:00:00.000+00:00",
+                                              "status": 404,
+                                              "path": "/api/v1/drive/upload",
+                                              "error": "Internal Server Error",
+                                              "message": "Không thể upload file: file quá lớn hoặc lỗi hệ thống"
+                                            }
+                                            """
                             ))})
     })
     public ErrorResponse handleIOException(FileNotFoundException e, WebRequest request) {
@@ -157,6 +159,7 @@ public class GlobalExceptionHandler {
 
     /**
      * Hàm xử lý bắt ngoại lệ dữ liệu đã tồn tại trong hệ thống
+     *
      * @param request: để lấy ra URI đích
      * @return errorResponse
      */
@@ -193,7 +196,7 @@ public class GlobalExceptionHandler {
     /**
      * Handle exception when internal server error
      *
-     * @param e Exception
+     * @param e       Exception
      * @param request request
      * @return errorResponse
      */
@@ -221,7 +224,7 @@ public class GlobalExceptionHandler {
         if (!(request instanceof org.springframework.web.context.request.ServletWebRequest)) {
             throw e;
         }
-        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
         errorResponse.setStatus(INTERNAL_SERVER_ERROR.value());
@@ -247,7 +250,7 @@ public class GlobalExceptionHandler {
     /**
      * Handle exception when the data is conflicted
      *
-     * @param e InvalidDataException
+     * @param e       InvalidDataException
      * @param request request
      * @return errorResponse
      */
@@ -284,7 +287,7 @@ public class GlobalExceptionHandler {
     /**
      * Handle exception when the request not found data
      *
-     * @param e ForBiddenException
+     * @param e       ForBiddenException
      * @param request request
      * @return errorResponse
      */
@@ -319,10 +322,10 @@ public class GlobalExceptionHandler {
     }
 
 
-/**
+    /**
      * Handle exception when the request not found data
      *
-     * @param e AccessDeniedException
+     * @param e       AccessDeniedException
      * @param request request
      * @return errorResponse
      */
@@ -356,9 +359,69 @@ public class GlobalExceptionHandler {
         return errorResponse;
     }
 
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(BAD_REQUEST)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "400", description = "Bad Request",
+                    content = {@Content(mediaType = APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    name = "400 Response",
+                                    summary = "Handle exception when resource not found",
+                                    value = """
+                                            {
+                                              "timestamp": "2023-10-19T06:07:35.321+00:00",
+                                              "status": 400,
+                                              "path": "/api/v1/...",
+                                              "error": "bad request",
+                                              "message": "{data} not found"
+                                            }
+                                            """
+                            ))})
+    })
+    public ErrorResponse handleConflictException(Exception e, WebRequest request) {
+        errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setStatus(BAD_REQUEST.value());
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        errorResponse.setError(BAD_REQUEST.getReasonPhrase());
+        errorResponse.setMessage(e.getMessage());
+
+        return errorResponse;
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(BAD_REQUEST)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "400", description = "Bad Request",
+                    content = {@Content(mediaType = APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    name = "400 Response",
+                                    summary = "Handle exception when resource not found",
+                                    value = """
+                                            {
+                                              "timestamp": "2023-10-19T06:07:35.321+00:00",
+                                              "status": 400,
+                                              "path": "/api/v1/...",
+                                              "error": "bad request",
+                                              "message": "{data} not found"
+                                            }
+                                            """
+                            ))})
+    })
+    public ErrorResponse handleDateTimeParseException(HttpMessageNotReadableException e, WebRequest request) {
+        errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setStatus(BAD_REQUEST.value());
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        errorResponse.setError(BAD_REQUEST.getReasonPhrase());
+        errorResponse.setMessage("Invalid date format");
+
+        return errorResponse;
+    }
+
     @Getter
     @Setter
-    private static class ErrorResponse {
+    public static class ErrorResponse {
         private Date timestamp;
         private int status;
         private String path;

@@ -130,6 +130,7 @@ public class JwtServiceImpl implements JwtService {
 
     private Key getKey(TokenType type) {
         log.info("----------[ getKey ]----------");
+        log.info("type: {}", type);
         switch (type) {
             case ACCESS_TOKEN -> {
                 return Keys.hmacShaKeyFor(Decoders.BASE64.decode(accessKey));

@@ -17,7 +17,6 @@ public class InvoiceUpdateRequest {
     @Email(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", message = "User's email invalid !")
     private String email;
 
-//    @Size(min = 1, max = 20, message = "Phone number is must be less than or equal 20 character !")
     private String phoneNumber;
 
     @Builder.Default

@@ -2,14 +2,13 @@ package com.codebloom.cineman.config;
 
 import com.codebloom.cineman.common.enums.Method;
 import com.codebloom.cineman.common.enums.TokenType;
-import com.codebloom.cineman.model.PermissionEntity;
+import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.UserEntity;
 import com.codebloom.cineman.repository.PermissionRepository;
 import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.service.JwtService;
 import com.codebloom.cineman.service.MyUserDetailsService;
 import com.codebloom.cineman.service.PermissionService;
-import com.codebloom.cineman.service.UserService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jakarta.servlet.FilterChain;
@@ -67,12 +66,12 @@ public class JwtFilter extends OncePerRequestFilter {
         log.info("{} {}", request.getMethod(), request.getRequestURI());
         // TODO: authority
 
-        List<PermissionEntity> guestPermissions = permissionRepository.findAllByRoleGuest();
-        List<Pair<String, Method>> bypassTokens = guestPermissions.stream()
-                .map(p -> Pair.of(p.getUrl(), p.getMethod()))
-                .collect(Collectors.toList());
+//        List<PermissionEntity> guestPermissions = permissionRepository.findAllByRoleGuest();
+//        List<Pair<String, Method>> bypassTokens = guestPermissions.stream()
+//                .map(p -> Pair.of(p.getUrl(), p.getMethod()))
+//                .collect(Collectors.toList());
 
-        if(isBypassToken(request,bypassTokens)) {
+        if(isBypassToken(request)) {
             filterChain.doFilter(request, response); //enable bypass
             return;
         }
@@ -106,7 +105,7 @@ public class JwtFilter extends OncePerRequestFilter {
             // đã qua bước authentication //
             // Authority check
             UserEntity userEntity = userRepository.findByEmail(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new DataNotFoundException("User not found"));
             Long userId = userEntity.getUserId();
 
             // Gọi hàm kiểm tra permission
@@ -127,9 +126,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
 
     /* Những request sau không cần check token*/
-    private boolean isBypassToken(@NonNull HttpServletRequest request, List<Pair<String, Method>> bypassTokens) {
-        bypassTokens = Arrays.asList(
-
+    private boolean isBypassToken(@NonNull HttpServletRequest request) {
+        List<Pair<String, Method>> bypassTokens = Arrays.asList(
                 Pair.of(String.format("%s/auth/login",apiPath),Method.POST),
                 Pair.of(String.format("%s/auth/logout",apiPath),Method.POST),
                 Pair.of(String.format("%s/auth/register",apiPath),Method.POST),

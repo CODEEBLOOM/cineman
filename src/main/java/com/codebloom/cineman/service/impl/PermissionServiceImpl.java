@@ -20,9 +20,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-
-
-
 @Service
 @Slf4j(topic = "PERMISSION-SERVICE")
 @RequiredArgsConstructor
@@ -122,6 +119,7 @@ public class PermissionServiceImpl implements PermissionService {
 
     @Override
     public boolean hasPermission(Long userId, Method method, String requestUrl) {
+        log.info("Checking permission for User ID {}", userId);
         List<PermissionEntity> permissions = userPermissionCache.computeIfAbsent(userId,
                 id -> permissionRepository.findAllByUserId(userId));
         log.info("Permissions for User ID {} are {}", userId, permissions);

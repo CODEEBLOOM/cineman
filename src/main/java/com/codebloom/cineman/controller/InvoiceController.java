@@ -3,6 +3,7 @@ package com.codebloom.cineman.controller;
 import com.codebloom.cineman.common.enums.InvoiceStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -44,7 +45,7 @@ public class InvoiceController {
     @PutMapping("/{id}/update")
     public ResponseEntity<ApiResponse> updateInvoice(
             @PathVariable @Min(value = 1, message = "Id's invoice is must be greater than 0 !") Long id,
-            @RequestBody @Validated InvoiceUpdateRequest req) {
+            @RequestBody @Valid InvoiceUpdateRequest req) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
@@ -93,6 +94,21 @@ public class InvoiceController {
                         .status(HttpStatus.OK.value())
                         .message("success")
                         .data(invoiceService.findByUserIdAndShowTimeId(userId, showTimeId))
+                        .build()
+        );
+    }
+
+    @Operation(summary = "Apply promotion to invoice", description = "Api dùng để áp dụng khuyến mãi cho hóa đơn.")
+    @PutMapping("/{id}/promotion/{promotionId}/apply-promotion")
+    public ResponseEntity<ApiResponse> applyPromotionToInvoice(
+            @PathVariable @Min(value = 1, message = "Id's invoice is must be greater than 0 !") Long id,
+            @PathVariable @Min(value = 1, message = "Id's promotion is must be greater than 0 !") Long promotionId
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("success")
+                        .data(invoiceService.applyPromotionToInvoice(id, promotionId))
                         .build()
         );
     }
