@@ -3,6 +3,7 @@ package com.codebloom.cineman.controller.admin;
 
 import com.codebloom.cineman.controller.request.RolePermissionRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
+import com.codebloom.cineman.controller.response.RolePermissionResponse;
 import com.codebloom.cineman.service.RolePermissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("${api.path}/admin/role-permission")
 @Tag(name = "Role-Permission Controller", description = "Quản lý quyền theo vai trò")
@@ -19,6 +22,20 @@ import org.springframework.web.bind.annotation.*;
 public class RolePermissionAController {
 
     private final RolePermissionService rolePermissionService;
+
+    @Operation(summary = "Lấy tất cả role-permission", description = "API trả về tất cả các cặp role-permission")
+    @GetMapping
+    public ResponseEntity<ApiResponse> getAllRolePermissions() {
+        List<RolePermissionResponse> data = rolePermissionService.findAllRolePermissions();
+        return ResponseEntity.ok(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Lấy danh sách role-permission thành công")
+                        .data(data)
+                        .build()
+        );
+    }
+
 
     @Operation(summary = "Gán quyền cho vai trò", description = "API dùng để gán một quyền cụ thể cho một vai trò")
     @PostMapping("/add")
@@ -45,4 +62,6 @@ public class RolePermissionAController {
                         .build()
         );
     }
+
+
 }
