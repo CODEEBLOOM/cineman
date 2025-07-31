@@ -2,6 +2,7 @@ package com.codebloom.cineman.repository;
 
 import com.codebloom.cineman.common.enums.InvoiceStatus;
 import com.codebloom.cineman.model.InvoiceEntity;
+import com.codebloom.cineman.model.PromotionEntity;
 import com.codebloom.cineman.model.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

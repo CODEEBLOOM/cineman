@@ -38,7 +38,8 @@ public class InvoiceEntity implements Serializable {
 
     @Column(name = "status", columnDefinition = "TINYINT", nullable = false)
     private InvoiceStatus status;
-
+    @Column(name = "total_price", nullable = false)
+    private Double totalPrice;
     @Column(name = "total_ticket", nullable = false)
     private Integer totalTicket;
 
