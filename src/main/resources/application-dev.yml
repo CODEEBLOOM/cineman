@@ -45,7 +45,7 @@ spring:
   datasource:
     url: jdbc:sqlserver://localhost:1433;databaseName=CINEMA_APP;encrypt=true;trustServerCertificate=true;
     username: sa
-    password: 111111
+    password: Son15@2
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   jpa:
 #    database-platform: org.hibernate.dialect.SQLServer2012Dialect

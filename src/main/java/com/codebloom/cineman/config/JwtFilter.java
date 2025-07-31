@@ -4,7 +4,6 @@ import com.codebloom.cineman.common.enums.Method;
 import com.codebloom.cineman.common.enums.TokenType;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.UserEntity;
-import com.codebloom.cineman.repository.PermissionRepository;
 import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.service.JwtService;
 import com.codebloom.cineman.service.MyUserDetailsService;
@@ -34,7 +33,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 
 @Service
@@ -45,7 +44,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final ApplicationContext context;
-    private final PermissionRepository permissionRepository;
+//    private final PermissionRepository permissionRepository;
     private final UserRepository userRepository;
     private final PermissionService permissionService;
 
@@ -88,7 +87,12 @@ public class JwtFilter extends OncePerRequestFilter {
             } catch (Exception e) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json");
-                response.getWriter().write(errorResponse(e.getMessage()));
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write(errorResponse(
+                        e.getMessage(),
+                        HttpServletResponse.SC_UNAUTHORIZED,
+                        "Unauthorized"
+                ));
                 return;
             }
         }
@@ -117,8 +121,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
             if (!allowed) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.getWriter().write("Access Denied");
-                return; // Dừng filter chain, không cho đi tiếp
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write(errorResponse(
+                        "Không có quyền truy cập vào tài nguyên này!",
+                        HttpServletResponse.SC_FORBIDDEN,
+                        "Forbidden"
+                ));
+                return;
             }
         }
         filterChain.doFilter(request, response);
@@ -177,18 +187,18 @@ public class JwtFilter extends OncePerRequestFilter {
      * @param message nội dung lỗi
      * @return chuỗi gson
      */
-    private String errorResponse(String message) {
+    private String errorResponse(String message, int status, String error) {
         try {
-            ErrorResponse error = new ErrorResponse();
-            error.setTimestamp(new Date());
-            error.setError("Unauthorized");
-            error.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            error.setMessage(message);
+            ErrorResponse err = new ErrorResponse();
+            err.setTimestamp(new Date());
+            err.setError(error);
+            err.setStatus(status);
+            err.setMessage(message);
 
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            return gson.toJson(error);
+            return gson.toJson(err);
         } catch (Exception e) {
-            return ""; // Return an empty string if serialization fails
+            return "";
         }
     }
 

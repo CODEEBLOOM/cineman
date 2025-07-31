@@ -180,9 +180,15 @@ public class InvoiceServiceImpl implements InvoiceService {
                     .orElseThrow(() -> new DataNotFoundException("Staff not found"));
         }
 
-        if (invoice.getPromotionId() != null) {
+        if (invoice.getPromotionId() != null && invoice.getCustomerId() != null) {
+
+            Optional<InvoiceEntity> existingInvoice = invoiceRepository.findByUserIdAndPromotionId(invoice.getCustomerId(), invoice.getPromotionId());
+            if(existingInvoice.isPresent()) {
+                throw new DataExistingException("Invoice has been applied promotion");
+            }
+
             promotion = promotionRepository.findById(invoice.getPromotionId())
-                    .orElseThrow(() -> new DataNotFoundException("Promotion not found"));
+                    .orElseThrow(() -> new DataNotFoundException("Không tìm thấy khuyến mãi !"));
         }
 
         InvoiceEntity invoiceEntity = invoiceRepository.findById(id)
@@ -191,14 +197,7 @@ public class InvoiceServiceImpl implements InvoiceService {
             throw new DataNotFoundException("Invoice not found");
         }
 
-        // Cập nhật lại promotion //
-        if (promotion != null) {
-            if (promotion.getQuantity() < 1) {
-                throw new DataNotFoundException("Promotion not found");
-            }
-            promotion.setQuantity(promotion.getQuantity() - 1);
-            promotion = promotionRepository.save(promotion);
-        }
+
 
         invoiceEntity.setEmail(invoice.getEmail());
         invoiceEntity.setPhoneNumber(invoice.getPhoneNumber());
@@ -224,19 +223,30 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     @Transactional
     public InvoiceResponse updateTnx(Long id, String tnxRef, Object... args) {
+
+        log.info("updateTnx id: {}, tnxRef: {}, args: {}", id, tnxRef, args.length >0 ? args[0] : null);
         InvoiceEntity invoiceEntity = invoiceRepository.findByIdAndStatusNot(id, InvoiceStatus.CANCELLED)
                 .orElseThrow(() -> new DataNotFoundException("Invoice not found"));
         invoiceEntity.setVnTxnRef(tnxRef);
-        if(args.length > 0) {
+
+        if(args[0] != null && args.length > 0) {
             PromotionEntity promotion = invoiceEntity.getPromotion();
             if (promotion != null) {
-                throw new DataExistingException("Invoice has been applied promotion");
+                throw new DataExistingException("Hóa đơn đã được áp dụng khuyến mãi khác !");
+            }
+
+            // Khuyến mãi đã được áp dụng cho hóa đơn khác của khách hàng này //
+            if(invoiceRepository.findByUserIdAndPromotionId(invoiceEntity.getCustomer().getUserId(), (Long) args[0]).isPresent()) {
+                throw new DataExistingException("Giảm giá đã được sử dụng cho hóa đơn khác !");
             }
 
             promotion = promotionRepository.findById((Long) args[0])
                     .orElseThrow(() -> new DataNotFoundException("Promotion not found"));
             if(promotion.getQuantity() == 0) {
                 throw new DataNotFoundException("Promotion not found");
+            }
+            if(invoiceRepository.findByCustomerAndPromotion(invoiceEntity.getCustomer(), promotion).isPresent()) {
+                throw new DataExistingException("Giảm giá đã được bạn sử dụng cho hóa đơn khác !");
             }
             promotion.setQuantity(promotion.getQuantity() - 1);
             promotion = promotionRepository.save(promotion);

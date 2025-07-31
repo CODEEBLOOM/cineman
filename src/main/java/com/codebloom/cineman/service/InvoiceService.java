@@ -10,6 +10,7 @@ public interface InvoiceService {
     InvoiceResponse findByUserIdAndShowTimeId(Long id, Long showTimeId);
 
     InvoiceResponse create(InvoiceCreateRequest invoice, Long showTimeId);
+
     InvoiceResponse createInvoice(InvoiceCreateRequest invoice);
 
     InvoiceResponse update(Long id, InvoiceUpdateRequest invoice);

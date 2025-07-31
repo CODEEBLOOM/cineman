@@ -10,6 +10,7 @@ import com.codebloom.cineman.exception.ConflictException;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.PromotionEntity;
 import com.codebloom.cineman.model.UserEntity;
+import com.codebloom.cineman.repository.InvoiceRepository;
 import com.codebloom.cineman.repository.PromotionRepository;
 import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.service.PromotionService;
@@ -29,6 +30,7 @@ public class PromotionServiceImpl implements PromotionService {
     private final PromotionRepository promotionRepository;
     private final UserRepository userRepository;
     private final XStr xStr;
+    private final InvoiceRepository invoiceRepository;
 
     /**
      * Tạo một mới một giảm giá

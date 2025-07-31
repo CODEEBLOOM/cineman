@@ -135,7 +135,9 @@ public class AuthenticationController {
 
     @Operation(summary = "Logout", description = "API dùng để logout tài khoản")
     @PostMapping("/logout")
-    public ResponseEntity<Void> changePassword(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<Void> logout(
+            @RequestHeader( required = false, name = "Authorization") String token
+    ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             String email = authentication.getName();

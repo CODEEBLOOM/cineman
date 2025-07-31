@@ -3,6 +3,7 @@ package com.codebloom.cineman.repository;
 import com.codebloom.cineman.common.enums.InvoiceStatus;
 import com.codebloom.cineman.common.enums.ShowTimeStatus;
 import com.codebloom.cineman.model.InvoiceEntity;
+import com.codebloom.cineman.model.PromotionEntity;
 import com.codebloom.cineman.model.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -43,4 +44,19 @@ public interface InvoiceRepository extends JpaRepository<InvoiceEntity, Long> {
                         WHERE i.customer.userId = :id OR i.staff.userId = :id
             """)
     List<InvoiceEntity> findByCustomerOrStaff(Long id);
+
+    Optional<InvoiceEntity> findByCustomerAndPromotion(UserEntity customer, PromotionEntity promotion);
+
+    /**
+     * Mỗi promotion chỉ áp dụng được cho 1 khách hàng trên 1 hóa đơn duy nhất
+     * @param userId id User
+     * @param promotionId id Promotion
+     * @return Optional<InvoiceEntity>
+     */
+    @Query("""
+            SELECT i 
+            FROM InvoiceEntity i
+            WHERE i.customer.userId = :userId AND i.promotion.id = :promotionId
+            """)
+    Optional<InvoiceEntity> findByUserIdAndPromotionId(Long userId, Long promotionId);
 }

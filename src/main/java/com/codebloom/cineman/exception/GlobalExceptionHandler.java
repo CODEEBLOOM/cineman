@@ -9,6 +9,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -329,7 +330,7 @@ public class GlobalExceptionHandler {
      * @param request request
      * @return errorResponse
      */
-    @ExceptionHandler(com.codebloom.cineman.exception.AccessDeniedException.class)
+    @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(UNAUTHORIZED)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "401", description = "UNAUTHORIZED",
@@ -348,7 +349,7 @@ public class GlobalExceptionHandler {
                                             """
                             ))})
     })
-    public ErrorResponse handleAccessDeniedException(com.codebloom.cineman.exception.AccessDeniedException e, WebRequest request) {
+    public ErrorResponse handleAccessDeniedException(BadCredentialsException e, WebRequest request) {
         errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
