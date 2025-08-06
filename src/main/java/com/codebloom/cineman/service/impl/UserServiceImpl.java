@@ -3,6 +3,8 @@ package com.codebloom.cineman.service.impl;
 import com.codebloom.cineman.common.enums.TokenType;
 import com.codebloom.cineman.controller.response.MetaResponse;
 import com.codebloom.cineman.exception.*;
+import com.codebloom.cineman.model.MembershipRankEntity;
+import com.codebloom.cineman.repository.MembershipRankRepository;
 import com.codebloom.cineman.service.JwtService;
 import com.codebloom.cineman.service.RoleService;
 
@@ -44,6 +46,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RoleService roleService;
+    private final MembershipRankRepository membershipRankRepository;
 
 
     /**
@@ -73,7 +76,7 @@ public class UserServiceImpl implements UserService {
             userResponses.add(userResponse);
         });
 
-        // Set các giá trị pageable \\\\\\\\
+        // Set các giá trị pageable
         MetaResponse meta = MetaResponse.builder()
                 .currentPage(list.getNumber())
                 .totalElements((int) list.getTotalElements())
@@ -124,10 +127,7 @@ public class UserServiceImpl implements UserService {
     public long save(UserCreationRequest request) {
         log.info("Saving user {}", request);
         UserEntity user = modelMapper.map(request, UserEntity.class);
-        user.setSavePoint(0);
         user.setStatus(UserStatus.ACTIVE);
-        user.setFacebookId("");
-        user.setGoogleId("");
         checkNewUser(user.getEmail(), user.getPhoneNumber());
         user = userRepository.save(user);
 
@@ -204,6 +204,22 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Override
+    public Double getMoneyFromSavePointOfUser(Integer savePoint, Long userId) {
+        UserEntity userEntity  = userRepository.findByUserIdAndStatus(userId, UserStatus.ACTIVE)
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy khách hàng !"));
+        // Điểm người dùng đang có - số điểm muốn đổi thành tiền //
+        Double money = (userEntity.getSavePoint() - savePoint) * 1.0;
+
+        // Nếu âm --> điểm không đủ
+        if(money < 0){
+            throw new ConflictException("Không đủ điểm tích lũy !");
+        }
+
+        return money;
+    }
+
+
     /**
      * Hàm tạo tài khoản người dùng với vài trò là USER
      * Nghĩa là khách hàng tạo tài khoản
@@ -221,6 +237,10 @@ public class UserServiceImpl implements UserService {
 
         /* Kiem tra neu email da ton tai va email trang thai dang laf pending thi cập nhat thooi*/
         Optional<UserEntity> existingUser = userRepository.findByEmailAndStatus(user.getEmail(), UserStatus.PENDING);
+
+        MembershipRankEntity membershipRank = membershipRankRepository.findByName("Normal")
+                .orElseThrow(() -> new DataNotFoundException("Membership rank not found with name: Normal"));
+
         if (existingUser.isPresent()) {
             userEntity = existingUser.get();
             userEntity.setFullName(user.getFullName());
@@ -229,6 +249,8 @@ public class UserServiceImpl implements UserService {
             userEntity.setAddress(user.getAddress());
             userEntity.setGender(user.getGender());
             userEntity.setPhoneNumber(user.getPhoneNumber());
+            userEntity.setDateOfBirth(user.getDateOfBirth());
+            userEntity.setMembershipRank(membershipRank);
             userRepository.save(userEntity);
         } else {
             checkNewUser(user.getEmail(), user.getPhoneNumber());
@@ -244,12 +266,12 @@ public class UserServiceImpl implements UserService {
                     .dateOfBirth(user.getDateOfBirth())
                     .gender(user.getGender())
                     .savePoint(0)
-                    .facebookId(user.getFacebookId() == null ? "" : user.getFacebookId())
-                    .googleId(user.getGoogleId() == null ? "" : user.getGoogleId())
+                    .facebookId(user.getFacebookId())
+                    .googleId(user.getGoogleId())
                     .status(UserStatus.PENDING)
                     .phoneNumber(user.getPhoneNumber())
                     .address(user.getAddress())
-                    .userType(UserType.USER)
+                    .membershipRank(membershipRank)
                     .build();
             userEntity = userRepository.save(userEntity);
             RoleEntity userRole = roleService.findById(UserType.USER);
@@ -350,6 +372,9 @@ public class UserServiceImpl implements UserService {
             if (optionalUser.isEmpty()) {
                 checkNewUser(userLoginDTO.getEmail(), userLoginDTO.getPhoneNumber());
                 String password = passwordEncoder.encode(userLoginDTO.getPassword());
+                MembershipRankEntity membershipRankEntity = membershipRankRepository.findByName("Normal")
+                        .orElseThrow(() -> new DataNotFoundException("Membership rank not found with name: Normal"));
+
                 UserEntity newUser = UserEntity.builder()
                         .email(userLoginDTO.getEmail())
                         .password(password)
@@ -357,13 +382,13 @@ public class UserServiceImpl implements UserService {
                         .dateOfBirth(userLoginDTO.getDateOfBirth())
                         .gender(userLoginDTO.getGender())
                         .savePoint(0)
-                        .facebookId(userLoginDTO.getFacebookId() == null ? "" : userLoginDTO.getFacebookId())
+                        .facebookId(userLoginDTO.getFacebookId())
                         .googleId(userLoginDTO.getGoogleId())
                         .status(UserStatus.ACTIVE)
                         .phoneNumber(userLoginDTO.getPhoneNumber())
                         .address(userLoginDTO.getAddress())
-                        .userType(UserType.USER)
                         .avatar(userLoginDTO.getAvatar())
+                        .membershipRank(membershipRankEntity)
                         .build();
 
                 // Lưu người dùng mới
@@ -416,8 +441,8 @@ public class UserServiceImpl implements UserService {
                 .dateOfBirth(user.getDateOfBirth())
                 .gender(user.getGender().name())
                 .savePoint(user.getSavePoint())
-                .facebookId(user.getFacebookId() == null ? "" : user.getFacebookId())
-                .googleId(user.getGoogleId() == null ? "" : user.getGoogleId())
+                .facebookId(user.getFacebookId())
+                .googleId(user.getGoogleId())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .avatar(user.getAvatar())
@@ -441,8 +466,8 @@ public class UserServiceImpl implements UserService {
                     throw new DataExistingException("Email already exists at least one user!");
                 });
         userRepository.findByPhoneNumber(phoneNumber)
-                .ifPresent(existingUser -> {
-                    if(!existingUser.getFacebookId().equals("") && !existingUser.getGoogleId().equals("")) {{
+                .forEach(existingUser -> {
+                    if(existingUser.getFacebookId() != null && existingUser.getGoogleId() != null) {{
                         throw new DataExistingException("Phone number already exists at least one user!");
                     }}
                 });

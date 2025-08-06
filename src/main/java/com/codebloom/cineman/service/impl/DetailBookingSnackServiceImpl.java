@@ -43,6 +43,7 @@ public class DetailBookingSnackServiceImpl implements DetailBookingSnackService 
         DetailBookingSnackEntity detail = DetailBookingSnackEntity.builder()
                 .snack(snack)
                 .totalSnack(request.getTotalSnack())
+                .totalMoney(snack.getUnitPrice() * request.getTotalSnack())
                 .invoice(invoice)
                 .build();
 

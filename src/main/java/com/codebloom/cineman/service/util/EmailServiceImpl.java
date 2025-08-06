@@ -1,7 +1,5 @@
 package com.codebloom.cineman.service.util;
 
-import com.codebloom.cineman.common.enums.TokenType;
-import com.codebloom.cineman.service.JwtService;
 import com.sendgrid.Method;
 import com.sendgrid.Request;
 import com.sendgrid.Response;
@@ -17,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
+
+import com.codebloom.cineman.service.JwtService;
 
 @Service
 @RequiredArgsConstructor
@@ -68,7 +68,7 @@ public class EmailServiceImpl implements EmailService {
                 log.info("Email sent failed");
             }
         } catch (IOException e) {
-            log.error("Error occurred while sending email, error: ", e.getMessage());
+            log.error("Error occurred while sending email, error: {}", e.getMessage());
         }
 
     }
@@ -81,17 +81,17 @@ public class EmailServiceImpl implements EmailService {
      */
     @Override
     public void emailVerification(String to, String phoneNumber, String name) throws IOException {
-        log.info("Email verification started with email to: " + to);
+        log.info("Email verification started with email to: {}", to);
 
-        Email fromEmail = new Email(from, "Phòng dịch vụ Cineman");
+        Email fromEmail = new Email(from, "Phòng dịch vụ Poly Cinemas");
         Email toEmail = new Email(to);
 
-        // Tạo token verify có thời hạn 10 phút //
+        /* Tạo token verify OTP có thời gian hết hạn 10 phút */
         String subject = "Xác thực tài khoản";
         String tokenVerify = jwtService.generateTokenToVerify(phoneNumber, to);
         String secretCode = String.format("?secretCode=%s", tokenVerify);
 
-
+        /* Thêm thông tin dynamic vào template */
         Map<String, String> map = new HashMap<>();
         map.put("name", name);
         map.put("verification_link", verificationLink + secretCode);
@@ -114,7 +114,7 @@ public class EmailServiceImpl implements EmailService {
 
         Response response = sendGrid.api(request);
 
-        // ACCEPTED //
+        // 202 - ACCEPTED //
         if (response.getStatusCode() == 202) {
             log.info("Verification sent successfully");
         } else {

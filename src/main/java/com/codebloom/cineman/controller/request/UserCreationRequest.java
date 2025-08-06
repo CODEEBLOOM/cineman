@@ -39,8 +39,8 @@ public class UserCreationRequest {
     private String address;
 
     @NotNull(message = "User's birth day is is not null !")
-    @Temporal(TemporalType.DATE)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @Past(message = "User's birth day must be in the past !")
     private Date dateOfBirth;
 
     @NotNull(message = "User's gender is is not null !")

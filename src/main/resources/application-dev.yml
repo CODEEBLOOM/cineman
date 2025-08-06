@@ -56,13 +56,13 @@ spring:
       hibernate:
         format_sql: false
   sendgrid:
-    api-key: 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
+    api-key: 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
     from-email: admin@em7802.cineman.io.vn
     template-id: d-c59a7109d01d40ca97cd20310ad512f7
     verification-link: http://localhost:8081/api/v01/auth/confirm-email
 jwt:
   expirationDay: 30
-  expirationMinutes: 15
+  expirationMinutes: 1
   expirationVerify: 10
   accessKey: XEV3ZWGVjFHgilOWNuKJxNRSK8wUl5txZH3JabLRtfw=
   refreshKey: LGgDK8nPs6LeCAkBUmTwjCxJo7EUHs0Djs63XCBNpaCbYZTIagsltVFa8p6ltllN

@@ -60,13 +60,14 @@ public class InvoiceController {
     public ResponseEntity<ApiResponse> updateTnxInvoice(
             @PathVariable @Min(value = 1, message = "Id's invoice is must be greater than 0 !") Long id,
             @RequestParam("txnRef") @NotNull(message = "VN_TxnRef is required") @NotBlank(message = "VN_TxnRef is not blank") String txnRef,
-            @RequestParam( required = false, name = "promotionId") Long promotionId
+            @RequestParam( required = false, name = "promotionId") Long promotionId,
+            @RequestParam("totalMoney") Double totalMoney
             ) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
                         .message("success")
-                        .data(invoiceService.updateTnx(id, txnRef, promotionId))
+                        .data(invoiceService.updateTnx(id, txnRef, promotionId, totalMoney))
                         .build()
         );
     }

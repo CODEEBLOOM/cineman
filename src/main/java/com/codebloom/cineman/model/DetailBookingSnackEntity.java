@@ -26,6 +26,9 @@ public class DetailBookingSnackEntity implements Serializable {
     @Column(name = "total_snack")
     private Integer totalSnack;
 
+    @Column(name = "total_price")
+    private Double totalMoney;
+
     @ManyToOne
     @JoinColumn(name = "invoice_id", nullable = false)
     private InvoiceEntity invoice;

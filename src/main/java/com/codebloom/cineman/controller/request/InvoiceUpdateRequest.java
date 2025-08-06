@@ -22,13 +22,16 @@ public class InvoiceUpdateRequest {
     @Builder.Default
     private PaymentMethod paymentMethod = PaymentMethod.BANK_TRANSFER;
 
+    @NotNull(message = "Total amount is must not null !")
+    @Min(value = 0, message = "Total amount is must be greater than 0")
+    private Double totalAmount;
+
     @Min(value = 1, message = "Total ticket is must be greater than 0")
     @NotNull(message = "Total ticket is must not null !")
     private Integer totalTicket;
 
     @Builder.Default
     private InvoiceStatus invoiceStatus = InvoiceStatus.PENDING;
-
     private Long customerId;
     private Long staffId;
     private Long promotionId;

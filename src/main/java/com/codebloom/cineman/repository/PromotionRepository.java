@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PromotionRepository extends JpaRepository<PromotionEntity,Long> {
+public interface PromotionRepository extends JpaRepository<PromotionEntity, Long> {
 
     Optional<PromotionEntity> findByCodeAndStatus(String code, StatusPromotion statusPromotion);
 

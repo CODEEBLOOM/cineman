@@ -26,6 +26,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -42,6 +43,7 @@ import static org.springframework.http.HttpStatus.*;
 @Slf4j(topic = "AUTHENTICATION-CONTROLLER")
 @RequiredArgsConstructor
 @Tag(name = "Authentication Controller")
+@Validated
 public class AuthenticationController {
 
     private final AuthService authService;
@@ -84,7 +86,7 @@ public class AuthenticationController {
 
     @Operation(summary = "Register User", description = "Register account with role user")
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse> registerUser(@RequestBody UserRegisterRequest req) {
+    public ResponseEntity<ApiResponse> registerUser(@RequestBody @Valid UserRegisterRequest req) {
         log.info("Register account with role user");
         return ResponseEntity.status(CREATED).body(
                 ApiResponse.builder()

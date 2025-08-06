@@ -19,6 +19,9 @@ public class FlywayConfiguration {
     @Value("${spring.datasource.url}")
     private String datasourceUrl;
 
+    @Value("${spring.datasource.driver-class-name}")
+    private String datasourceDriverClassName;
+
     @Value("${spring.datasource.username}")
     private String datasourceUsername;
 
@@ -44,6 +47,7 @@ public class FlywayConfiguration {
         dataSource.setUrl(datasourceUrl);
         dataSource.setUsername(datasourceUsername);
         dataSource.setPassword(datasourcePassword);
+        dataSource.setDriverClassName(datasourceDriverClassName);
         return dataSource;
     }
 

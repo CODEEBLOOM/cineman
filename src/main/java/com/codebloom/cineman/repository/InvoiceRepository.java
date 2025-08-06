@@ -29,7 +29,13 @@ public interface InvoiceRepository extends JpaRepository<InvoiceEntity, Long> {
 
     Optional<InvoiceEntity> findByVnTxnRefAndStatus(String vnTxnRef, InvoiceStatus invoiceStatus);
 
+    Optional<InvoiceEntity> findByVnTxnRef(String vnTxnRef);
+
     Optional<InvoiceEntity> findByQrCode(String qrCode);
+
+    List<InvoiceEntity> findByCustomer(UserEntity customer);
+
+    List<InvoiceEntity> findByStaff(UserEntity staff);
 
     @Query("""
             SELECT i FROM InvoiceEntity i INNER JOIN TicketEntity t ON t.invoice.id = i.id

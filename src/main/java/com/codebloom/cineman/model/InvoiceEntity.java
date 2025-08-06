@@ -46,6 +46,9 @@ public class InvoiceEntity implements Serializable {
     @Column(name = "payment_method", columnDefinition = "TINYINT")
     private PaymentMethod paymentMethod;
 
+    @Column(name = "total_amount", columnDefinition = "DECIMAL(10,2)")
+    private Double totalAmount;
+
     @Column(name = "vn_txn_ref")
     private String vnTxnRef;
 
@@ -81,5 +84,9 @@ public class InvoiceEntity implements Serializable {
     @OneToMany(mappedBy = "invoice" )
     @JsonIgnore
     private List<TicketEntity> tickets;
+
+    @OneToMany(mappedBy = "invoice")
+    @JsonIgnore
+    private List<UserPointHistoryEntity> userPointHistories;
 }
 

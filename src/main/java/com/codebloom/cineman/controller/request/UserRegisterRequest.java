@@ -4,10 +4,7 @@ import com.codebloom.cineman.common.enums.GenderUser;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,8 +37,8 @@ public class UserRegisterRequest {
     private String confirmPassword;
 
     @NotNull(message = "User's birth day is is not null !")
-    @Temporal(TemporalType.DATE)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @Past(message = "User's birth day must be in the past !")
     private Date dateOfBirth;
 
     @NotNull(message = "Gender's user is is not null !")
@@ -49,13 +46,10 @@ public class UserRegisterRequest {
 
     @NotBlank(message = "PhoneNumber is not blank !")
     @NotNull(message = "PhoneNumber is not null")
+    @Pattern(regexp = "^0[0-9]{9,10}$", message = "User's phone number invalid !")
     private String phoneNumber;
-
     private String address;
-
-    @Builder.Default
-    private String facebookId = "";
-    @Builder.Default
-    private String googleId = "";
+    private String facebookId;
+    private String googleId;
 
 }

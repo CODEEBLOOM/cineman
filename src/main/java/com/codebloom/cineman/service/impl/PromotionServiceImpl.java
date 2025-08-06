@@ -1,5 +1,6 @@
 package com.codebloom.cineman.service.impl;
 
+import com.codebloom.cineman.common.enums.InvoiceStatus;
 import com.codebloom.cineman.common.enums.StatusPromotion;
 import com.codebloom.cineman.common.enums.UserStatus;
 import com.codebloom.cineman.common.utils.XStr;
@@ -8,6 +9,7 @@ import com.codebloom.cineman.controller.response.ApplyPromotionResponse;
 import com.codebloom.cineman.controller.response.PromotionResponse;
 import com.codebloom.cineman.exception.ConflictException;
 import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.model.InvoiceEntity;
 import com.codebloom.cineman.model.PromotionEntity;
 import com.codebloom.cineman.model.UserEntity;
 import com.codebloom.cineman.repository.InvoiceRepository;
@@ -29,8 +31,8 @@ public class PromotionServiceImpl implements PromotionService {
 
     private final PromotionRepository promotionRepository;
     private final UserRepository userRepository;
-    private final XStr xStr;
     private final InvoiceRepository invoiceRepository;
+    private final XStr xStr;
 
     /**
      * Tạo một mới một giảm giá
@@ -42,7 +44,7 @@ public class PromotionServiceImpl implements PromotionService {
     public PromotionResponse create(PromotionRequest request) {
 
         UserEntity staff = userRepository.findByUserIdAndStatus(request.getStaffId(), UserStatus.ACTIVE)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên có id: " + request.getStaffId()));
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy nhân viên có id: " + request.getStaffId()));
 
         if(request.getStartDate().isAfter(request.getEndDate())) {
             throw new ConflictException("Ngày bắt đầu chương trình giảm giá phải trước ngày kết thúc !");
@@ -68,7 +70,7 @@ public class PromotionServiceImpl implements PromotionService {
     @Transactional
     public PromotionResponse update(Long id, PromotionRequest request) {
         PromotionEntity promotionEntity = promotionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy giảm giá có id: " + id));
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giảm giá có id: " + id));
         if(promotionEntity.getStatus() == StatusPromotion.ACTIVE) {
             throw new ConflictException("Không thể cập nhật thông tin của giảm giá đã hoạt động !");
         }
@@ -157,9 +159,12 @@ public class PromotionServiceImpl implements PromotionService {
      */
     @Override
     public ApplyPromotionResponse applyPromotion(String code, Double amount) {
+        log.info("Apply promotion code: {} amount: {}", code, amount);
+        long userId = 40;
+        UserEntity user = userRepository.findById(userId).orElseThrow(() -> new DataNotFoundException("Không tìm thấy người dùng"));
         PromotionEntity promotionEntity = promotionRepository.findByCodeAndStatus(code, StatusPromotion.ACTIVE)
                 .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giảm giá với code: " + code));
-
+        log.info("find promotion: {}", promotionEntity.toString());
         // Check ngày //
         LocalDateTime now = LocalDateTime.now();
         if(promotionEntity.getStartDay().isAfter(now)) {
@@ -207,6 +212,26 @@ public class PromotionServiceImpl implements PromotionService {
                 .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giảm giá có id: " + id));
         promotionEntity.setQuantity(promotionEntity.getQuantity() + 1);
         promotionRepository.save(promotionEntity);
+    }
+
+    /**
+     * Hàm hủy sử dụng giảm giá
+     * @param vnp_TxnRef vnp_TxnRef cua hóa đơn
+     * @return Số lượng giảm giá mới của giảm giá
+     */
+    @Override
+    public Integer returnQuantityPromotion(String vnp_TxnRef) {
+        InvoiceEntity invoiceEntity = invoiceRepository.findByVnTxnRef(vnp_TxnRef)
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy hóa đơn với vnp_TxnRef: " + vnp_TxnRef));
+
+        if(invoiceEntity.getStatus() == InvoiceStatus.PAID || invoiceEntity.getStatus() == InvoiceStatus.CANCELLED) {
+            throw new ConflictException("Hóa đơn đã hủy hoặc đã thanh toán !");
+        }
+        PromotionEntity promotionEntity = promotionRepository.findById(invoiceEntity.getPromotion().getId())
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giảm giá có id: " + invoiceEntity.getPromotion().getId()));
+        promotionEntity.setQuantity(promotionEntity.getQuantity() + 1);
+        promotionRepository.save(promotionEntity);
+        return promotionEntity.getQuantity();
     }
 
 

@@ -29,4 +29,6 @@ public interface PromotionService {
     PromotionEntity validateToApplyPromotion(Long id);
 
     void cancelPromotion(@NotNull(message = "Id giảm giá không được phép null !") Long id);
+
+    Integer returnQuantityPromotion(String vnp_TxnRef);
 }

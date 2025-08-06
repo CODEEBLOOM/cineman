@@ -20,6 +20,7 @@ public interface UserService {
     UserResponse update(UserUpdateRequest user);
     void changePassword(ChangePasswordRequest changePasswordRequest);
     void delete(Long userId);
+    Double getMoneyFromSavePointOfUser(Integer savePoint, Long userId);
     
     // Auth //
     long register(UserRegisterRequest user);

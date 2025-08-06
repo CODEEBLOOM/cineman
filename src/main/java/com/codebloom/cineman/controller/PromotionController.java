@@ -53,4 +53,18 @@ public class PromotionController {
         );
     }
 
+    @Operation(summary = "Revert quantity promotion", description = "Api dùng để cộng lại số lượng một mã giảm giá vì thanh toán thất bại.")
+    @PutMapping("/revert-quantity/invoice/{vnp_TxnRef}")
+    public ResponseEntity<ApiResponse> revertQuantityPromotion(
+            @PathVariable @NotNull( message = "vnp_TxnRef không được phép null !") String vnp_TxnRef
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("success")
+                        .data(promotionService.returnQuantityPromotion(vnp_TxnRef))
+                        .build()
+        );
+    }
+
 }

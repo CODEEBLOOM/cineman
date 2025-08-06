@@ -20,12 +20,12 @@ public class InvoiceCreateRequest {
     @Pattern(regexp = "^(|0[0-9]{9,10}+)$", message = "Phone number is incorrect format !")
     private String phoneNumber;
     private PaymentMethod paymentMethod;
+
     private Long customerId;
     private Long staffId;
 
 
     private InvoiceStatus invoiceStatus = InvoiceStatus.PENDING;
-
     @Min(value = 1, message = "Id's movie is must be greater than 0")
     private Integer totalTicket ;
 
