@@ -233,7 +233,8 @@ public class MovieServiceImpl implements MovieService {
      * @param page Page<MovieEntity>
      * @return MoviePageableResponse
      */
-    private MoviePageableResponse movieToMoviePageableResponse(Page<MovieEntity> page) {
+    @Override
+    public MoviePageableResponse movieToMoviePageableResponse(Page<MovieEntity> page) {
         List<MovieResponse> movieResponses = new ArrayList<>();
         page.getContent().forEach(movieEntity -> movieResponses.add(movieToMovieResponse(movieEntity)));
         MetaResponse metaResponse = MetaResponse.builder()

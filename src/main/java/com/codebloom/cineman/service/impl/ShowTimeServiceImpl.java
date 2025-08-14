@@ -4,6 +4,7 @@ import com.codebloom.cineman.common.constant.MovieStatus;
 import com.codebloom.cineman.common.constant.MovieTheaterOfficeHours;
 import com.codebloom.cineman.common.enums.CinemaTheaterStatus;
 import com.codebloom.cineman.common.enums.ShowTimeStatus;
+import com.codebloom.cineman.controller.request.MoviePageQueryRequest;
 import com.codebloom.cineman.controller.request.ShowTimeRequest;
 import com.codebloom.cineman.controller.response.MovieResponse;
 import com.codebloom.cineman.controller.response.ShowTimeDetailResponse;
@@ -14,10 +15,14 @@ import com.codebloom.cineman.repository.CinemaTheatersRepository;
 import com.codebloom.cineman.repository.MovieRepository;
 import com.codebloom.cineman.repository.ShowTimeRepository;
 import com.codebloom.cineman.service.MovieService;
+import com.codebloom.cineman.service.MovieStatusService;
 import com.codebloom.cineman.service.ShowTimeService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +39,7 @@ public class ShowTimeServiceImpl implements ShowTimeService {
     private final CinemaTheatersRepository cinemaTheaterRepository;
     private final MovieRepository movieRepository;
     private final MovieService movieService;
+    private final MovieStatusService movieStatusService;
 
     /**
      * Tạo một lịch chiếu phim
@@ -249,6 +255,34 @@ public class ShowTimeServiceImpl implements ShowTimeService {
 //                .build();
 //        return null;
         return null;
+    }
+
+    /**
+     * Lấy tất cả ngày chiếu của rạp chiếu có id
+     * @param cinemaTheaterId id rạp chiếu
+     * @return list ngày chiếu
+     */
+    @Override
+    public List<Date> findAllShowDateByCinemaTheaterIdInFeatured(Integer cinemaTheaterId) {
+        List<Date> showDates = showTimeRepository
+                .findAllShowDateByCinemaTheaterIdAndStatusInFeatured(cinemaTheaterId, ShowTimeStatus.VALID, Sort.by(Sort.Direction.ASC, "showDate"));
+        return showDates.isEmpty() ? null : showDates;
+    }
+
+    /**
+     * Lấy tất cả
+     * @param cinemaTheaterId
+     * @param showDate
+     * @return
+     */
+    @Override
+    public List<MovieResponse> findAllMovieByCinemaTheaterIdAndShowDate(Integer cinemaTheaterId, Date showDate, MoviePageQueryRequest request) {
+
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
+        MovieStatusEntity movieStatus = movieStatusService.findById(MovieStatus.MOVIE_STATUS_SC);
+
+        Page<MovieEntity> page = movieRepository.findAllMovieByCinemaTheaterIdAndShowDate(cinemaTheaterId,ShowTimeStatus.VALID, showDate, pageable);
+        return movieService.movieToMoviePageableResponse(page).getMovies();
     }
 
 

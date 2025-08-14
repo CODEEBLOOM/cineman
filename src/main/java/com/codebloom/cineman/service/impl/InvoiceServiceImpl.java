@@ -3,11 +3,13 @@ package com.codebloom.cineman.service.impl;
 import com.codebloom.cineman.common.enums.PaymentMethod;
 import com.codebloom.cineman.common.enums.TicketStatus;
 import com.codebloom.cineman.common.utils.XStr;
+import com.codebloom.cineman.controller.util.NumberFormatter;
 import com.codebloom.cineman.exception.ConflictException;
 import com.codebloom.cineman.exception.DataExistingException;
 import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.PromotionRepository;
 import com.codebloom.cineman.repository.TicketRepository;
+import com.codebloom.cineman.service.UserPointHistoryService;
 import com.codebloom.cineman.service.mail.MailService;
 import com.google.zxing.WriterException;
 import jakarta.transaction.Transactional;
@@ -40,41 +42,44 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final XStr xStr;
     private final PromotionRepository promotionRepository;
     private final MailService mailService;
+    private final NumberFormatter numberFormatter;
+    private final UserPointHistoryService userPointHistoryService;
 
 
     /**
      * Tìm kiểm hóa đơn theo userId, showTimeId, trang thái
-     * @param id userId
+     *
+     * @param id         userId
      * @param showTimeId showTimeId
      * @return InvoiceResponse
      */
     @Override
     public InvoiceResponse findByUserIdAndShowTimeId(Long id, Long showTimeId) {
 
-       List<InvoiceEntity> invoiceEntity = invoiceRepository.findByCustomerOrStaff(id);
+        List<InvoiceEntity> invoiceEntity = invoiceRepository.findByCustomerOrStaff(id);
 
         // Lưu thông tin hóa đơn tìm thấy //
         InvoiceEntity existInvoice = null;
 
         // Duyệt qua tất cả các hóa đơn tìm thấy //
-        for(InvoiceEntity invoice : invoiceEntity) {
+        for (InvoiceEntity invoice : invoiceEntity) {
 
             // Nếu chưa thanh toán và không phải là Hủy //
-            if(invoice.getStatus() != InvoiceStatus.PAID && invoice.getStatus() != InvoiceStatus.CANCELLED) {
+            if (invoice.getStatus() != InvoiceStatus.PAID && invoice.getStatus() != InvoiceStatus.CANCELLED) {
 
                 // Nếu tìm thấy hóa đơn rồi thì xóa các hóa đơn còn lại chưa thanh toán đi //
-                if(existInvoice != null && invoice.getTickets().isEmpty()) {
+                if (existInvoice != null && invoice.getTickets().isEmpty()) {
                     invoiceRepository.delete(invoice);
                     continue;
                 }
 
                 // Nếu hóa đơn đã có vé //
-                if(!invoice.getTickets().isEmpty()) {
+                if (!invoice.getTickets().isEmpty()) {
 
                     // Kiểm tra showTime có trùng hay không //
-                    if(!invoice.getTickets().get(0).getShowTime().getId().equals(showTimeId)) {
+                    if (!invoice.getTickets().get(0).getShowTime().getId().equals(showTimeId)) {
                         continue;
-                    }else{
+                    } else {
                         existInvoice = invoice;
                         continue;
                     }
@@ -83,9 +88,9 @@ public class InvoiceServiceImpl implements InvoiceService {
                 existInvoice = invoice;
             }
         }
-        if(existInvoice == null) {
+        if (existInvoice == null) {
             return null;
-        }else{
+        } else {
             return toInvoiceResponse(existInvoice);
         }
     }
@@ -152,11 +157,11 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         UserEntity customer = null;
         UserEntity staff = null;
-        if(invoice.getCustomerId() != null) {
+        if (invoice.getCustomerId() != null) {
             customer = userRepository.findById(invoice.getCustomerId())
                     .orElseThrow(() -> new DataNotFoundException("Customer not found"));
         }
-        if(invoice.getStaffId() != null) {
+        if (invoice.getStaffId() != null) {
             staff = userRepository.findById(invoice.getStaffId())
                     .orElseThrow(() -> new DataNotFoundException("Staff not found"));
         }
@@ -219,17 +224,15 @@ public class InvoiceServiceImpl implements InvoiceService {
             throw new DataNotFoundException("Invoice not found");
         }
 
-        if(promotion != null) {
+        if (promotion != null) {
             int quantity = promotion.getQuantity();
             if (quantity == 0) {
                 throw new DataNotFoundException("Khuyến mái hóa đã đươc sử dụng hết !");
-            }else {
+            } else {
                 promotion.setQuantity(promotion.getQuantity() - 1);
             }
             promotionRepository.save(promotion);
         }
-
-
 
         invoiceEntity.setEmail(invoice.getEmail());
         invoiceEntity.setPhoneNumber(invoice.getPhoneNumber());
@@ -243,11 +246,26 @@ public class InvoiceServiceImpl implements InvoiceService {
         invoiceEntity.setUpdatedAt(new Date());
         invoiceRepository.save(invoiceEntity);
 
-        if(invoice.getInvoiceStatus() == InvoiceStatus.PAID) {
+        if (invoice.getInvoiceStatus() == InvoiceStatus.PAID) {
+            //  cập nhật trạng thái của vé đã thanh toán tại quầy
             invoiceEntity.getTickets().forEach(ticket -> {
                 ticket.setStatus(TicketStatus.SOLD);
                 ticketRepository.save(ticket);
             });
+
+            // Tích điểm cho khách hàng nếu có customerId //
+            if (invoice.getCustomerId() != null) {
+                userPointHistoryService.earnPoints(invoiceEntity);
+            }
+
+            // Thêm QR code cho hóa đơn
+            String qrCode = xStr.getKey();
+            invoiceEntity.setQrCode(qrCode);
+            invoiceEntity = invoiceRepository.save(invoiceEntity);
+
+            // Gửi mail invoice cho khách hàng
+            sendMailInvoice(invoiceEntity, invoiceEntity.getQrCode());
+
         }
 
         return toInvoiceResponse(invoiceEntity);
@@ -264,7 +282,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Transactional
     public InvoiceResponse updateTnx(Long id, String tnxRef, Object... args) {
 
-        log.info("updateTnx id: {}, tnxRef: {}, promotionId: {} totalAmount: {}", id, tnxRef, args.length >0 ? args[0] : null, args.length > 1 ? args[1] : null);
+        log.info("updateTnx id: {}, tnxRef: {}, promotionId: {} totalAmount: {}", id, tnxRef, args.length > 0 ? args[0] : null, args.length > 1 ? args[1] : null);
         InvoiceEntity invoiceEntity = invoiceRepository.findByIdAndStatusNot(id, InvoiceStatus.CANCELLED)
                 .orElseThrow(() -> new DataNotFoundException("Invoice not found"));
         invoiceEntity.setVnTxnRef(tnxRef);
@@ -272,23 +290,23 @@ public class InvoiceServiceImpl implements InvoiceService {
 
 
         // Nếu có áp dụng khuyến mái cho hóa đơn này //
-        if(args[0] != null && args.length > 0) {
+        if (args[0] != null) {
             PromotionEntity promotion = invoiceEntity.getPromotion();
             if (promotion != null) {
                 throw new DataExistingException("Hóa đơn đã được áp dụng khuyến mãi khác !");
             }
 
             // Khuyến mãi đã được áp dụng cho hóa đơn khác của khách hàng này //
-            if(invoiceRepository.findByUserIdAndPromotionId(invoiceEntity.getCustomer().getUserId(), (Long) args[0]).isPresent()) {
+            if (invoiceRepository.findByUserIdAndPromotionId(invoiceEntity.getCustomer().getUserId(), (Long) args[0]).isPresent()) {
                 throw new DataExistingException("Giảm giá đã được sử dụng cho hóa đơn khác !");
             }
 
             promotion = promotionRepository.findById((Long) args[0])
                     .orElseThrow(() -> new DataNotFoundException("Promotion not found"));
-            if(promotion.getQuantity() == 0) {
+            if (promotion.getQuantity() == 0) {
                 throw new DataNotFoundException("Promotion not found");
             }
-            if(invoiceRepository.findByCustomerAndPromotion(invoiceEntity.getCustomer(), promotion).isPresent()) {
+            if (invoiceRepository.findByCustomerAndPromotion(invoiceEntity.getCustomer(), promotion).isPresent()) {
                 throw new DataExistingException("Giảm giá đã được bạn sử dụng cho hóa đơn khác !");
             }
             promotion.setQuantity(promotion.getQuantity() - 1);
@@ -323,7 +341,17 @@ public class InvoiceServiceImpl implements InvoiceService {
             ticketRepository.save(ticket);
         });
 
+        // Tích điểm hóa đơn cho khách hàng //
+        userPointHistoryService.earnPoints(invoiceEntity);
+
         // Gửi mail invoice cho khách hàng //
+        sendMailInvoice(invoiceEntity, qrCode);
+
+
+        return invoiceResponse;
+    }
+
+    private void sendMailInvoice(InvoiceEntity invoiceEntity, String qrCode) {
         // Thông tin cần có hóa đơn //
         String titleMovie = invoiceEntity.getTickets().get(0).getShowTime().getMovie().getTitle();
         String titleMovieTheater = invoiceEntity.getTickets().get(0).getShowTime().getCinemaTheater().getMovieTheater().getName();
@@ -346,9 +374,21 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         String totalPromotion = invoiceEntity.getPromotion() != null ? String.valueOf((invoiceEntity.getPromotion().getDiscount() * totalMoneyTicket)) : "0";
 
-        Double totalMoney = totalMoneyTicket + (Double)generateInfoSnacks(invoiceEntity)[1] - Double.parseDouble(totalPromotion);
+        Double totalMoney = invoiceEntity.getTotalAmount();
 
-        // TODO: Thông tin khuyến mãi //
+        double moneyChangeFromPoint = invoiceEntity.getUserPointHistories()
+                .stream()
+                .filter(userPointHistory -> userPointHistory.getChangePoint() < 0)
+                .mapToDouble(UserPointHistoryEntity::getChangePoint)
+                .sum();
+        moneyChangeFromPoint = Math.abs(moneyChangeFromPoint);
+
+        int savePointChange = invoiceEntity.getUserPointHistories()
+                .stream()
+                .filter(userPointHistory -> userPointHistory.getChangePoint() > 0)
+                .mapToInt(UserPointHistoryEntity::getChangePoint)
+                .sum();
+
         String body = String.format("""
                 <html>
                   <body style="font-family: sans-serif; background: #f7f7f7; padding: 20px">
@@ -369,8 +409,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                           height="150"
                         />
                         <p style="color: #f4499f; font-style: italic">
-                          Mã QR Code này dùng để quét và nhận vé của bạn tại rạp chiếu Cineman
-                          Cinemas
+                          Mã QR Code này dùng để quét và nhận vé của bạn tại rạp chiếu Poly Cinemas
                         </p>
                       </div>
                 
@@ -408,20 +447,24 @@ public class InvoiceServiceImpl implements InvoiceService {
                       <h3 style="color: #2e4ca6">Thông tin khuyến mãi</h3>
                       <table width="100%%" cellspacing="0" cellpadding="5">
                         <tr>
-                          <td>Giảm giá:</td>
+                          <td>Giảm giá voucher:</td>
+                          <td align="right">%s đ</td>
+                        </tr>
+                         <tr>
+                          <td>Đổi điểm tích lũy:</td>
                           <td align="right">%s đ</td>
                         </tr>
                         <tr>
-                          <td>Điểm cineman:</td>
-                          <td align="right">10.000</td>
+                          <td>Điểm tích lũy cho khách hàng:</td>
+                          <td align="right">%s đ</td>
                         </tr>
                       </table>
                       <hr />
-                      <h3 style="text-align: right">Tổng cộng: %.2f đ</h3>
+                      <h3 style="text-align: right">Tổng tiền phải trả: %s</h3>
                     </div>
                   </body>
                 </html>
-                """, qrCode, titleMovie, titleMovieTheater, titleCinema, dateShow, seats, generateInfoSnacks(invoiceEntity)[0], totalPromotion, totalMoney);
+                """, qrCode, titleMovie, titleMovieTheater, titleCinema, dateShow, seats, generateInfoSnacks(invoiceEntity)[0], totalPromotion, NumberFormatter.format(moneyChangeFromPoint), savePointChange, NumberFormatter.format(totalMoney));
 
         try {
             mailService.sendInvoiceWithQRCode(
@@ -433,17 +476,15 @@ public class InvoiceServiceImpl implements InvoiceService {
         } catch (WriterException | IOException e) {
             log.error("Error message: {}", e.getMessage());
         }
-
-        return invoiceResponse;
     }
 
-    private Object[] generateInfoSnacks( InvoiceEntity invoiceEntity) {
+    private Object[] generateInfoSnacks(InvoiceEntity invoiceEntity) {
         // Thông tin combo //
         List<DetailBookingSnackEntity> detailBookingSnacks = invoiceEntity.getDetailBookingSnacks();
         double totalMoneySnack = 0.0;
 
         // Nếu không có mua thêm combo thi return "" //
-        if(detailBookingSnacks.isEmpty()) {
+        if (detailBookingSnacks.isEmpty()) {
             return new Object[]{"", 0.0};
         }
 
@@ -471,7 +512,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     /**
      * Áp dụng khuyến mãi cho hóa đơn
-     * @param id id hóa đơn
+     *
+     * @param id          id hóa đơn
      * @param promotionId id khuyến mãi
      * @return InvoiceResponse
      */
@@ -482,10 +524,10 @@ public class InvoiceServiceImpl implements InvoiceService {
         PromotionEntity promotion = promotionRepository.findById(promotionId)
                 .orElseThrow(() -> new DataNotFoundException("Promotion not found"));
 
-        if(invoice.getStatus() == InvoiceStatus.PAID || invoice.getStatus() == InvoiceStatus.CANCELLED) {
+        if (invoice.getStatus() == InvoiceStatus.PAID || invoice.getStatus() == InvoiceStatus.CANCELLED) {
             throw new ConflictException("Invoice has been paid or cancelled");
         }
-        if(invoice.getPromotion() != null) {
+        if (invoice.getPromotion() != null) {
             throw new DataExistingException("Invoice has been applied promotion");
         }
 
@@ -496,6 +538,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     /**
      * Tính tổng tiền của hóa đơn
+     *
      * @param invoiceId id hóa đơn
      * @return Double
      */
@@ -548,7 +591,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .customerId(invoice.getCustomer() != null ? invoice.getCustomer().getUserId() : null)
                 .staffId(invoice.getStaff() != null ? invoice.getStaff().getUserId() : null)
                 .status(invoice.getStatus())
-                .totalMoney(totalMoneyOfTickets == 0 ? 0 : invoice.getTotalAmount())
+                .totalMoney(totalMoneyOfTickets == 0 ? 0 : invoice.getTotalAmount() == null ? 0 : invoice.getTotalAmount())
                 .totalMoneyTicket(totalMoneyOfTickets)
                 .promotionId(invoice.getPromotion() != null ? invoice.getPromotion().getId() : null)
                 .createdAt(invoice.getCreatedAt())

@@ -6,6 +6,7 @@ import com.codebloom.cineman.model.CinemaTheaterEntity;
 import com.codebloom.cineman.model.MovieEntity;
 import com.codebloom.cineman.model.SeatEntity;
 import com.codebloom.cineman.model.ShowTimeEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -97,6 +98,13 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> 
     List<SeatEntity> findAllSeatByShowTimeId(@Param("showTimeId")Long showTimeId, @Param("showTimeStatus") ShowTimeStatus showTimeStatus);
 
 
-
+    @Query("""
+            SELECT distinct st.showDate
+            FROM ShowTimeEntity st  
+            WHERE st.cinemaTheater.cinemaTheaterId = :cinemaTheaterId 
+                        AND st.status = :showTimeStatus
+                        AND st.showDate >= CURRENT_DATE
+            """)
+    List<Date> findAllShowDateByCinemaTheaterIdAndStatusInFeatured(Integer cinemaTheaterId, ShowTimeStatus showTimeStatus, Sort sort);
 
 }

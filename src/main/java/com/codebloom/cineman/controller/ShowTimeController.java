@@ -1,5 +1,6 @@
 package com.codebloom.cineman.controller;
 
+import com.codebloom.cineman.controller.request.MoviePageQueryRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
 import com.codebloom.cineman.service.ShowTimeService;
 
@@ -91,6 +92,35 @@ public class ShowTimeController {
                         .status(HttpStatus.OK.value())
                         .message("Success")
                         .data(showTimeService.findSeatMapByShowTimeIdAndCinemaTheaterId(id, cinemaTheaterId))
+                        .build()
+        );
+    }
+
+    @GetMapping("/cinema-theater/{cinemaTheaterId}/show-date/{showDate}")
+    @Operation(summary = "Find all movie by show date", description = "API dùng để lấy tất cả bộ phim theo rạp và lịch chiếu ")
+    public ResponseEntity<ApiResponse> findAllMovieByShowTimeIdAndCinemaTheaterId(
+            @PathVariable @Min(value = 1, message = "Id của phòng chiếu không được phép null !") Integer cinemaTheaterId,
+            @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") Date showDate,
+            MoviePageQueryRequest req) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Success")
+                        .data(showTimeService.findAllMovieByCinemaTheaterIdAndShowDate(cinemaTheaterId, showDate, req))
+                        .build()
+        );
+    }
+
+    @GetMapping("/cinema-theater/{cinemaTheaterId}")
+    @Operation(summary = "Find all movie by show date", description = "API dùng để lấy tất cả bộ phim theo rạp và lịch chiếu ")
+    public ResponseEntity<ApiResponse> findAllShowDateByCinemaTheaterIdInFeatured(
+            @PathVariable @Min(value = 1, message = "Id của phòng chiếu không được phép null !") Integer cinemaTheaterId
+            ) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Success")
+                        .data(showTimeService.findAllShowDateByCinemaTheaterIdInFeatured(cinemaTheaterId))
                         .build()
         );
     }

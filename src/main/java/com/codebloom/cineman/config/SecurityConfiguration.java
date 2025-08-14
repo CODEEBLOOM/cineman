@@ -71,6 +71,8 @@ public class SecurityConfiguration {
                                 String.format("%s/auth/social-login", apiPath),
                                 String.format("%s/auth/social/callback", apiPath),
                                 String.format("%s/admin/province/all", apiPath),
+                                String.format("%s/show-times/cinema-theater/*", apiPath),
+                                String.format("%s/show-times/cinema-theater/*/show-date/*", apiPath),
 
                                 // Swagger
                                 String.format("%s/api-docs", apiPath),

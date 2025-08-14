@@ -5,6 +5,7 @@ import com.codebloom.cineman.controller.request.*;
 import com.codebloom.cineman.controller.response.MoviePageableResponse;
 import com.codebloom.cineman.controller.response.MovieResponse;
 import com.codebloom.cineman.model.MovieEntity;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -19,6 +20,7 @@ public interface MovieService  {
     MovieEntity save(MovieCreationRequest movie);
     MovieResponse update(MovieUpdateRequest movie);
     void delete(Integer id );
+    MoviePageableResponse movieToMoviePageableResponse(Page<MovieEntity> page);
 
 
 }
