@@ -6,8 +6,8 @@ spring:
     add-properties: true
   servlet:
     multipart:
-      max-file-size: 10MB     # Giới hạn cho 1 file
-      max-request-size: 20MB  # Tổng dung lượng toàn request
+      max-file-size: 50MB     # Giới hạn cho 1 file
+      max-request-size: 50MB  # Tổng dung lượng toàn request
 # JavaMailSender
   mail:
     host: smtp.gmail.com
@@ -67,7 +67,9 @@ jwt:
   accessKey: XEV3ZWGVjFHgilOWNuKJxNRSK8wUl5txZH3JabLRtfw=
   refreshKey: LGgDK8nPs6LeCAkBUmTwjCxJo7EUHs0Djs63XCBNpaCbYZTIagsltVFa8p6ltllN
   verifyKey: blIDNZ3afjxIxnJ6Rj/EtbD3p4znONpL6Y//xEQoaQ8=
-
+cinema:
+  upload_file:
+    base_path: file:///D:/1.FPT-College/DATN/backend/cineman/uploads
 api:
   path: /api/v01
 springdoc:

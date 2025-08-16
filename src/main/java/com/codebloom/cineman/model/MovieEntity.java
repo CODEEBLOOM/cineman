@@ -88,8 +88,4 @@ public class MovieEntity implements Serializable {
     @JsonIgnore
     private Set<MovieParticipantEntity> movieParticipants;
 
-    @ManyToOne
-    @JoinColumn(name = "movie_variation_id")
-    private MovieVariationEntity movieVariation;
-
 }

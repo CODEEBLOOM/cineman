@@ -60,4 +60,9 @@ public class ShowTimeEntity implements Serializable {
     @JsonIgnore
     private CinemaTheaterEntity cinemaTheater;
 
+    @ManyToOne
+    @JoinColumn(name = "movie_variation_id", nullable = false)
+    @JsonIgnore
+    private MovieVariationEntity movieVariation;
+
 }

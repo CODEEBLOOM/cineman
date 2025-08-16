@@ -73,6 +73,7 @@ public class SecurityConfiguration {
                                 String.format("%s/admin/province/all", apiPath),
                                 String.format("%s/show-times/cinema-theater/*", apiPath),
                                 String.format("%s/show-times/cinema-theater/*/show-date/*", apiPath),
+                                String.format("%s/storages/**", apiPath),
 
                                 // Swagger
                                 String.format("%s/api-docs", apiPath),

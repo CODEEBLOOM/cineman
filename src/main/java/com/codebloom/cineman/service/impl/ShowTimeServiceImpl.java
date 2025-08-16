@@ -215,6 +215,7 @@ public class ShowTimeServiceImpl implements ShowTimeService {
                             .totalSeatEmpty(this.findCountByShowTimeId(showTime.getId()).intValue())
                             .movie(showTime.getMovie())
                             .cinemaTheater(showTime.getCinemaTheater())
+                            .movieVariation(showTime.getMovieVariation())
                             .build();
                 }).toList();
         return showTimeDetailResponses.isEmpty() ? null : showTimeDetailResponses;
@@ -271,9 +272,9 @@ public class ShowTimeServiceImpl implements ShowTimeService {
 
     /**
      * Lấy tất cả
-     * @param cinemaTheaterId
-     * @param showDate
-     * @return
+     * @param cinemaTheaterId id rạp chiếu
+     * @param showDate ngày chiếu
+     * @return list phim
      */
     @Override
     public List<MovieResponse> findAllMovieByCinemaTheaterIdAndShowDate(Integer cinemaTheaterId, Date showDate, MoviePageQueryRequest request) {

@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface MembershipRankRepository extends JpaRepository<MembershipRankEntity, Long> {
+public interface MembershipRankRepository extends JpaRepository<MembershipRankEntity, Integer> {
     Optional<MembershipRankEntity> findByName(String name);
 }

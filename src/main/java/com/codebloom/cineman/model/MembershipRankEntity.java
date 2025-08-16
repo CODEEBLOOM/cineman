@@ -28,10 +28,10 @@ public class MembershipRankEntity {
     private Integer requiredPoint;
 
     @Column(name = "return_points_ticket", nullable = false)
-    private Double return_points_ticket;
+    private Double returnPointsTicket;
 
     @Column(name = "return_points_snack", nullable = false)
-    private Double return_points_snack;
+    private Double returnPointsSnack;
 
     @Column(name = "priority_level", nullable = false)
     private Integer priorityLevel;

@@ -2,11 +2,9 @@ package com.codebloom.cineman.service;
 
 import com.codebloom.cineman.controller.request.MoviePageQueryRequest;
 import com.codebloom.cineman.controller.request.ShowTimeRequest;
-import com.codebloom.cineman.controller.response.DummyTicket;
 import com.codebloom.cineman.controller.response.MovieResponse;
 import com.codebloom.cineman.controller.response.ShowTimeDetailResponse;
 import com.codebloom.cineman.controller.response.ShowTimeResponse;
-import com.codebloom.cineman.model.MovieEntity;
 import com.codebloom.cineman.model.SeatMapResponse;
 import com.codebloom.cineman.model.ShowTimeEntity;
 

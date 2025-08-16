@@ -61,10 +61,8 @@ public class JwtFilter extends OncePerRequestFilter {
      * @throws IOException ném lỗi
      */
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request , HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("{} {}", request.getMethod(), request.getRequestURI());
-        // TODO: authority
-
 //        List<PermissionEntity> guestPermissions = permissionRepository.findAllByRoleGuest();
 //        List<Pair<String, Method>> bypassTokens = guestPermissions.stream()
 //                .map(p -> Pair.of(p.getUrl(), p.getMethod()))
@@ -157,6 +155,9 @@ public class JwtFilter extends OncePerRequestFilter {
                 // API for cinema
                 Pair.of(String.format("%s/show-times/cinema-theater/**",apiPath),Method.GET),
                 Pair.of(String.format("%s/show-times/cinema-theater/**/show-date/**",apiPath),Method.GET),
+
+                // file upload
+                Pair.of(String.format("%s/storages/**", apiPath), Method.GET),
 
                 // Swagger
                 Pair.of("/api-docs",Method.GET),

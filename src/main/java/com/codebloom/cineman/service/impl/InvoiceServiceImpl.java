@@ -2,7 +2,9 @@ package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.common.enums.PaymentMethod;
 import com.codebloom.cineman.common.enums.TicketStatus;
+import com.codebloom.cineman.common.enums.UserStatus;
 import com.codebloom.cineman.common.utils.XStr;
+import com.codebloom.cineman.controller.response.InvoiceDetailResponse;
 import com.codebloom.cineman.controller.util.NumberFormatter;
 import com.codebloom.cineman.exception.ConflictException;
 import com.codebloom.cineman.exception.DataExistingException;
@@ -552,6 +554,59 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .map(TicketEntity::getPrice)
                 .filter(Objects::nonNull)
                 .reduce(0.0, Double::sum);
+    }
+
+    /**
+     * Lấy tất cả hóa đơn của người dùng     * @param userId
+     * @return List<InvoiceResponse>
+     */
+    @Override
+    public List<InvoiceDetailResponse> findByUserId(Long userId) {
+        UserEntity user = userRepository.findByUserIdAndStatus(userId, UserStatus.ACTIVE)
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
+        List<InvoiceEntity> invoices = invoiceRepository.findByCustomer(user);
+        List<InvoiceDetailResponse> invoiceDetailResponses = new ArrayList<>();
+        for (InvoiceEntity invoice : invoices) {
+            if (invoice.getStatus() == InvoiceStatus.PENDING || invoice.getStatus() == InvoiceStatus.CANCELLED) {
+                continue;
+            }
+
+            double totalMoneyTicket = !invoice.getTickets().isEmpty() ? invoice.getTickets().stream()
+                    .mapToDouble(TicketEntity::getPrice)
+                    .sum(): 0.0;
+            double totalMoneySnack = !invoice.getDetailBookingSnacks().isEmpty() ? invoice.getDetailBookingSnacks().stream()
+                    .mapToDouble(DetailBookingSnackEntity::getTotalMoney)
+                    .sum(): 0.0;
+            double totalMoneyDiscount = !invoice.getUserPointHistories().isEmpty()  ? invoice.getUserPointHistories().stream()
+                            .filter(userPointHistory -> userPointHistory.getChangePoint() < 0)
+                            .mapToDouble(UserPointHistoryEntity::getChangePoint)
+                            .sum() : 0.0;
+            double totalMoneyPromotion = invoice.getPromotion() != null ? invoice.getPromotion().getDiscount() * totalMoneyTicket : 0.0;
+
+            InvoiceDetailResponse invoiceDetailResponse = InvoiceDetailResponse.builder()
+                    .id(invoice.getId())
+                    .code(invoice.getQrCode())
+                    .email(invoice.getEmail())
+                    .phoneNumber(invoice.getPhoneNumber())
+                    .paymentMethod(invoice.getPaymentMethod())
+                    .totalTicket(invoice.getTotalTicket())
+                    .totalMoney(invoice.getTotalAmount())
+                    .totalMoneyTicket(totalMoneyTicket)
+                    .totalMoneySnack(totalMoneySnack)
+                    .totalMoneyDiscount(totalMoneyDiscount + totalMoneyPromotion)
+                    .status(invoice.getStatus())
+                    .customer(invoice.getCustomer())
+                    .staff(invoice.getStaff())
+                    .promotion(invoice.getPromotion())
+                    .createdAt(invoice.getCreatedAt())
+                    .updatedAt(invoice.getUpdatedAt())
+                    .showTime(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime())
+                    .movie(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime().getMovie())
+                    .movieTheater(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime().getCinemaTheater().getMovieTheater())
+                    .build();
+            invoiceDetailResponses.add(invoiceDetailResponse);
+        }
+        return invoiceDetailResponses;
     }
 
 

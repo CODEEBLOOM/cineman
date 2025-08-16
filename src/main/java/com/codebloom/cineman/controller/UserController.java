@@ -2,6 +2,7 @@ package com.codebloom.cineman.controller;
 
 
 import com.codebloom.cineman.controller.request.UserRegisterRequest;
+import com.codebloom.cineman.controller.request.UserUpdateRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
 import com.codebloom.cineman.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,6 +35,21 @@ public class UserController {
                         .message("Tạo tài khoản người dùng thành công")
                         .status(HttpStatus.OK.value())
                         .data(userService.getMoneyFromSavePointOfUser(savePoint, userId))
+                        .build()
+        );
+    }
+
+    @Operation(summary = "API cập nhật thông tin người dùng", description = "API cập nhật thông tin người dùng không đổi mật khẩu")
+    @PutMapping("/{userId}/update-info")
+    public ResponseEntity<ApiResponse> updateInfoUser(
+            @RequestBody @Valid UserUpdateRequest request,
+            @PathVariable("userId") @Min( value = 1, message = "Id của người dùng phải lớn hơn 0 !") Long userId
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .message("Tạo tài khoản người dùng thành công")
+                        .status(HttpStatus.OK.value())
+                        .data(userService.updateInfoUser(userId,request))
                         .build()
         );
     }

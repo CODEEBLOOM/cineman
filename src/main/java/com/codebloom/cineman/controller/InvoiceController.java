@@ -116,5 +116,18 @@ public class InvoiceController {
         );
     }
 
+    @Operation(summary = "Get all invoice", description = "Api dùng để lấy thông tin hóa đơn theo userId")
+    @GetMapping("/user/{userId}/all")
+    public ResponseEntity<ApiResponse> findByUserId(
+            @PathVariable @Min(value = 1, message = "Id's user is must be greater than 0 !") Long userId
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("success")
+                        .data(invoiceService.findByUserId(userId))
+                        .build()
+        );
+    }
 
 }

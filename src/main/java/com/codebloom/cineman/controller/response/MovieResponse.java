@@ -13,6 +13,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@Builder
 public class MovieResponse {
 
     private Integer movieId;
@@ -28,7 +29,6 @@ public class MovieResponse {
     private String trailerLink;
     private String posterImage;
     private String bannerImage;
-    private MovieVariationEntity movieVariants;
     private List<ParticipantEntity> directors;
     private List<ParticipantEntity> casts;
     private List<GenresEntity> genres ;

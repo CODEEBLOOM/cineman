@@ -6,6 +6,8 @@ import com.codebloom.cineman.controller.response.TokenResponse;
 import com.codebloom.cineman.controller.response.UserPaginationResponse;
 import com.codebloom.cineman.controller.response.UserResponse;
 import com.codebloom.cineman.model.UserEntity;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 
 
 import java.util.List;
@@ -30,4 +32,5 @@ public interface UserService {
     void confirmEmail(String secretCode);
     LoginRequest loginSocial(UserCreationRequest userLoginDTO);
 
+    UserResponse updateInfoUser(Long userId, UserUpdateRequest request);
 }

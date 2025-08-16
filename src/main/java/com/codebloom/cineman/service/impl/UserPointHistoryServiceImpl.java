@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j( topic = "USER-POINT-HISTORY-SERVICE" )
@@ -115,15 +117,15 @@ public class UserPointHistoryServiceImpl implements UserPointHistoryService {
                 .mapToDouble(TicketEntity::getPrice)
                 .sum();
 
-        Double totalMoneySnack = invoice.getDetailBookingSnacks().size() > 0 ?
+        Double totalMoneySnack = !invoice.getDetailBookingSnacks().isEmpty() ?
                 invoice.getDetailBookingSnacks().stream()
                         .mapToDouble(DetailBookingSnackEntity::getTotalMoney)
                         .sum() : 0.0;
 
         // Tiến hành tính điểm cộng lại cho khách hàng  //
         int totalPoint = (int) (
-                Math.ceil(totalMoneyTicket * membershipRank.getReturn_points_ticket())
-                        + Math.ceil(totalMoneySnack * membershipRank.getReturn_points_snack()));
+                Math.ceil(totalMoneyTicket * membershipRank.getReturnPointsTicket())
+                        + Math.ceil(totalMoneySnack * membershipRank.getReturnPointsSnack()));
 
         UserPointHistoryEntity userPointHistory = UserPointHistoryEntity.builder()
                 .changePoint(totalPoint)
@@ -138,6 +140,23 @@ public class UserPointHistoryServiceImpl implements UserPointHistoryService {
         invoice.getCustomer().setSavePoint(newPoint);
         userRepository.save(invoice.getCustomer());
         log.info("Earn points success with invoice id:{} and point:{}", invoice.getId(), totalPoint);
+        return null;
+    }
+
+    /***
+     * Lấy lịch sử thay đổi điểm của người dùng
+     * @param userId id người dùng
+     * @return List<UserPointHistoryResponse>
+     */
+    @Override
+    public List<UserPointHistoryResponse> getAllHistory(long userId) {
+        log.info("Get all history point with user id:{}", userId);
+        UserEntity user = userRepository.findByUserIdAndStatus(userId, UserStatus.ACTIVE)
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy người dùng có id: " + userId));
+        List<UserPointHistoryEntity> userPointHistories = userPointHistoryRepository.findAllByUser(user);
+        if (!userPointHistories.isEmpty()) {
+            return userPointHistories.stream().map(this::mapToUserPointHistoryResponse).toList();
+        }
         return null;
     }
 

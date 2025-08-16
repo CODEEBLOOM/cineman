@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j(topic = "PROMOTION_SERVICE")
@@ -232,6 +234,49 @@ public class PromotionServiceImpl implements PromotionService {
         promotionEntity.setQuantity(promotionEntity.getQuantity() + 1);
         promotionRepository.save(promotionEntity);
         return promotionEntity.getQuantity();
+    }
+
+    /**
+     * Lấy toàn bộ thông tin giảm giá của người dùng
+     * @param userId id người dùng
+     * @return List<PromotionResponse>
+     */
+    @Override
+    public List<PromotionResponse> findAllPromotionByUserId(Long userId) {
+
+        List<PromotionResponse> promotionEntities = promotionRepository.findAllPromotionByCustomerUsed(StatusPromotion.ACTIVE, userId)
+                .stream()
+                .map((promotionEntity) -> PromotionResponse.builder()
+                        .id(promotionEntity.getId())
+                        .name(promotionEntity.getName())
+                        .content(promotionEntity.getContent())
+                        .code(promotionEntity.getCode())
+                        .startDate(promotionEntity.getStartDay().toString())
+                        .endDate(promotionEntity.getEndDay().toString())
+                        .discount(promotionEntity.getDiscount())
+                        .quantity(promotionEntity.getQuantity())
+                        .limitAmount(promotionEntity.getLimitAmount())
+                        .status(StatusPromotion.USED)
+                        .build())
+                .toList();
+        List<PromotionResponse> promotionEntities1 = promotionRepository.findAllPromotionByCustomerNotUse(StatusPromotion.ACTIVE, userId)
+                .stream()
+                .map((promotionEntity) -> PromotionResponse.builder()
+                        .id(promotionEntity.getId())
+                        .name(promotionEntity.getName())
+                        .content(promotionEntity.getContent())
+                        .code(promotionEntity.getCode())
+                        .startDate(promotionEntity.getStartDay().toString())
+                        .endDate(promotionEntity.getEndDay().toString())
+                        .discount(promotionEntity.getDiscount())
+                        .quantity(promotionEntity.getQuantity())
+                        .limitAmount(promotionEntity.getLimitAmount())
+                        .status(StatusPromotion.ACTIVE)
+                        .build())
+                .toList();
+
+        return Stream.concat(promotionEntities.stream(), promotionEntities1.stream())
+                .collect(Collectors.toList());
     }
 
 

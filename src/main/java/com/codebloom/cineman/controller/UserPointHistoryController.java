@@ -6,6 +6,7 @@ import com.codebloom.cineman.service.UserPointHistoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -46,6 +47,21 @@ public class UserPointHistoryController {
                                 .status(HttpStatus.OK.value())
                                 .message("Create transaction successfully")
                                 .data(userPointHistoryService.refundTransaction(request, vnTnxRef))
+                                .build()
+                );
+    }
+
+    @Operation(summary = "Get All User Point History", description = "API dùng lấy tất cả lịch sử đổi điểm cho người dùng")
+    @GetMapping("/user/{userId}/all")
+    public ResponseEntity<ApiResponse> getAllHistory(
+            @PathVariable @Min(value = 1, message = "Id của user phải lớn hơn 0 !") long userId
+    ) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .status(HttpStatus.OK.value())
+                                .message("Get all history successfully")
+                                .data(userPointHistoryService.getAllHistory(userId))
                                 .build()
                 );
     }
