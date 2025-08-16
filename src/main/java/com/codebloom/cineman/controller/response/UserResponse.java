@@ -1,6 +1,7 @@
 package com.codebloom.cineman.controller.response;
 
 import com.codebloom.cineman.model.MembershipRankEntity;
+import com.codebloom.cineman.model.MovieTheaterEntity;
 import com.codebloom.cineman.model.RoleEntity;
 import lombok.*;
 
@@ -28,4 +29,5 @@ public class UserResponse implements Serializable {
     private String avatar;
     private List<RoleEntity> roles;
     private MembershipRankEntity membershipRank;
+    private MovieTheaterEntity movieTheater;
 }

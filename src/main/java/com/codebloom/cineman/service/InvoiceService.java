@@ -3,9 +3,11 @@ package com.codebloom.cineman.service;
 
 import com.codebloom.cineman.controller.request.InvoiceCreateRequest;
 import com.codebloom.cineman.controller.request.InvoiceUpdateRequest;
+import com.codebloom.cineman.controller.response.InvoiceDetailPageResponse;
 import com.codebloom.cineman.controller.response.InvoiceDetailResponse;
 import com.codebloom.cineman.controller.response.InvoiceResponse;
 
+import java.util.Date;
 import java.util.List;
 
 public interface InvoiceService {
@@ -26,6 +28,10 @@ public interface InvoiceService {
 
     Double getTotalMoney(Long invoiceId);
 
+    InvoiceDetailResponse findByQrCode(String qrCode);
+
     List<InvoiceDetailResponse> findByUserId(Long userId);
+
+    InvoiceDetailPageResponse findAllInvoicesByCreatedAtAndMovieTheater(Date createdAt, Integer pageNo, Integer pageSize, Integer... movieTheaterId);
 
 }

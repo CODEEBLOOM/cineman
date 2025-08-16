@@ -4,7 +4,9 @@ import com.codebloom.cineman.common.enums.PaymentMethod;
 import com.codebloom.cineman.common.enums.TicketStatus;
 import com.codebloom.cineman.common.enums.UserStatus;
 import com.codebloom.cineman.common.utils.XStr;
+import com.codebloom.cineman.controller.response.InvoiceDetailPageResponse;
 import com.codebloom.cineman.controller.response.InvoiceDetailResponse;
+import com.codebloom.cineman.controller.response.MetaResponse;
 import com.codebloom.cineman.controller.util.NumberFormatter;
 import com.codebloom.cineman.exception.ConflictException;
 import com.codebloom.cineman.exception.DataExistingException;
@@ -17,6 +19,9 @@ import com.google.zxing.WriterException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -44,7 +49,6 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final XStr xStr;
     private final PromotionRepository promotionRepository;
     private final MailService mailService;
-    private final NumberFormatter numberFormatter;
     private final UserPointHistoryService userPointHistoryService;
 
 
@@ -556,6 +560,16 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .reduce(0.0, Double::sum);
     }
 
+    @Override
+    public InvoiceDetailResponse findByQrCode(String qrCode) {
+        InvoiceEntity invoice = invoiceRepository.findByQrCode(qrCode)
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy hóa đơn"));
+        if (invoice.getStatus() != InvoiceStatus.CANCELLED) {
+            return toInvoiceDetailResponse(invoice);
+        }
+        return null;
+    }
+
     /**
      * Lấy tất cả hóa đơn của người dùng     * @param userId
      * @return List<InvoiceResponse>
@@ -564,10 +578,14 @@ public class InvoiceServiceImpl implements InvoiceService {
     public List<InvoiceDetailResponse> findByUserId(Long userId) {
         UserEntity user = userRepository.findByUserIdAndStatus(userId, UserStatus.ACTIVE)
                 .orElseThrow(() -> new DataNotFoundException("User not found"));
-        List<InvoiceEntity> invoices = invoiceRepository.findByCustomer(user);
+        List<InvoiceEntity> invoices = invoiceRepository.findByCustomerOrStaff(user, user);
         List<InvoiceDetailResponse> invoiceDetailResponses = new ArrayList<>();
         for (InvoiceEntity invoice : invoices) {
             if (invoice.getStatus() == InvoiceStatus.PENDING || invoice.getStatus() == InvoiceStatus.CANCELLED) {
+                continue;
+            }
+
+            if (invoice.getTickets().isEmpty()) {
                 continue;
             }
 
@@ -582,33 +600,67 @@ public class InvoiceServiceImpl implements InvoiceService {
                             .mapToDouble(UserPointHistoryEntity::getChangePoint)
                             .sum() : 0.0;
             double totalMoneyPromotion = invoice.getPromotion() != null ? invoice.getPromotion().getDiscount() * totalMoneyTicket : 0.0;
-
-            InvoiceDetailResponse invoiceDetailResponse = InvoiceDetailResponse.builder()
-                    .id(invoice.getId())
-                    .code(invoice.getQrCode())
-                    .email(invoice.getEmail())
-                    .phoneNumber(invoice.getPhoneNumber())
-                    .paymentMethod(invoice.getPaymentMethod())
-                    .totalTicket(invoice.getTotalTicket())
-                    .totalMoney(invoice.getTotalAmount())
-                    .totalMoneyTicket(totalMoneyTicket)
-                    .totalMoneySnack(totalMoneySnack)
-                    .totalMoneyDiscount(totalMoneyDiscount + totalMoneyPromotion)
-                    .status(invoice.getStatus())
-                    .customer(invoice.getCustomer())
-                    .staff(invoice.getStaff())
-                    .promotion(invoice.getPromotion())
-                    .createdAt(invoice.getCreatedAt())
-                    .updatedAt(invoice.getUpdatedAt())
-                    .showTime(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime())
-                    .movie(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime().getMovie())
-                    .movieTheater(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime().getCinemaTheater().getMovieTheater())
-                    .build();
-            invoiceDetailResponses.add(invoiceDetailResponse);
+            invoiceDetailResponses.add(toInvoiceDetailResponse(invoice));
         }
         return invoiceDetailResponses;
     }
 
+    /**
+     * Lấy tất cả hóa đơn theo ngày tạo và theo rạp chiếu
+     * @param createdAt ngày tạo
+     * @param movieTheaterId id rạp chiếu
+     * @return List<InvoiceDetailPageResponse>
+     */
+    @Override
+    public InvoiceDetailPageResponse findAllInvoicesByCreatedAtAndMovieTheater(Date createdAt, Integer pageNo, Integer pageSize, Integer... movieTheaterId) {
+        Sort sort = Sort.by("created_at").descending();
+        PageRequest pageRequest = PageRequest.of(pageNo, pageSize, sort);
+        Page<InvoiceEntity> page = null;
+        InvoiceDetailPageResponse invoiceDetailPageResponse = new InvoiceDetailPageResponse();
+        if (movieTheaterId.length > 0) {
+            page = invoiceRepository.findAllByCreatedDate(createdAt, pageRequest);
+            List<InvoiceDetailResponse> invoiceDetailResponses = new ArrayList<>();
+            for (InvoiceEntity invoice : page.getContent()) {
+                if (invoice.getStatus() == InvoiceStatus.PENDING || invoice.getStatus() == InvoiceStatus.CANCELLED) {
+                    continue;
+                }
+                if (invoice.getTickets().isEmpty()) {
+                    continue;
+                }
+                Integer theaterId = invoice.getTickets().get(0).getShowTime().getCinemaTheater().getMovieTheater().getMovieTheaterId();
+                if (theaterId.equals(movieTheaterId[0])) {
+                    invoiceDetailResponses.add(toInvoiceDetailResponse(invoice));
+                }
+            }
+            invoiceDetailPageResponse.setInvoiceDetailResponses(invoiceDetailResponses);
+        }else{
+            page = invoiceRepository.findAllByCreatedAt(createdAt, PageRequest.of(pageNo, pageSize, Sort.by("createdAt").descending()));
+            List<InvoiceDetailResponse> invoiceDetailResponses = new ArrayList<>();
+            for (InvoiceEntity invoice : page.getContent()) {
+                if (invoice.getStatus() == InvoiceStatus.PENDING || invoice.getStatus() == InvoiceStatus.CANCELLED) {
+                    continue;
+                }
+                if (invoice.getTickets().isEmpty()) {
+                    continue;
+                }
+                invoiceDetailResponses.add(toInvoiceDetailResponse(invoice));
+            }
+            invoiceDetailPageResponse.setInvoiceDetailResponses(invoiceDetailResponses);
+        }
+
+        // Xử lý phân trang //
+        invoiceDetailPageResponse.setMeta(toMetaResponse(page));
+        return invoiceDetailPageResponse;
+    }
+
+    private MetaResponse toMetaResponse(Page<InvoiceEntity> page) {
+        return MetaResponse.builder()
+                .currentPage(page.getNumber())
+                .totalElements((int) page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .pageSize(page.getSize())
+                .build();
+    }
 
     private InvoiceEntity getInvoice(UserEntity customer, UserEntity staff) {
         List<InvoiceEntity> invoices = invoiceRepository.findByCustomerAndStaffAndStatus(customer, staff, InvoiceStatus.PENDING);
@@ -653,6 +705,27 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .updatedAt(invoice.getUpdatedAt())
                 .tickets(Optional.ofNullable(invoice.getTickets())
                         .orElse(Collections.emptyList()))
+                .build();
+    }
+
+    private InvoiceDetailResponse toInvoiceDetailResponse(InvoiceEntity invoice) {
+        return InvoiceDetailResponse.builder()
+                .id(invoice.getId())
+                .code(invoice.getQrCode())
+                .email(invoice.getEmail())
+                .phoneNumber(invoice.getPhoneNumber())
+                .paymentMethod(invoice.getPaymentMethod())
+                .totalTicket(invoice.getTotalTicket())
+                .totalMoney(invoice.getTotalAmount())
+                .status(invoice.getStatus())
+                .customer(invoice.getCustomer())
+                .staff(invoice.getStaff())
+                .promotion(invoice.getPromotion())
+                .createdAt(invoice.getCreatedAt())
+                .updatedAt(invoice.getUpdatedAt())
+                .showTime(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime())
+                .movie(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime().getMovie())
+                .movieTheater(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime().getCinemaTheater().getMovieTheater())
                 .build();
     }
 

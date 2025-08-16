@@ -3,7 +3,7 @@ package com.codebloom.cineman.service.impl;
 import com.codebloom.cineman.common.enums.TokenType;
 import com.codebloom.cineman.controller.response.MetaResponse;
 import com.codebloom.cineman.exception.*;
-import com.codebloom.cineman.model.MembershipRankEntity;
+import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.MembershipRankRepository;
 import com.codebloom.cineman.service.JwtService;
 import com.codebloom.cineman.service.RoleService;
@@ -13,9 +13,6 @@ import com.codebloom.cineman.common.enums.UserType;
 import com.codebloom.cineman.controller.request.*;
 import com.codebloom.cineman.controller.response.UserPaginationResponse;
 import com.codebloom.cineman.controller.response.UserResponse;
-import com.codebloom.cineman.model.RoleEntity;
-import com.codebloom.cineman.model.UserEntity;
-import com.codebloom.cineman.model.UserRoleEntity;
 import com.codebloom.cineman.repository.RoleRepository;
 import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.repository.UserRoleRepository;
@@ -462,6 +459,7 @@ public class UserServiceImpl implements UserService {
      * @return UserResponse
      */
     private UserResponse convertToUserResponse(UserEntity user) {
+        MovieTheaterEntity movieTheater = user.getMovieTheater();
         UserResponse userResponse = UserResponse.builder()
                 .userId(user.getUserId())
                 .email(user.getEmail())
@@ -476,6 +474,7 @@ public class UserServiceImpl implements UserService {
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .membershipRank(user.getMembershipRank())
+                .movieTheater(movieTheater)
                 .avatar(user.getAvatar())
                 .build();
         List<RoleEntity> roles = new ArrayList<>();
