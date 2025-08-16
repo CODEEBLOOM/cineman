@@ -2,7 +2,7 @@ package com.codebloom.cineman.config;
 
 import com.codebloom.cineman.common.enums.Method;
 import com.codebloom.cineman.common.enums.TokenType;
-import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.Exception.DataNotFoundException;
 import com.codebloom.cineman.model.UserEntity;
 import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.service.JwtService;

@@ -1,4 +1,4 @@
-package com.codebloom.cineman.exception;
+package com.codebloom.cineman.Exception;
 
 public class DataNotFoundException extends RuntimeException {
     public DataNotFoundException(String message) {

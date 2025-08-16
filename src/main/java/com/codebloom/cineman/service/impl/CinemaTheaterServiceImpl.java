@@ -4,9 +4,8 @@ import com.codebloom.cineman.common.enums.CinemaTheaterStatus;
 import com.codebloom.cineman.controller.request.CinemaTheaterRequest;
 import com.codebloom.cineman.controller.request.CinemaTheaterResponse;
 import com.codebloom.cineman.controller.request.PageRequest;
-import com.codebloom.cineman.controller.response.DummySeat;
 import com.codebloom.cineman.controller.response.MetaResponse;
-import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.Exception.DataNotFoundException;
 import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.CinemaTheatersRepository;
 import com.codebloom.cineman.repository.CinemaTypeRepository;
@@ -16,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 

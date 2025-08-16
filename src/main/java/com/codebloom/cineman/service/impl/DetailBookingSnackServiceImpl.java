@@ -3,7 +3,7 @@ package com.codebloom.cineman.service.impl;
 import com.codebloom.cineman.common.enums.InvoiceStatus;
 import com.codebloom.cineman.controller.request.DetailBookingSnackRequest;
 import com.codebloom.cineman.controller.response.DetailBookingSnackResponse;
-import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.Exception.DataNotFoundException;
 import com.codebloom.cineman.model.DetailBookingSnackEntity;
 import com.codebloom.cineman.model.InvoiceEntity;
 import com.codebloom.cineman.model.SnackEntity;

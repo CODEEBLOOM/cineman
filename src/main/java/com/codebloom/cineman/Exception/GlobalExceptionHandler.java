@@ -1,6 +1,5 @@
-package com.codebloom.cineman.exception;
+package com.codebloom.cineman.Exception;
 
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
-import java.time.format.DateTimeParseException;
 import java.util.Date;
 
 import static org.springframework.http.HttpStatus.*;
@@ -89,7 +87,7 @@ public class GlobalExceptionHandler {
      * @param request: để lấy ra URI đích
      * @return errorResponse
      */
-    @ExceptionHandler(com.codebloom.cineman.exception.DataNotFoundException.class)
+    @ExceptionHandler(com.codebloom.cineman.Exception.DataNotFoundException.class)
     @ResponseStatus(NOT_FOUND)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "Bad Request",
@@ -108,7 +106,7 @@ public class GlobalExceptionHandler {
                                             """
                             ))})
     })
-    public ErrorResponse handleDataNotFoundException(com.codebloom.cineman.exception.DataNotFoundException e, WebRequest request) {
+    public ErrorResponse handleDataNotFoundException(com.codebloom.cineman.Exception.DataNotFoundException e, WebRequest request) {
         if (!(request instanceof org.springframework.web.context.request.ServletWebRequest)) {
             throw e;
         }
@@ -164,7 +162,7 @@ public class GlobalExceptionHandler {
      * @param request: để lấy ra URI đích
      * @return errorResponse
      */
-    @ExceptionHandler(com.codebloom.cineman.exception.DataExistingException.class)
+    @ExceptionHandler(com.codebloom.cineman.Exception.DataExistingException.class)
     @ResponseStatus(BAD_REQUEST)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "400", description = "Conflict",
@@ -183,7 +181,7 @@ public class GlobalExceptionHandler {
                                             """
                             ))})
     })
-    public ErrorResponse handleDuplicateKeyException(com.codebloom.cineman.exception.DataExistingException e, WebRequest request) {
+    public ErrorResponse handleDuplicateKeyException(com.codebloom.cineman.Exception.DataExistingException e, WebRequest request) {
         errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
@@ -236,9 +234,9 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler(com.codebloom.cineman.exception.ConfirmPasswordException.class)
+    @ExceptionHandler(com.codebloom.cineman.Exception.ConfirmPasswordException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ErrorResponse handleConfirmPasswordException(com.codebloom.cineman.exception.ConfirmPasswordException e, WebRequest request) {
+    public ErrorResponse handleConfirmPasswordException(com.codebloom.cineman.Exception.ConfirmPasswordException e, WebRequest request) {
         errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
@@ -255,7 +253,7 @@ public class GlobalExceptionHandler {
      * @param request request
      * @return errorResponse
      */
-    @ExceptionHandler(com.codebloom.cineman.exception.InvalidDataException.class)
+    @ExceptionHandler(com.codebloom.cineman.Exception.InvalidDataException.class)
     @ResponseStatus(CONFLICT)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "409", description = "Conflict",
@@ -274,7 +272,7 @@ public class GlobalExceptionHandler {
                                             """
                             ))})
     })
-    public ErrorResponse handleDuplicateKeyException(com.codebloom.cineman.exception.InvalidDataException e, WebRequest request) {
+    public ErrorResponse handleDuplicateKeyException(com.codebloom.cineman.Exception.InvalidDataException e, WebRequest request) {
         errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
@@ -292,7 +290,7 @@ public class GlobalExceptionHandler {
      * @param request request
      * @return errorResponse
      */
-    @ExceptionHandler(com.codebloom.cineman.exception.ForBiddenException.class)
+    @ExceptionHandler(com.codebloom.cineman.Exception.ForBiddenException.class)
     @ResponseStatus(FORBIDDEN)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "403", description = "Access Dined",
@@ -311,7 +309,7 @@ public class GlobalExceptionHandler {
                                             """
                             ))})
     })
-    public ErrorResponse handleForBiddenException(com.codebloom.cineman.exception.ForBiddenException e, WebRequest request) {
+    public ErrorResponse handleForBiddenException(com.codebloom.cineman.Exception.ForBiddenException e, WebRequest request) {
         errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));

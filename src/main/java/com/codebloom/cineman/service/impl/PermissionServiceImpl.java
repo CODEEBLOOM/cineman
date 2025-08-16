@@ -1,19 +1,23 @@
 package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.controller.request.PermissionRequest;
-import com.codebloom.cineman.controller.response.PermissionResponse;
-import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.controller.response.*;
+import com.codebloom.cineman.Exception.DataNotFoundException;
 import com.codebloom.cineman.common.enums.Method;
-import com.codebloom.cineman.model.PermissionEntity;
+import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.PermissionRepository;
 import com.codebloom.cineman.service.PermissionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.AntPathMatcher;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -107,6 +111,43 @@ public class PermissionServiceImpl implements PermissionService {
                 .map(p -> mapper.map(p, PermissionResponse.class))
                 .toList();
     }
+
+    @Override
+    public PermissionPageableResponse findAllByPage(com.codebloom.cineman.controller.request.PageRequest request) {
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
+        Page<PermissionEntity> list = permissionRepository.findAll(pageable);
+        List<PermissionResponse> permissionResponses = new ArrayList<>();
+        list.forEach(permissionEntity -> {
+            PermissionResponse permissionResponse = convertToPermissionResponse(permissionEntity);
+            permissionResponses.add(permissionResponse);
+        });
+
+        // Set các giá trị pageable
+        MetaResponse meta = MetaResponse.builder()
+                .currentPage(list.getNumber())
+                .totalElements((int) list.getTotalElements())
+                .totalPages(list.getTotalPages())
+                .pageSize(list.getSize())
+                .build();
+
+        return PermissionPageableResponse.builder()
+                .permissionResponses(permissionResponses)
+                .meta(meta)
+                .build();    }
+
+    private PermissionResponse convertToPermissionResponse(PermissionEntity permisison) {
+        PermissionResponse permissionResponse = PermissionResponse.builder()
+                .permissionId(permisison.getPermissionId())
+                .url(permisison.getUrl())
+                .title(permisison.getTitle())
+                .description(permisison.getDescription())
+                .method(permisison.getMethod())
+                .createdAt(permisison.getCreatedAt())
+                .updatedAt(permisison.getUpdatedAt())
+                .build();
+        return permissionResponse;
+    }
+
 
 
 

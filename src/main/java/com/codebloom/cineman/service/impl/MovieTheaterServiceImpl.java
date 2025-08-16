@@ -1,13 +1,12 @@
 package com.codebloom.cineman.service.impl;
 
-import com.codebloom.cineman.controller.admin.MovieTheaterProvinceResponse;
 import com.codebloom.cineman.controller.request.MovieTheaterRequest;
 import com.codebloom.cineman.controller.request.PageRequest;
 import com.codebloom.cineman.controller.response.MetaResponse;
 import com.codebloom.cineman.controller.response.MovieTheaterPage;
 import com.codebloom.cineman.controller.response.MovieTheaterResponse;
-import com.codebloom.cineman.exception.DataExistingException;
-import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.Exception.DataExistingException;
+import com.codebloom.cineman.Exception.DataNotFoundException;
 import com.codebloom.cineman.model.MovieTheaterEntity;
 import com.codebloom.cineman.model.ProvinceEntity;
 import com.codebloom.cineman.repository.MovieTheaterRepository;

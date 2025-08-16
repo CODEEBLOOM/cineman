@@ -2,8 +2,8 @@ package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.common.enums.SeatType;
 import com.codebloom.cineman.controller.request.SeatTypeRequest;
-import com.codebloom.cineman.exception.DataExistingException;
-import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.Exception.DataExistingException;
+import com.codebloom.cineman.Exception.DataNotFoundException;
 import com.codebloom.cineman.model.SeatTypeEntity;
 import com.codebloom.cineman.repository.SeatTypeRepository;
 import com.codebloom.cineman.service.SeatTypeService;

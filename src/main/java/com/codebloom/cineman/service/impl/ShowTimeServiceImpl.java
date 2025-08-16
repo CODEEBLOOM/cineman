@@ -9,7 +9,7 @@ import com.codebloom.cineman.controller.request.ShowTimeRequest;
 import com.codebloom.cineman.controller.response.MovieResponse;
 import com.codebloom.cineman.controller.response.ShowTimeDetailResponse;
 import com.codebloom.cineman.controller.response.ShowTimeResponse;
-import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.Exception.DataNotFoundException;
 import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.CinemaTheatersRepository;
 import com.codebloom.cineman.repository.MovieRepository;

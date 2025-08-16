@@ -1,7 +1,7 @@
 package com.codebloom.cineman.controller.websocket;
 
-import com.codebloom.cineman.exception.DataExistingException;
-import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.Exception.DataExistingException;
+import com.codebloom.cineman.Exception.DataNotFoundException;
 import com.codebloom.cineman.message.ErrorMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;

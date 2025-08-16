@@ -1,7 +1,5 @@
 package com.codebloom.cineman.service.impl;
 
-import com.codebloom.cineman.exception.DataNotFoundException;
-import com.codebloom.cineman.model.InvoiceEntity;
 import com.codebloom.cineman.repository.InvoiceRepository;
 import com.codebloom.cineman.service.QRCodeService;
 import com.google.zxing.BarcodeFormat;
@@ -15,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.nio.file.Paths;
 
 @Service
 @RequiredArgsConstructor

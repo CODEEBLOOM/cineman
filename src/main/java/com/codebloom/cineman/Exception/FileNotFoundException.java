@@ -1,4 +1,4 @@
-package com.codebloom.cineman.exception;
+package com.codebloom.cineman.Exception;
 
 public class FileNotFoundException extends RuntimeException {
     public FileNotFoundException(String message) {

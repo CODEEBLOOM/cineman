@@ -1,8 +1,10 @@
 package com.codebloom.cineman.controller.admin;
 
 
+import com.codebloom.cineman.controller.request.PageRequest;
 import com.codebloom.cineman.controller.request.PermissionRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
+import com.codebloom.cineman.controller.response.PermissionPageableResponse;
 import com.codebloom.cineman.service.PermissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,12 +27,12 @@ public class PermissionController {
 
     @Operation(summary = "Lấy tất cả permissions")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse> getAllPermissions() {
+    public ResponseEntity<ApiResponse> getAllPermissions(PageRequest req) {
         return ResponseEntity.ok(
                 ApiResponse.builder()
                         .message("Lấy tất cả quyền thành công.")
                         .status(HttpStatus.OK.value())
-                        .data(permissionService.getAll())
+                        .data(permissionService.findAllByPage(req))
                         .build()
         );
     }

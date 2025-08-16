@@ -1,6 +1,8 @@
 package com.codebloom.cineman.service;
 
+import com.codebloom.cineman.controller.request.PageRequest;
 import com.codebloom.cineman.controller.request.PermissionRequest;
+import com.codebloom.cineman.controller.response.PermissionPageableResponse;
 import com.codebloom.cineman.controller.response.PermissionResponse;
 import com.codebloom.cineman.common.enums.Method;
 import com.codebloom.cineman.model.PermissionEntity;
@@ -12,5 +14,6 @@ public interface PermissionService {
     void delete(Integer id);
     PermissionResponse getById(Integer id);
     List<PermissionResponse> getAll();
+    PermissionPageableResponse findAllByPage(PageRequest pageRequest);
     boolean hasPermission(Long userId, Method method, String requesturl);
 }

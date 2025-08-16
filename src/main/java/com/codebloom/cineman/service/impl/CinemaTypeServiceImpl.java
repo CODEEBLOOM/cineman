@@ -1,8 +1,8 @@
 package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.controller.request.CinemaTypeRequest;
-import com.codebloom.cineman.exception.DataExistingException;
-import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.Exception.DataExistingException;
+import com.codebloom.cineman.Exception.DataNotFoundException;
 import com.codebloom.cineman.model.CinemaTypeEntity;
 import com.codebloom.cineman.repository.CinemaTypeRepository;
 import com.codebloom.cineman.service.CinemaTypeService;
