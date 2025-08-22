@@ -6,6 +6,7 @@ import com.codebloom.cineman.controller.request.InvoiceUpdateRequest;
 import com.codebloom.cineman.controller.response.InvoiceDetailPageResponse;
 import com.codebloom.cineman.controller.response.InvoiceDetailResponse;
 import com.codebloom.cineman.controller.response.InvoiceResponse;
+import com.codebloom.cineman.controller.response.InvoiceTicketResponse;
 
 import java.util.Date;
 import java.util.List;
@@ -34,4 +35,5 @@ public interface InvoiceService {
 
     InvoiceDetailPageResponse findAllInvoicesByCreatedAtAndMovieTheater(Date createdAt, Integer pageNo, Integer pageSize, Integer... movieTheaterId);
 
+    InvoiceTicketResponse  findInvoiceByQRCode(String qrCode);
 }

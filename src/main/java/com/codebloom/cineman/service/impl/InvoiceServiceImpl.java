@@ -4,9 +4,7 @@ import com.codebloom.cineman.common.enums.PaymentMethod;
 import com.codebloom.cineman.common.enums.TicketStatus;
 import com.codebloom.cineman.common.enums.UserStatus;
 import com.codebloom.cineman.common.utils.XStr;
-import com.codebloom.cineman.controller.response.InvoiceDetailPageResponse;
-import com.codebloom.cineman.controller.response.InvoiceDetailResponse;
-import com.codebloom.cineman.controller.response.MetaResponse;
+import com.codebloom.cineman.controller.response.*;
 import com.codebloom.cineman.controller.util.NumberFormatter;
 import com.codebloom.cineman.exception.ConflictException;
 import com.codebloom.cineman.exception.DataExistingException;
@@ -19,6 +17,7 @@ import com.google.zxing.WriterException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -26,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.codebloom.cineman.common.enums.InvoiceStatus;
 import com.codebloom.cineman.controller.request.InvoiceCreateRequest;
@@ -34,7 +34,6 @@ import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.repository.InvoiceRepository;
 import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.service.InvoiceService;
-import com.codebloom.cineman.controller.response.InvoiceResponse;
 import com.codebloom.cineman.service.TicketService;
 
 @Slf4j(topic = "INVOICE_SERVICE")
@@ -50,7 +49,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final PromotionRepository promotionRepository;
     private final MailService mailService;
     private final UserPointHistoryService userPointHistoryService;
-
+    private final ModelMapper mapper;
 
     /**
      * Tìm kiểm hóa đơn theo userId, showTimeId, trang thái
@@ -571,7 +570,8 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     /**
-     * Lấy tất cả hóa đơn của người dùng     * @param userId
+     * Lấy tất cả hóa đơn của người dùng
+     * @param userId id người dùng
      * @return List<InvoiceResponse>
      */
     @Override
@@ -653,6 +653,46 @@ public class InvoiceServiceImpl implements InvoiceService {
         return invoiceDetailPageResponse;
     }
 
+    @Override
+    public InvoiceTicketResponse findInvoiceByQRCode(String qrCode) {
+        InvoiceEntity invoice = invoiceRepository.findByQrCode(qrCode)
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy hóa đơn !"));
+        if (invoice.getStatus() != InvoiceStatus.CANCELLED) {
+            throw new DataNotFoundException("Không tìm thấy hóa đơn");
+        }
+
+        List<DetailBookingSnackResponse> detailBookingSnackResponses = null;
+        if (!invoice.getDetailBookingSnacks().isEmpty()) {
+            detailBookingSnackResponses = new ArrayList<>();
+            List<DetailBookingSnackEntity> detailBookingSnackEntities = invoice.getDetailBookingSnacks();
+            for (DetailBookingSnackEntity detailBookingSnackEntity : detailBookingSnackEntities) {
+                detailBookingSnackResponses.add(this.convert(detailBookingSnackEntity));
+            }
+        }
+
+        int changePoint = invoice.getUserPointHistories().stream().filter(
+                userPointHistoryEntity -> userPointHistoryEntity.getChangePoint() < 0
+        ).mapToInt(UserPointHistoryEntity::getChangePoint).sum();
+
+        double changeMoney = changePoint;
+
+        int savePoint = invoice.getUserPointHistories().stream().filter(
+                userPointHistoryEntity -> userPointHistoryEntity.getChangePoint() > 0
+        ).mapToInt(UserPointHistoryEntity::getChangePoint).sum();
+
+        return InvoiceTicketResponse.builder()
+                .invoiceEntity(invoice)
+                .showTimeEntity(invoice.getTickets().get(0).getShowTime())
+                .movieEntity(invoice.getTickets().get(0).getShowTime().getMovie())
+                .detailBookingSnackResponse(detailBookingSnackResponses)
+                .changePoint(changePoint)
+                .changeMoney(changeMoney)
+                .savePoint(savePoint)
+                .promotionEntity(invoice.getPromotion())
+                .customer(convertToUserResponse(invoice.getCustomer()))
+                .build();
+    }
+
     private MetaResponse toMetaResponse(Page<InvoiceEntity> page) {
         return MetaResponse.builder()
                 .currentPage(page.getNumber())
@@ -709,23 +749,106 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     private InvoiceDetailResponse toInvoiceDetailResponse(InvoiceEntity invoice) {
+        List<TicketResponse> ticketResponses = invoice.getTickets().stream()
+                .map(this::convertToTicketResponse)
+                .toList();
+        List<DetailBookingSnackResponse> detailBookingSnackResponses = invoice.getDetailBookingSnacks().stream()
+                .map(this::convert)
+                .toList();
+        double totalMoneyTicket = !invoice.getTickets().isEmpty() ? invoice.getTickets().stream()
+                .mapToDouble(TicketEntity::getPrice)
+                .sum(): 0.0;
+        double totalMoneySnack = !invoice.getDetailBookingSnacks().isEmpty() ? invoice.getDetailBookingSnacks().stream()
+                .mapToDouble(DetailBookingSnackEntity::getTotalMoney)
+                .sum(): 0.0;
+        double totalMoneyDiscount = !invoice.getUserPointHistories().isEmpty()  ? invoice.getUserPointHistories().stream()
+                .filter(userPointHistory -> userPointHistory.getChangePoint() < 0)
+                .mapToDouble(UserPointHistoryEntity::getChangePoint)
+                .sum() : 0.0;
+        double totalMoneyPromotion = invoice.getPromotion() != null ? invoice.getPromotion().getDiscount() * totalMoneyTicket : 0.0;
         return InvoiceDetailResponse.builder()
                 .id(invoice.getId())
                 .code(invoice.getQrCode())
                 .email(invoice.getEmail())
                 .phoneNumber(invoice.getPhoneNumber())
                 .paymentMethod(invoice.getPaymentMethod())
+                .totalMoneyTicket(totalMoneyTicket)
+                .totalMoneySnack(totalMoneySnack)
+                .totalMoneyDiscount(totalMoneyDiscount)
                 .totalTicket(invoice.getTotalTicket())
                 .totalMoney(invoice.getTotalAmount())
+                .totalMoneyPromotion(totalMoneyPromotion)
                 .status(invoice.getStatus())
                 .customer(invoice.getCustomer())
                 .staff(invoice.getStaff())
                 .promotion(invoice.getPromotion())
                 .createdAt(invoice.getCreatedAt())
                 .updatedAt(invoice.getUpdatedAt())
+                .tickets(ticketResponses)
+                .cinemaTheater(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime().getCinemaTheater())
+                .detailBookingSnacks(detailBookingSnackResponses)
                 .showTime(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime())
                 .movie(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime().getMovie())
                 .movieTheater(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime().getCinemaTheater().getMovieTheater())
+                .build();
+    }
+
+
+    /**
+     * Convert DetailBookingSnackEntity to DetailBookingSnackResponse
+     * @param entity DetailBookingSnackEntity
+     * @return DetailBookingSnackResponse
+     */
+    private DetailBookingSnackResponse convert(DetailBookingSnackEntity entity) {
+        DetailBookingSnackResponse response = mapper.map(entity, DetailBookingSnackResponse.class);
+        Double totalMoney = entity.getTotalSnack() * entity.getSnack().getUnitPrice();
+        response.setTotalMoney(totalMoney);
+        response.setSnack(entity.getSnack());
+        return response;
+    }
+
+    /**
+     * Hàm nội bộ để thực hiện convert
+     * @param user UserEntity
+     * @return UserResponse
+     */
+    private UserResponse convertToUserResponse(UserEntity user) {
+        MovieTheaterEntity movieTheater = user.getMovieTheater();
+        UserResponse userResponse = UserResponse.builder()
+                .userId(user.getUserId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .phoneNumber(user.getPhoneNumber())
+                .address(user.getAddress())
+                .dateOfBirth(user.getDateOfBirth())
+                .gender(user.getGender().name())
+                .savePoint(user.getSavePoint())
+                .facebookId(user.getFacebookId())
+                .googleId(user.getGoogleId())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .membershipRank(user.getMembershipRank())
+                .movieTheater(movieTheater)
+                .avatar(user.getAvatar())
+                .build();
+        List<RoleEntity> roles = new ArrayList<>();
+        user.getUserRoles().forEach(userRoleEntity -> roles.add(userRoleEntity.getRole()));
+        userResponse.setRoles(roles);
+        userResponse.setStatus(user.getStatus().toString());
+        return userResponse;
+    }
+
+
+    private TicketResponse convertToTicketResponse(TicketEntity savedTicket) {
+        return TicketResponse.builder()
+                .id(savedTicket.getId())
+                .showTime(savedTicket.getShowTime())
+                .ticketType(savedTicket.getTicketType())
+                .price(savedTicket.getPrice())
+                .status(savedTicket.getStatus())
+                .limitTime(savedTicket.getLimitTime())
+                .createBooking(savedTicket.getCreateBooking())
+                .seat(savedTicket.getSeat())
                 .build();
     }
 

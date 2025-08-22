@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,6 +24,7 @@ public class InvoiceDetailResponse {
     private Double totalMoneyTicket;
     private Double totalMoneySnack;
     private Double totalMoneyDiscount;
+    private Double totalMoneyPromotion;
     private InvoiceStatus status;
     private UserEntity customer;
     private UserEntity staff;
@@ -30,6 +32,9 @@ public class InvoiceDetailResponse {
     private ShowTimeEntity showTime;
     private MovieEntity movie;
     private MovieTheaterEntity movieTheater;
+    private CinemaTheaterEntity cinemaTheater;
+    private List<TicketResponse> tickets;
+    private List<DetailBookingSnackResponse> detailBookingSnacks;
     private Date createdAt;
     private Date updatedAt;
 }
