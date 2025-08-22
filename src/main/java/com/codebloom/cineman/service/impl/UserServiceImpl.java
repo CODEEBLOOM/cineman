@@ -3,7 +3,7 @@ package com.codebloom.cineman.service.impl;
 import com.codebloom.cineman.common.enums.TokenType;
 import com.codebloom.cineman.controller.response.MetaResponse;
 import com.codebloom.cineman.exception.*;
-import com.codebloom.cineman.model.MembershipRankEntity;
+import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.MembershipRankRepository;
 import com.codebloom.cineman.service.JwtService;
 import com.codebloom.cineman.service.RoleService;
@@ -13,14 +13,12 @@ import com.codebloom.cineman.common.enums.UserType;
 import com.codebloom.cineman.controller.request.*;
 import com.codebloom.cineman.controller.response.UserPaginationResponse;
 import com.codebloom.cineman.controller.response.UserResponse;
-import com.codebloom.cineman.model.RoleEntity;
-import com.codebloom.cineman.model.UserEntity;
-import com.codebloom.cineman.model.UserRoleEntity;
 import com.codebloom.cineman.repository.RoleRepository;
 import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.repository.UserRoleRepository;
 import com.codebloom.cineman.service.UserService;
 import com.codebloom.cineman.service.util.EmailService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -28,7 +26,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.*;
@@ -123,7 +120,7 @@ public class UserServiceImpl implements UserService {
      * @return : UserResponse
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional
     public long save(UserCreationRequest request) {
         log.info("Saving user {}", request);
         UserEntity user = modelMapper.map(request, UserEntity.class);
@@ -209,7 +206,7 @@ public class UserServiceImpl implements UserService {
         UserEntity userEntity  = userRepository.findByUserIdAndStatus(userId, UserStatus.ACTIVE)
                 .orElseThrow(() -> new DataNotFoundException("Không tìm thấy khách hàng !"));
         // Điểm người dùng đang có - số điểm muốn đổi thành tiền //
-        Double money = (userEntity.getSavePoint() - savePoint) * 1.0;
+        double money = (userEntity.getSavePoint() - savePoint) * 1.0;
 
         // Nếu âm --> điểm không đủ
         if(money < 0){
@@ -227,7 +224,7 @@ public class UserServiceImpl implements UserService {
      * @return user với trạng thải PENDING
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional
     public long register(UserRegisterRequest user) {
 
         UserEntity userEntity ;
@@ -358,7 +355,7 @@ public class UserServiceImpl implements UserService {
      * @return LoginRequest
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional
     public LoginRequest loginSocial(UserCreationRequest userLoginDTO) {
         Optional<UserEntity> optionalUser = Optional.empty();
         RoleEntity roleUser = roleService.findById(UserType.USER);
@@ -425,6 +422,36 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * Cap nhap thong tin nguoi dung
+     * @param userId id nguoi dung
+     * @param request thong tin nguoi dung
+     * @return UserResponse
+     */
+    @Override
+    @Transactional
+    public UserResponse updateInfoUser(Long userId, UserUpdateRequest request) {
+        UserEntity user = userRepository.findByUserIdAndStatus(userId, UserStatus.ACTIVE)
+                .orElseThrow(() -> new DataNotFoundException("Người dùng không tồn tại với id: " + userId));
+        UserEntity existingUser = userRepository.findByEmail(request.getEmail()).orElse(null);
+        if (existingUser != null && !existingUser.getUserId().equals(user.getUserId())) {
+            throw new DataExistingException("Email đã tồn tại tài khoản !");
+        }
+        UserEntity existingPhoneNumber = userRepository.findByPhoneNumberAndStatus(request.getPhoneNumber(), UserStatus.ACTIVE).orElse(null);
+        if (existingPhoneNumber != null && !existingPhoneNumber.getUserId().equals(user.getUserId())) {
+            throw new DataExistingException("Số điện thoại đã tồn tại tài khoản !");
+        }
+        user.setEmail(request.getEmail());
+        user.setFullName(request.getFullName());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setAddress(request.getAddress());
+        user.setDateOfBirth(request.getDateOfBirth());
+        user.setGender(request.getGender());
+        user.setAvatar(request.getAvatar());
+        userRepository.save(user);
+        return convertToUserResponse(user);
+    }
+
 
     /**
      * Hàm nội bộ để thực hiện convert 
@@ -432,6 +459,7 @@ public class UserServiceImpl implements UserService {
      * @return UserResponse
      */
     private UserResponse convertToUserResponse(UserEntity user) {
+        MovieTheaterEntity movieTheater = user.getMovieTheater();
         UserResponse userResponse = UserResponse.builder()
                 .userId(user.getUserId())
                 .email(user.getEmail())
@@ -445,6 +473,8 @@ public class UserServiceImpl implements UserService {
                 .googleId(user.getGoogleId())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
+                .membershipRank(user.getMembershipRank())
+                .movieTheater(movieTheater)
                 .avatar(user.getAvatar())
                 .build();
         List<RoleEntity> roles = new ArrayList<>();

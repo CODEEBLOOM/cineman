@@ -31,8 +31,8 @@ public class GlobalExceptionHandler {
     /**
      * Handle exception when validate data
      *
-     * @param e:       exception cần được xử lý
-     * @param request: để lấy ra URI đích
+     * @param e exception cần được xử lý
+     * @param request để lấy ra URI đích
      * @return errorResponse
      */
     @ExceptionHandler({ConstraintViolationException.class,
@@ -129,7 +129,7 @@ public class GlobalExceptionHandler {
      * @return errorResponse
      */
 
-    @ExceptionHandler(FileNotFoundException.class)
+    @ExceptionHandler({FileNotFoundException.class, CustomFileUploadException.class})
     @ResponseStatus(BAD_REQUEST)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "Lỗi khi xử lý file hoặc Google Drive",
@@ -148,13 +148,13 @@ public class GlobalExceptionHandler {
                                             """
                             ))})
     })
-    public ErrorResponse handleIOException(FileNotFoundException e, WebRequest request) {
+    public ErrorResponse handleIOException(Exception e, WebRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
         errorResponse.setStatus(BAD_REQUEST.value());
         errorResponse.setError(BAD_REQUEST.getReasonPhrase());
-        errorResponse.setMessage("Không thể upload file: " + e.getMessage());
+        errorResponse.setMessage("Upload file không thành công: " + e.getMessage());
         return errorResponse;
     }
 

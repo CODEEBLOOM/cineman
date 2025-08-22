@@ -5,15 +5,21 @@ import com.codebloom.cineman.common.enums.ShowTimeStatus;
 import com.codebloom.cineman.model.InvoiceEntity;
 import com.codebloom.cineman.model.PromotionEntity;
 import com.codebloom.cineman.model.UserEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface InvoiceRepository extends JpaRepository<InvoiceEntity, Long> {
+
+    Page<InvoiceEntity> findAllByStatusNot(InvoiceStatus status, Pageable pageable);
 
     Optional<InvoiceEntity> findByIdAndStatus(Long id, InvoiceStatus status);
 
@@ -33,7 +39,7 @@ public interface InvoiceRepository extends JpaRepository<InvoiceEntity, Long> {
 
     Optional<InvoiceEntity> findByQrCode(String qrCode);
 
-    List<InvoiceEntity> findByCustomer(UserEntity customer);
+    List<InvoiceEntity> findByCustomerOrStaff(UserEntity customer, UserEntity staff);
 
     List<InvoiceEntity> findByStaff(UserEntity staff);
 
@@ -60,9 +66,15 @@ public interface InvoiceRepository extends JpaRepository<InvoiceEntity, Long> {
      * @return Optional<InvoiceEntity>
      */
     @Query("""
-            SELECT i 
+            SELECT i
             FROM InvoiceEntity i
             WHERE i.customer.userId = :userId AND i.promotion.id = :promotionId
             """)
     Optional<InvoiceEntity> findByUserIdAndPromotionId(Long userId, Long promotionId);
+
+    @Query(value = "SELECT * FROM invoices WHERE CAST(created_at AS date) = CAST(:date as date)", nativeQuery = true)
+    Page<InvoiceEntity> findAllByCreatedDate(Date date, Pageable pageable);
+
+    @Query("SELECT i  FROM InvoiceEntity i WHERE CAST(i.createdAt AS date) = CAST(:createdAt as date)")
+    Page<InvoiceEntity> findAllByCreatedAt(Date createdAt, Pageable pageable);
 }

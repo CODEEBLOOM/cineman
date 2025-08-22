@@ -112,5 +112,8 @@ public class UserEntity implements  Serializable {
     @JsonIgnore
     private List<UserPointHistoryEntity> userPointHistories;
 
+    @OneToOne
+    @JoinColumn(name = "movie_theater_id")
+    private MovieTheaterEntity movieTheater;
 
 }

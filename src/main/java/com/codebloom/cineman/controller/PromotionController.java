@@ -67,4 +67,19 @@ public class PromotionController {
         );
     }
 
+
+    @Operation(summary = "Revert quantity promotion", description = "Api dùng để cộng lại số lượng một mã giảm giá vì thanh toán thất bại.")
+    @GetMapping("/user/{userId}/all")
+    public ResponseEntity<ApiResponse> getAllPromotion(
+            @PathVariable @Min(value =  1, message = "vnp_TxnRef không được phép null !") Long userId
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("success")
+                        .data(promotionService.findAllPromotionByUserId(userId))
+                        .build()
+        );
+    }
+
 }

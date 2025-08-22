@@ -20,6 +20,8 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     List<UserEntity> findByPhoneNumber(String phoneNumber);
 
+    Optional<UserEntity> findByPhoneNumberAndStatus(String phoneNumber, UserStatus status);
+
     UserEntity findByRefreshToken(String refreshToken);
 
     Optional<UserEntity> findByEmailAndPhoneNumberAndUserIdNot(String email, String phoneNumber, Long userId);

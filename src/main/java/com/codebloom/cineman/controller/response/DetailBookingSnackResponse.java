@@ -2,15 +2,14 @@ package com.codebloom.cineman.controller.response;
 
 
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.codebloom.cineman.model.SnackEntity;
+import lombok.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class DetailBookingSnackResponse {
 
     private Long id;
@@ -18,5 +17,6 @@ public class DetailBookingSnackResponse {
     private Integer snackId;
     private Long invoiceId;
     private Double totalMoney;
+    private SnackEntity snack;
 
 }

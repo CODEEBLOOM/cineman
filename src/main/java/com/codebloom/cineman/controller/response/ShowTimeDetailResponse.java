@@ -2,6 +2,7 @@ package com.codebloom.cineman.controller.response;
 
 import com.codebloom.cineman.model.CinemaTheaterEntity;
 import com.codebloom.cineman.model.MovieEntity;
+import com.codebloom.cineman.model.MovieVariationEntity;
 import com.codebloom.cineman.model.ShowTimeEntity;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,5 +17,6 @@ public class ShowTimeDetailResponse {
     private Integer totalSeatEmpty;
     private MovieEntity movie;
     private CinemaTheaterEntity cinemaTheater;
+    private MovieVariationEntity movieVariation;
 
 }

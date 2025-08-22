@@ -27,6 +27,6 @@ public class MovieVariationEntity {
 
     @OneToMany(mappedBy = "movieVariation")
     @JsonIgnore
-    private List<MovieEntity> movies;
+    private List<ShowTimeEntity> showTimes;
 
 }

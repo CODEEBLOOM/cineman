@@ -31,4 +31,6 @@ public interface PromotionService {
     void cancelPromotion(@NotNull(message = "Id giảm giá không được phép null !") Long id);
 
     Integer returnQuantityPromotion(String vnp_TxnRef);
+
+    List<PromotionResponse> findAllPromotionByUserId(Long userId);
 }

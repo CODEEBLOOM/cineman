@@ -2,6 +2,7 @@ package com.codebloom.cineman.controller.response;
 
 
 import com.codebloom.cineman.common.enums.TicketStatus;
+import com.codebloom.cineman.model.SeatEntity;
 import com.codebloom.cineman.model.ShowTimeEntity;
 import com.codebloom.cineman.model.TicketTypeEntity;
 import lombok.Builder;
@@ -22,5 +23,6 @@ public class TicketResponse {
     private TicketStatus status;
     private TicketTypeEntity ticketType;
     private ShowTimeEntity showTime;
+    private SeatEntity seat;
 
 }

@@ -207,25 +207,24 @@ public class MovieServiceImpl implements MovieService {
                 casts.add(movieParticipant.getParticipant());
             }
         });
-        MovieResponse movieResponse = new MovieResponse();
-        movieResponse.setMovieId(movie.getMovieId());
-        movieResponse.setStatus(movie.getStatus().getName());
-        movieResponse.setSynopsis(movie.getSynopsis());
-        movieResponse.setDetailDescription(movie.getDetailDescription());
-        movieResponse.setTitle(movie.getTitle());
-        movieResponse.setReleaseDate(movie.getReleaseDate());
-        movieResponse.setLanguage(movie.getLanguage());
-        movieResponse.setDuration(movie.getDuration());
-        movieResponse.setRating(movie.getRating());
-        movieResponse.setAge(movie.getAge());
-        movieResponse.setTrailerLink(movie.getTrailerLink());
-        movieResponse.setPosterImage(movie.getPosterImage());
-        movieResponse.setBannerImage(movie.getBannerImage());
-        movieResponse.setDirectors(directors);
-        movieResponse.setCasts(casts);
-        movieResponse.setGenres(genres);
-        movieResponse.setMovieVariants(movie.getMovieVariation());
-        return movieResponse;
+        return MovieResponse.builder()
+                .movieId(movie.getMovieId())
+                .status(movie.getStatus().getName())
+                .synopsis(movie.getSynopsis())
+                .detailDescription(movie.getDetailDescription())
+                .title(movie.getTitle())
+                .releaseDate(movie.getReleaseDate())
+                .language(movie.getLanguage())
+                .duration(movie.getDuration())
+                .rating(movie.getRating())
+                .age(movie.getAge())
+                .trailerLink(movie.getTrailerLink())
+                .posterImage(movie.getPosterImage())
+                .bannerImage(movie.getBannerImage())
+                .directors(directors)
+                .casts(casts)
+                .genres(genres)
+                .build();
     }
 
     /**
@@ -233,7 +232,8 @@ public class MovieServiceImpl implements MovieService {
      * @param page Page<MovieEntity>
      * @return MoviePageableResponse
      */
-    private MoviePageableResponse movieToMoviePageableResponse(Page<MovieEntity> page) {
+    @Override
+    public MoviePageableResponse movieToMoviePageableResponse(Page<MovieEntity> page) {
         List<MovieResponse> movieResponses = new ArrayList<>();
         page.getContent().forEach(movieEntity -> movieResponses.add(movieToMovieResponse(movieEntity)));
         MetaResponse metaResponse = MetaResponse.builder()
