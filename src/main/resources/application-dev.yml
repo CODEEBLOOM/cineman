@@ -25,7 +25,7 @@ spring:
     locations: classpath:/db/migration,classpath:/dev/db/migration
     baseline-on-migrate: true
     baseline-version: 0
-    enabled: false
+    enabled: true
   security:
     oauth2:
       client:

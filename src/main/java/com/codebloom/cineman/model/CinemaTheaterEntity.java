@@ -19,7 +19,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "cinema_theaters")
-@Check(constraints = "number_of_rows > 0 and number_of_columns > 0 and regular_seat_row > 0 and vip_seat_row > 0 and double_seat_row > 0")
+@Check(constraints = "number_of_rows > 0 and number_of_columns > 0 and regular_seat_row > 0 and vip_seat_row >= 0 and double_seat_row >= 0 and regular_seat_row + vip_seat_row + double_seat_row = number_of_rows")
 public class CinemaTheaterEntity implements Serializable {
 
     @Id

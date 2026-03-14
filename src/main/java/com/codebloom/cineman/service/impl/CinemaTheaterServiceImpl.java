@@ -8,6 +8,7 @@ import com.codebloom.cineman.controller.response.DummySeat;
 import com.codebloom.cineman.controller.response.MetaResponse;
 import com.codebloom.cineman.exception.ConflictException;
 import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.exception.InvalidDataException;
 import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.CinemaTheatersRepository;
 import com.codebloom.cineman.repository.CinemaTypeRepository;
@@ -37,6 +38,8 @@ public class CinemaTheaterServiceImpl implements CinemaTheaterService {
      */
     @Override
     public CinemaTheaterEntity create(CinemaTheaterRequest request) {
+        validateSeatLayout(request);
+
         // Find the movie theater
         MovieTheaterEntity movieTheater = movieTheaterRepository.findByStatusAndMovieTheaterId(true, request.getMovieTheaterId())
                 .orElseThrow(() -> new DataNotFoundException("Movie Theater Not Found"));
@@ -70,6 +73,8 @@ public class CinemaTheaterServiceImpl implements CinemaTheaterService {
      */
     @Override
     public CinemaTheaterEntity update(Integer id, CinemaTheaterRequest request) {
+        validateSeatLayout(request);
+
         // Find the cinema theater
         CinemaTheaterEntity existCinemaTheater = cinemaTheatersRepository.findById(id).orElseThrow(
                 () -> new DataNotFoundException("Cinema Theater Not Found")
@@ -202,6 +207,34 @@ public class CinemaTheaterServiceImpl implements CinemaTheaterService {
         // and subtracting 1. This is because the ASCII value of 'A' is 65 and we want
         // to start from 'A' which is 1.
         return String.valueOf((char) ('A' + number - 1));
+    }
+
+    private void validateSeatLayout(CinemaTheaterRequest request) {
+        validatePositive(request.getNumberOfRows(), "Số lượng hàng ghế của phòng chiếu phải lớn hơn 0");
+        validatePositive(request.getNumberOfColumns(), "Số lượng cột ghế của phòng chiếu phải lớn hơn 0");
+        validatePositive(request.getRegularSeatRow(), "Phòng chiếu phải có ít nhất 1 hàng ghế thường");
+        validateNonNegative(request.getVipSeatRow(), "Số lượng hàng ghế VIP không được nhỏ hơn 0");
+        validateNonNegative(request.getDoubleSeatRow(), "Số lượng hàng ghế DOUBLE không được nhỏ hơn 0");
+
+        int totalConfiguredRows = request.getRegularSeatRow() + request.getVipSeatRow() + request.getDoubleSeatRow();
+        if (totalConfiguredRows != request.getNumberOfRows()) {
+            throw new InvalidDataException(
+                    "Tổng số hàng ghế thường, VIP và DOUBLE phải bằng số lượng hàng ghế của phòng chiếu. Hiện tại là "
+                            + totalConfiguredRows + "/" + request.getNumberOfRows() + " hàng."
+            );
+        }
+    }
+
+    private void validatePositive(Integer value, String message) {
+        if (value == null || value <= 0) {
+            throw new InvalidDataException(message);
+        }
+    }
+
+    private void validateNonNegative(Integer value, String message) {
+        if (value == null || value < 0) {
+            throw new InvalidDataException(message);
+        }
     }
 
 }
