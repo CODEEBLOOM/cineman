@@ -9,10 +9,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Date;
 
 
 @RestController
@@ -27,7 +30,7 @@ public class ShowTimeAController {
 
     @Operation(summary = "Find all show time", description = "API dùng để lấy tất cả show time")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse> findAll(ShowTimeRequestNew showTimeRequestNew) {
+    public ResponseEntity<ApiResponse> findAll(@Valid ShowTimeRequestNew showTimeRequestNew) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
@@ -77,6 +80,19 @@ public class ShowTimeAController {
     }
 
     @Operation(summary = "Add show time", description = "API dùng tạo lịch chiếu phim")
+    @GetMapping("/cinema-theater/{id}/occupied-slots")
+    public ResponseEntity<ApiResponse> findOccupiedSlots(
+            @PathVariable @Min(value = 1, message = "Id's cinema theater is must be greater than 0") Integer id,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date showDate) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Success")
+                        .data(showTimeService.findOccupiedSlots(id, showDate))
+                        .build()
+        );
+    }
+
     @PostMapping("/add")
     public ResponseEntity<ApiResponse> createShowTime(@RequestBody @Valid ShowTimeRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(

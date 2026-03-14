@@ -6,9 +6,9 @@ import com.codebloom.cineman.model.CinemaTheaterEntity;
 import com.codebloom.cineman.model.MovieEntity;
 import com.codebloom.cineman.model.SeatEntity;
 import com.codebloom.cineman.model.ShowTimeEntity;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> {
+public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long>, JpaSpecificationExecutor<ShowTimeEntity> {
 
     List<ShowTimeEntity> findAllByCinemaTheaterAndShowDateAndStatusNot(CinemaTheaterEntity cinemaTheater, Date showDate, ShowTimeStatus showTimeStatus, Sort sort);
 
@@ -37,6 +37,7 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> 
             FROM ShowTimeEntity st
             WHERE st.movie.movieId = :movieId
             AND st.showDate >= CURRENT_DATE
+            AND st.status = :showTimeStatus
             AND st.cinemaTheater.movieTheater.movieTheaterId = :movieTheaterId""")
     List<ShowTimeEntity> findAllShowTimeByMovieIdAndMovieTheaterId(Integer movieId, ShowTimeStatus showTimeStatus, Integer movieTheaterId, Sort sort);
 
@@ -46,7 +47,7 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> 
             SELECT st
             FROM ShowTimeEntity st
             WHERE st.movie.movieId = :movieId
-            AND st.showDate >= :showDate
+            AND st.showDate = :showDate
             AND st.cinemaTheater.movieTheater.movieTheaterId = :cinemaTheaterId
             AND st.status = :showTimeStatus
             """)
@@ -113,17 +114,10 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> 
            FROM ShowTimeEntity st
            WHERE st.cinemaTheater.movieTheater.movieTheaterId = :movieTheaterId
                 AND st.status = :showTimeStatus
-                AND st.showDate = :showDate
-        """)
-    List<ShowTimeEntity> findAllByFilterAll(Integer movieTheaterId, ShowTimeStatus showTimeStatus, Date showDate, Sort sort);
-
-    @Query("""
-           SELECT st
-           FROM ShowTimeEntity st
-           WHERE st.cinemaTheater.movieTheater.movieTheaterId = :movieTheaterId
-                AND st.status = :showTimeStatus
                 AND st.showDate >= :showDate
         """)
-    List<ShowTimeEntity> findAllByFilter(Integer movieTheaterId, Sort sort);
+    List<ShowTimeEntity> findAllByFilter(@Param("movieTheaterId") Integer movieTheaterId,
+                                         @Param("showTimeStatus") ShowTimeStatus showTimeStatus,
+                                         @Param("showDate") Date showDate);
 
 }

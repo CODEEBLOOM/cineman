@@ -22,4 +22,6 @@ public interface CinemaTheatersRepository extends JpaRepository<CinemaTheaterEnt
     Optional<CinemaTheaterEntity> findByStatusAndCinemaTheaterId(CinemaTheaterStatus  status, Integer cinemaTheaterId);
 
     List<CinemaTheaterEntity> findAllByStatusAndCinemaTheaterId(CinemaTheaterStatus status, Integer cinemaTheaterId);
+
+    List<CinemaTheaterEntity> findAllByStatusAndMovieTheater_MovieTheaterId(CinemaTheaterStatus status, Integer movieTheaterId);
 }
