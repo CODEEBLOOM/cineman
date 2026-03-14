@@ -51,7 +51,7 @@ spring:
       hibernate:
         format_sql: false
   sendgrid:
-    api-key: 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
+    api-key: your_sendgrid_api_key_here
     from-email: admin@em7802.cineman.io.vn
     template-id: d-c59a7109d01d40ca97cd20310ad512f7
     verification-link: http://localhost:8081/api/v01/auth/confirm-email
