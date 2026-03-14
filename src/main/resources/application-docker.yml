@@ -3,7 +3,10 @@ spring:
     activate:
       on-profile: docker
   flyway:
-    enabled: false
+    locations: classpath:/db/migration,classpath:/dev/db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+    enabled: true
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/cineman}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
@@ -12,7 +15,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
 
 cinema:
   upload_file:
