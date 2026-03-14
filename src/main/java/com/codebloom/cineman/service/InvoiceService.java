@@ -36,4 +36,6 @@ public interface InvoiceService {
     InvoiceDetailPageResponse findAllInvoicesByCreatedAtAndMovieTheater(Date createdAt, Integer pageNo, Integer pageSize, Integer... movieTheaterId);
 
     InvoiceTicketResponse  findInvoiceByQRCode(String qrCode);
+
+    void updateStatusUsed(String qrCode);
 }

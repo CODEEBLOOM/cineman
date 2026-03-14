@@ -64,6 +64,7 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> 
                         JOIN SeatEntity s ON s.cinemaTheater.cinemaTheaterId = c.cinemaTheaterId
             WHERE st.id = :showTimeId
                         AND st.status = :showTimeStatus
+                        AND s.status = 0
                         AND s.id NOT IN (SELECT seat.id FROM TicketEntity t JOIN SeatEntity seat ON seat.id = t.seat.id WHERE t.showTime.id = :showTimeId)
             """)
     Long countSeatByShowTimeId(@Param("showTimeId") Long showTimeId, @Param("showTimeStatus") ShowTimeStatus showTimeStatus);
@@ -106,5 +107,23 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> 
                         AND st.showDate >= CURRENT_DATE
             """)
     List<Date> findAllShowDateByCinemaTheaterIdAndStatusInFeatured(Integer cinemaTheaterId, ShowTimeStatus showTimeStatus, Sort sort);
+
+    @Query("""
+           SELECT st
+           FROM ShowTimeEntity st
+           WHERE st.cinemaTheater.movieTheater.movieTheaterId = :movieTheaterId
+                AND st.status = :showTimeStatus
+                AND st.showDate = :showDate
+        """)
+    List<ShowTimeEntity> findAllByFilterAll(Integer movieTheaterId, ShowTimeStatus showTimeStatus, Date showDate, Sort sort);
+
+    @Query("""
+           SELECT st
+           FROM ShowTimeEntity st
+           WHERE st.cinemaTheater.movieTheater.movieTheaterId = :movieTheaterId
+                AND st.status = :showTimeStatus
+                AND st.showDate >= :showDate
+        """)
+    List<ShowTimeEntity> findAllByFilter(Integer movieTheaterId, Sort sort);
 
 }

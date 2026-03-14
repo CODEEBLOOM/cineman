@@ -7,6 +7,8 @@ import com.codebloom.cineman.controller.request.PageRequest;
 import com.codebloom.cineman.model.CinemaTheaterEntity;
 import com.codebloom.cineman.model.SeatMapResponse;
 
+import java.util.List;
+
 public interface CinemaTheaterService {
 
     CinemaTheaterEntity create(CinemaTheaterRequest request);
@@ -17,4 +19,5 @@ public interface CinemaTheaterService {
     SeatMapResponse findSeatMapByCinemaTheaterId(Integer cinemaTheaterId);
     void publishedCinemaTheater(Integer id);
 
+    List<CinemaTheaterEntity> findAllByMovieTheaterId(Integer movieTheaterId);
 }

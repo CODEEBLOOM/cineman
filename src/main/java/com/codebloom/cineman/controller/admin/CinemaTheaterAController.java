@@ -33,7 +33,21 @@ public class CinemaTheaterAController {
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
                         .message("Success")
-                        .data(status.isPresent()?cinemaTheaterService.findAll(pageRequest, status.get()) :cinemaTheaterService.findAll(pageRequest) )
+                        .data(status.isPresent() ? cinemaTheaterService.findAll(pageRequest, status.get()) :cinemaTheaterService.findAll(pageRequest) )
+                        .build()
+        );
+    }
+
+    @Operation(summary = "Get all cinema theater", description = "API dùng để lấy ra toàn phòng chiếu có trong hệ thống.")
+    @GetMapping("/movie-theater/{movieTheaterId}/all")
+    public ResponseEntity<ApiResponse> getAllCinemaTheaterByMovieTheaterId(
+            @PathVariable @Min(1) Integer movieTheaterId
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Success")
+                        .data(cinemaTheaterService.findAllByMovieTheaterId(movieTheaterId))
                         .build()
         );
     }

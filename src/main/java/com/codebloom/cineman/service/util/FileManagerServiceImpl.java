@@ -1,7 +1,6 @@
 package com.codebloom.cineman.service.util;
 
 import com.codebloom.cineman.service.FileManagerService;
-import jakarta.servlet.ServletContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -21,23 +20,25 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FileManagerServiceImpl implements FileManagerService {
 
-
-    private final ServletContext app;
-
     @Value("${cinema.upload_file.base_path}")
     private String basePath;
 
-    private Path getPath(String folder, String fileName)  {
+    private File getFolder(String folder) {
         try {
             URI uri = new URI(basePath.concat("/").concat(folder));
             File dir = Paths.get(uri).toFile();
             if (!dir.exists()) {
-                boolean mkdirs = dir.mkdirs();
+                dir.mkdirs();
             }
-            return Paths.get(dir.getAbsolutePath(), fileName);
+            return dir;
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private Path getPath(String folder, String fileName)  {
+        File dir = getFolder(folder);
+        return Paths.get(dir.getAbsolutePath(), fileName);
     }
 
     @Override
@@ -90,7 +91,7 @@ public class FileManagerServiceImpl implements FileManagerService {
     public List<String> list(String folder) {
         List<String> list = new ArrayList<String>();
 
-        File dir = Paths.get(app.getRealPath("/files/"), folder).toFile();
+        File dir = getFolder(folder);
         if (dir.exists()) {
             File[] files = dir.listFiles();
             assert files != null;

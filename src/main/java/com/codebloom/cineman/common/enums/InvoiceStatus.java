@@ -14,5 +14,8 @@ public enum InvoiceStatus {
     REFUNDED,
 
     /*Trạng thái đang xử lý*/
-    PROCESSING
+    PROCESSING,
+    /*Trạng thái hóa đơn đã in vé*/
+    USED
+
 }

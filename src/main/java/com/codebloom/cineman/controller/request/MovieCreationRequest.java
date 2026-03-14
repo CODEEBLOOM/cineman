@@ -1,60 +1,60 @@
 package com.codebloom.cineman.controller.request;
 
-
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.util.Date;
-
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 public class MovieCreationRequest {
 
-    @NotBlank(message = "Title's movie is not blank !")
-    @Size(max = 100, message = "Title of movie must be less than 100 character !")
-    @NotNull(message = "Title's movie is not null !")
+    @NotBlank(message = "Tiêu đề phim không được để trống!")
+    @Size(max = 100, message = "Tiêu đề phim phải nhỏ hơn 100 ký tự!")
     private String title;
 
-    @NotBlank(message = "Synopsis's movie is not blank !")
-    @Size(max = 250, message = "Synopsis's movie must be less than 250 character !")
+    @NotBlank(message = "Tóm tắt phim không được để trống!")
+    @Size(max = 250, message = "Tóm tắt phim phải nhỏ hơn 250 ký tự!")
     private String synopsis;
 
-    @NotBlank(message = "Detail description of movie is not blank !")
+    @NotBlank(message = "Mô tả chi tiết phim không được để trống!")
     private String detailDescription;
 
-    @NotNull(message = "Release date of movie is not null !")
-    @Temporal(TemporalType.DATE)
+    @NotNull(message = "Ngày khởi chiếu không được để trống!")
     private Date releaseDate;
 
-    @NotBlank(message = "Language's movie is not blank !")
-    @NotNull(message = "Language's movie is not null !")
+    @NotNull(message = "Ngày kết thúc không được để trống!")
+    private Date endDate;
+
+    @NotBlank(message = "Ngôn ngữ phim không được để trống!")
     private String language;
 
-    @Min(value = 1, message = "Duration's movie is must be greater than 1 !")
-    @NotNull(message = "Duration's movie is not null !")
+    @NotNull(message = "Thời lượng phim không được để trống!")
+    @Min(value = 1, message = "Thời lượng phim phải lớn hơn 1 phút!")
     private Integer duration;
 
-    @NotNull(message = "Age limit of movie is not null !")
-    @Min(value = 0, message = "Age limit of movie must be in rage [0 - 100] !")
-    @Max(value = 100, message = "Age limit of movie must be in rage [0 - 100] !")
+    @NotNull(message = "Giới hạn độ tuổi không được để trống!")
+    @Min(value = 0, message = "Độ tuổi phải nằm trong khoảng từ 0 đến 100!")
+    @Max(value = 100, message = "Độ tuổi phải nằm trong khoảng từ 0 đến 100!")
     private Integer age;
 
-    @NotBlank(message = "Trailer link of movie is not blank!")
-    @Pattern(regexp = "^(https?|ftp)://.*$", message = "Trailer link of movie incorrect format!")
-    @NotNull(message = "Trailer link of movie is not null !")
+    @NotNull(message = "Trạng thái phim không được để trống!")
+    @Pattern(regexp = "SC|DC|NC|DB|CNS", message = "Trạng thái phim không hợp lệ!")
+    private String status;
+
+    @NotNull(message = "Thể loại phim không được để trống!")
+    private List<Integer> genres;
+
+    @NotBlank(message = "Link trailer không được để trống!")
+    @Pattern(regexp = "^(https?|ftp)://.*$", message = "Định dạng link trailer không hợp lệ!")
     private String trailerLink;
 
-    @NotBlank(message = "Poster's movie is not blank!")
-    @NotNull(message = "Poster's movie is not null !")
+    @NotBlank(message = "Ảnh poster không được để trống!")
     private String posterImage;
 
-    @NotBlank(message = "Banner's movie is not blank!")
-    @NotNull(message = "Banner's movie is not null !")
+    @NotBlank(message = "Ảnh banner không được để trống!")
     private String bannerImage;
-
 
 }

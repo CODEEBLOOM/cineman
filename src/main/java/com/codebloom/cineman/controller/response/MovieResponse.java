@@ -22,6 +22,7 @@ public class MovieResponse {
     private String synopsis;
     private String detailDescription;
     private Date releaseDate;
+    private Date endDate;
     private String language;
     private Integer duration;
     private Rating rating;

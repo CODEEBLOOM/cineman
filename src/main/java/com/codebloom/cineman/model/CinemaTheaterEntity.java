@@ -27,7 +27,7 @@ public class CinemaTheaterEntity implements Serializable {
     @Column(name = "cinema_theater_id")
     Integer cinemaTheaterId;
 
-    @Column(name = "name", columnDefinition = "NVARCHAR(100)")
+    @Column(name = "name", length = 100)
     String name;
 
     @Enumerated(EnumType.ORDINAL)
@@ -66,3 +66,4 @@ public class CinemaTheaterEntity implements Serializable {
     List<ShowTimeEntity> showTimes;
 
 }
+

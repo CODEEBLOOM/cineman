@@ -23,10 +23,10 @@ public class MovieRoleEntity implements Serializable {
     @Column(name = "movie_role_id")
     Integer movieRoleId;
 
-    @Column(name = "name", columnDefinition = "NVARCHAR(100)", nullable = false)
+    @Column(name = "name", length = 100, nullable = false)
     String name;
 
-    @Column(name = "description", columnDefinition = "NVARCHAR(250)")
+    @Column(name = "description", length = 250)
     String description;
 
     @Column(name = "active", nullable = false)

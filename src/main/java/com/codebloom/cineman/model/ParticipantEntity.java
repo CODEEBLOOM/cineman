@@ -24,20 +24,20 @@ public class ParticipantEntity implements Serializable {
     @Column(name = "participant_id")
     Integer participantId;
 
-    @Column(name = "birth_name", columnDefinition = "NVARCHAR(100)", nullable = false)
+    @Column(name = "birth_name", length = 100, nullable = false)
     String birthName;
 
-    @Column(name = "nickname", columnDefinition = "NVARCHAR(100)", nullable = false)
+    @Column(name = "nickname", length = 100, nullable = false)
     String nickname;
 
-    @Column(name = "gender", columnDefinition = "TINYINT", nullable = false)
+    @Column(name = "gender", nullable = false)
     @Enumerated(EnumType.ORDINAL)
     GenderUser gender;
 
-    @Column(name = "nationality", columnDefinition = "NVARCHAR(100)", nullable = false)
+    @Column(name = "nationality", length = 100, nullable = false)
     String nationality;
 
-    @Column(name = "mini_bio", columnDefinition = "NVARCHAR(500)")
+    @Column(name = "mini_bio", length = 500)
     String miniBio;
 
     @Column(name = "avatar", length = 200, nullable = false)
@@ -50,4 +50,5 @@ public class ParticipantEntity implements Serializable {
     @JsonIgnore
     Set<MovieParticipantEntity> movieParticipants;
 }
+
 

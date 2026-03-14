@@ -1,7 +1,9 @@
 package com.codebloom.cineman.service;
 
 import com.codebloom.cineman.controller.request.MoviePageQueryRequest;
+import com.codebloom.cineman.controller.request.ShowTimeDetailResponseNew;
 import com.codebloom.cineman.controller.request.ShowTimeRequest;
+import com.codebloom.cineman.controller.request.ShowTimeRequestNew;
 import com.codebloom.cineman.controller.response.MovieResponse;
 import com.codebloom.cineman.controller.response.ShowTimeDetailResponse;
 import com.codebloom.cineman.controller.response.ShowTimeResponse;
@@ -28,4 +30,13 @@ public interface ShowTimeService {
 
     List<Date> findAllShowDateByCinemaTheaterIdInFeatured(Integer cinemaTheaterId);
     List<MovieResponse> findAllMovieByCinemaTheaterIdAndShowDate(Integer cinemaTheaterId, Date showDate, MoviePageQueryRequest req);
+
+    /**
+     * Find all showtime by filter
+     *
+     * @param showTime the showtime request
+     * @return the list of showtime detail response
+     */
+    List<ShowTimeDetailResponse> findAllByFilter(ShowTimeRequestNew showTime);
+
 }

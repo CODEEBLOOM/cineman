@@ -17,12 +17,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
 @Slf4j(topic = "MEMBERSHIP_RANK_SERVICE")
 @RequiredArgsConstructor
 public class MembershipRankServiceImpl implements MembershipRankService {
+
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     private final MembershipRankRepository membershipRankRepository;
     private final UserRepository userRepository;
@@ -45,6 +48,7 @@ public class MembershipRankServiceImpl implements MembershipRankService {
                 .returnPointsTicket(request.getReturnPointsTicket())
                 .returnPointsSnack(request.getReturnPointsSnack())
                 .priorityLevel(request.getPriorityLevel())
+                .status(Boolean.TRUE)
                 .build();
         membershipRankRepository.save(membershipRankEntity);
 
@@ -167,6 +171,9 @@ public class MembershipRankServiceImpl implements MembershipRankService {
                 .returnPointsTicket(entity.getReturnPointsTicket())
                 .returnPointsSnack(entity.getReturnPointsSnack())
                 .priorityLevel(entity.getPriorityLevel())
+                .status(entity.getStatus())
+                .createdAt(entity.getCreatedAt() == null ? null : entity.getCreatedAt().format(DATE_TIME_FORMATTER))
+                .updatedAt(entity.getUpdatedAt() == null ? null : entity.getUpdatedAt().format(DATE_TIME_FORMATTER))
                 .build();
     }
 }

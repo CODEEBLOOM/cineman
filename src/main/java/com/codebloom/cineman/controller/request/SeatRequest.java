@@ -1,7 +1,6 @@
 package com.codebloom.cineman.controller.request;
 
 import com.codebloom.cineman.common.enums.SeatStatus;
-import com.codebloom.cineman.common.enums.SeatType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -9,22 +8,24 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class SeatRequest {
 
-    @Min(value = 0 , message = "Chỉ số cột của ghế phải lớn hơn 0 !")
+    @Min(value = 1 , message = "Chỉ số cột của ghế phải lớn hơn 0 !")
     @NotNull(message = "Chỉ số cột của ghế không được phép null !")
     private Integer columnIndex;
 
-    @Min(value = 0 , message = "Chỉ số hàng của ghế phải lớn hơn 0 !")
+    @Min(value = 1 , message = "Chỉ số hàng của ghế phải lớn hơn 0 !")
     @NotNull(message = "Chỉ số hàng của ghế không được phép null !")
     private Integer rowIndex;
 
-    @Size(min = 1, max = 10, message = "Nhãn của ghế có số kí tự nhỏ hơn 10 kí tự !")
+    @Size(max = 10, message = "Nhãn của ghế có số kí tự nhỏ hơn 10 kí tự !")
     private String label;
 
     @Size(min = 1, max = 25, message = "Tên loại ghế phải từ 1 đến 25 ký tự")

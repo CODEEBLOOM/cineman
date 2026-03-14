@@ -36,13 +36,13 @@ public class UserEntity implements  Serializable {
     @Column(name = "password", length = 250, nullable = false)
     private String password;
 
-    @Column(name = "fullname", columnDefinition = "NVARCHAR(100)", nullable = false)
+    @Column(name = "fullname", length = 100, nullable = false)
     private String fullName;
 
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 
-    @Column(name = "address", columnDefinition = "NVARCHAR(200)")
+    @Column(name = "address", length = 200)
     private String address;
 
     @Column(name = "avatar", length = 250)
@@ -53,7 +53,7 @@ public class UserEntity implements  Serializable {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date dateOfBirth;
 
-    @Column(name = "gender", columnDefinition = "TINYINT", nullable = false)
+    @Column(name = "gender", nullable = false)
     @Enumerated(EnumType.ORDINAL)
     private GenderUser gender;
 
@@ -81,7 +81,7 @@ public class UserEntity implements  Serializable {
     private MembershipRankEntity membershipRank;
 
     @Enumerated(EnumType.ORDINAL)
-    @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
+    @Column(name = "status", nullable = false)
     private UserStatus status;
 
     @Column(name = "refresh_token")
@@ -117,3 +117,4 @@ public class UserEntity implements  Serializable {
     private MovieTheaterEntity movieTheater;
 
 }
+

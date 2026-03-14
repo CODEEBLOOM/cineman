@@ -39,7 +39,7 @@ public class SeatEntity implements Serializable {
     @JoinColumn(name = "seat_type_id", nullable = false)
     SeatTypeEntity seatType;
 
-    @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
+    @Column(name = "status", nullable = false)
     SeatStatus status;
 
     @OneToMany(mappedBy = "seat")
@@ -52,3 +52,4 @@ public class SeatEntity implements Serializable {
     CinemaTheaterEntity cinemaTheater;
 
 }
+

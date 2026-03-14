@@ -1,6 +1,7 @@
 package com.codebloom.cineman.controller.admin;
 
 import com.codebloom.cineman.controller.request.MovieCreationRequest;
+import com.codebloom.cineman.controller.request.MovieCreationRequestNew;
 import com.codebloom.cineman.controller.request.MovieUpdateRequest;
 import com.codebloom.cineman.controller.request.MoviePageQueryRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
@@ -28,6 +29,11 @@ public class MovieAController {
     @Operation(summary = "Get all movies", description = "API dùng để lấy ra toàn bộ phim có trong hệ thống.")
     @GetMapping("/all")
     public ResponseEntity<ApiResponse> getAllMovies(MoviePageQueryRequest request) {
+        if (request.getStatus() == null || request.getStatus().isBlank()) {
+            request.setStatus("ALL");
+        } else {
+            request.setStatus(request.getStatus().trim().toUpperCase());
+        }
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
@@ -78,9 +84,9 @@ public class MovieAController {
     @DeleteMapping("/{id}/delete")
     public ResponseEntity<ApiResponse> deleteMovie(@PathVariable @Min(value = 1, message = "Id's movie is must be greater than 0") Integer id) {
         movieService.delete(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(
+        return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
-                        .status(HttpStatus.NO_CONTENT.value())
+                        .status(HttpStatus.OK.value())
                         .message("Delete Movie Successfully")
                         .data(null)
                         .build()

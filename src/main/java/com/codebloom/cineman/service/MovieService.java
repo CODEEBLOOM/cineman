@@ -18,9 +18,12 @@ public interface MovieService  {
     MovieResponse findById(Integer id);
     MovieEntity findById(Integer id, boolean isEntity);
     MovieEntity save(MovieCreationRequest movie);
+
     MovieResponse update(MovieUpdateRequest movie);
     void delete(Integer id );
     MoviePageableResponse movieToMoviePageableResponse(Page<MovieEntity> page);
+
+//    MovieResponseNew createMovie(MovieCreationRequestNew movie);
 
 
 }

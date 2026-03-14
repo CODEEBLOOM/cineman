@@ -8,15 +8,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface CinemaTheatersRepository extends JpaRepository<CinemaTheaterEntity,Integer > {
     Optional<CinemaTheaterEntity> findByStatusNotAndCinemaTheaterId(CinemaTheaterStatus status, Integer cinemaTheaterId);
-
+    
     Page<CinemaTheaterEntity> findAllByStatusNot(CinemaTheaterStatus status, Pageable pageable);
 
     Page<CinemaTheaterEntity> findAllByStatus(CinemaTheaterStatus cinemaTheaterStatus, Pageable pageable);
 
     Optional<CinemaTheaterEntity> findByStatusAndCinemaTheaterId(CinemaTheaterStatus  status, Integer cinemaTheaterId);
+
+    List<CinemaTheaterEntity> findAllByStatusAndCinemaTheaterId(CinemaTheaterStatus status, Integer cinemaTheaterId);
 }

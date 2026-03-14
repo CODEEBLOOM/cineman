@@ -27,10 +27,10 @@ public class PromotionEntity implements Serializable  {
     @Column(name = "promotion_id")
     private Long id;
 
-    @Column(columnDefinition = "NVARCHAR(100)", nullable = false)
+    @Column(length = 100, nullable = false)
     private String name;
 
-    @Column( columnDefinition = "NVARCHAR(500)")
+    @Column(length = 500)
     private String content;
 
     @Column(name = "code", length=100, nullable = false)
@@ -48,10 +48,10 @@ public class PromotionEntity implements Serializable  {
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @Column(name = "limit_amount", nullable = false, columnDefinition = "DECIMAL(10,2)")
+    @Column(name = "limit_amount", nullable = false)
     private Double limitAmount;
 
-    @Column(name = "status", columnDefinition = "TINYINT", nullable = false)
+    @Column(name = "status", nullable = false)
     private StatusPromotion status;
 
     @ManyToOne
@@ -65,3 +65,4 @@ public class PromotionEntity implements Serializable  {
 
 
 }
+

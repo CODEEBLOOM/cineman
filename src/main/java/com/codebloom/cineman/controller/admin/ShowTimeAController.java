@@ -1,6 +1,7 @@
 package com.codebloom.cineman.controller.admin;
 
 import com.codebloom.cineman.controller.request.ShowTimeRequest;
+import com.codebloom.cineman.controller.request.ShowTimeRequestNew;
 import com.codebloom.cineman.controller.response.ApiResponse;
 import com.codebloom.cineman.service.ShowTimeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,12 +27,12 @@ public class ShowTimeAController {
 
     @Operation(summary = "Find all show time", description = "API dùng để lấy tất cả show time")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse> findAll() {
+    public ResponseEntity<ApiResponse> findAll(ShowTimeRequestNew showTimeRequestNew) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
                         .message("Success")
-                        .data(showTimeService.findAll())
+                        .data(showTimeService.findAllByFilter(showTimeRequestNew))
                         .build()
         );
     }

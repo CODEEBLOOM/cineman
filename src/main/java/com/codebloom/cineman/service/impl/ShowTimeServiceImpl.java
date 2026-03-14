@@ -5,14 +5,18 @@ import com.codebloom.cineman.common.constant.MovieTheaterOfficeHours;
 import com.codebloom.cineman.common.enums.CinemaTheaterStatus;
 import com.codebloom.cineman.common.enums.ShowTimeStatus;
 import com.codebloom.cineman.controller.request.MoviePageQueryRequest;
+import com.codebloom.cineman.controller.request.ShowTimeDetailResponseNew;
 import com.codebloom.cineman.controller.request.ShowTimeRequest;
+import com.codebloom.cineman.controller.request.ShowTimeRequestNew;
 import com.codebloom.cineman.controller.response.MovieResponse;
 import com.codebloom.cineman.controller.response.ShowTimeDetailResponse;
 import com.codebloom.cineman.controller.response.ShowTimeResponse;
+import com.codebloom.cineman.exception.ConflictException;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.CinemaTheatersRepository;
 import com.codebloom.cineman.repository.MovieRepository;
+import com.codebloom.cineman.repository.MovieVariationRepository;
 import com.codebloom.cineman.repository.ShowTimeRepository;
 import com.codebloom.cineman.service.MovieService;
 import com.codebloom.cineman.service.MovieStatusService;
@@ -26,7 +30,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -40,6 +46,7 @@ public class ShowTimeServiceImpl implements ShowTimeService {
     private final MovieRepository movieRepository;
     private final MovieService movieService;
     private final MovieStatusService movieStatusService;
+    private final MovieVariationRepository movieVariationRepository;
 
     /**
      * Tạo một lịch chiếu phim
@@ -52,16 +59,18 @@ public class ShowTimeServiceImpl implements ShowTimeService {
     public ShowTimeResponse create(ShowTimeRequest request) {
         log.info("Create Showtime With request: {}", request);
         CinemaTheaterEntity cinemaTheater = cinemaTheaterRepository.findByStatusAndCinemaTheaterId(CinemaTheaterStatus.PUBLISHED, request.getCinemaTheaterId())
-                .orElseThrow(() -> new IllegalArgumentException("Cinema Theater Not Found With Id: " + request.getCinemaTheaterId()));
+                .orElseThrow(() -> new ConflictException("Cinema Theater Not Found With Id: " + request.getCinemaTheaterId()));
 
         MovieEntity movie = movieRepository.findById(request.getMovieId())
-                .orElseThrow(() -> new IllegalArgumentException("Movie Not Found With Id: " + request.getMovieId()));
+                .orElseThrow(() -> new ConflictException("Movie Not Found With Id: " + request.getMovieId()));
 
         if (movie.getReleaseDate().after(request.getShowDate())) {
-            throw new IllegalArgumentException("Movie is not released yet !");
+            throw new ConflictException("Movie is not released yet !");
         }
 
         LocalTime endTime = this.checkShowTime(request, movie, cinemaTheater);
+        MovieVariationEntity movieVariationEntity = movieVariationRepository.findById(request.getMovieVariationId())
+                .orElseThrow(() -> new DataNotFoundException("Movie Variation Not Found With Id: " + request.getMovieVariationId()));
         ShowTimeEntity showTimeEntity = ShowTimeEntity.builder()
                 .showDate(request.getShowDate())
                 .startTime(request.getStartTime())
@@ -70,6 +79,7 @@ public class ShowTimeServiceImpl implements ShowTimeService {
                 .status(request.getStatus())
                 .movie(movie)
                 .cinemaTheater(cinemaTheater)
+                .movieVariation(movieVariationEntity)
                 .build();
         showTimeEntity = showTimeRepository.save(showTimeEntity);
         log.info("Created Showtime With Id: {} and status: {}", showTimeEntity.getId(), showTimeEntity.getStatus());
@@ -88,16 +98,16 @@ public class ShowTimeServiceImpl implements ShowTimeService {
     public ShowTimeResponse update(Long id, ShowTimeRequest request) {
         log.info("Update Showtime With Id: {} and request: {}", id, request);
         ShowTimeEntity showTimeEntity = showTimeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Showtime Not Found With Id: " + id));
+                .orElseThrow(() -> new ConflictException("Showtime Not Found With Id: " + id));
         if (showTimeEntity.getStatus().equals(ShowTimeStatus.VALID)) {
-            throw new IllegalArgumentException("Showtime is not available to update !");
+            throw new ConflictException("Showtime is not available to update !");
         } else {
 
             CinemaTheaterEntity cinemaTheater = cinemaTheaterRepository.findByStatusAndCinemaTheaterId(CinemaTheaterStatus.PUBLISHED, request.getCinemaTheaterId())
-                    .orElseThrow(() -> new IllegalArgumentException("Cinema Theater Not Found With Id: " + request.getCinemaTheaterId()));
+                    .orElseThrow(() -> new ConflictException("Cinema Theater Not Found With Id: " + request.getCinemaTheaterId()));
 
             MovieEntity movie = movieRepository.findById(request.getMovieId())
-                    .orElseThrow(() -> new IllegalArgumentException("Movie Not Found With Id: " + request.getMovieId()));
+                    .orElseThrow(() -> new ConflictException("Movie Not Found With Id: " + request.getMovieId()));
 
             LocalTime endTime = this.checkShowTime(request, movie, cinemaTheater, showTimeEntity.getId());
 
@@ -166,7 +176,7 @@ public class ShowTimeServiceImpl implements ShowTimeService {
                 .orElseThrow(() -> new DataNotFoundException("Movie Not Found With Id: " + movieId));
 
         if (movie.getStatus().getStatusId().equals(MovieStatus.MOVIE_STATUS_CNS)) {
-            throw new IllegalArgumentException("Movie is not available !");
+            throw new ConflictException("Movie is not available !");
         }
 
         List<ShowTimeResponse> showTimes = showTimeRepository.findAllByMovieAndStatusNot(movie, ShowTimeStatus.DELETED)
@@ -210,13 +220,14 @@ public class ShowTimeServiceImpl implements ShowTimeService {
 
         List<ShowTimeDetailResponse> showTimeDetailResponses = showTimes.stream()
                 .map(showTime -> {
-                    return ShowTimeDetailResponse.builder()
-                            .showTime(showTime)
-                            .totalSeatEmpty(this.findCountByShowTimeId(showTime.getId()).intValue())
-                            .movie(showTime.getMovie())
-                            .cinemaTheater(showTime.getCinemaTheater())
-                            .movieVariation(showTime.getMovieVariation())
-                            .build();
+                        return ShowTimeDetailResponse.builder()
+                                .showTime(showTime)
+                                .totalSeatEmpty(this.findCountByShowTimeId(showTime.getId()).intValue())
+                                .movie(showTime.getMovie())
+                                .cinemaTheater(showTime.getCinemaTheater())
+                                .movieVariation(showTime.getMovieVariation())
+                                .build();
+
                 }).toList();
         return showTimeDetailResponses.isEmpty() ? null : showTimeDetailResponses;
     }
@@ -286,6 +297,30 @@ public class ShowTimeServiceImpl implements ShowTimeService {
         return movieService.movieToMoviePageableResponse(page).getMovies();
     }
 
+    @Override
+    public List<ShowTimeDetailResponse> findAllByFilter(ShowTimeRequestNew request) {
+        List<ShowTimeEntity> showTimes = showTimeRepository.findAll();
+        List<ShowTimeDetailResponse> showTimeDetailResponses = showTimes.stream()
+                .map(showTime -> {
+                    return ShowTimeDetailResponse.builder()
+                            .showTime(showTime)
+                            .totalSeatEmpty(this.findCountByShowTimeId(showTime.getId()).intValue())
+                            .movie(showTime.getMovie())
+                            .cinemaTheater(showTime.getCinemaTheater())
+                            .movieVariation(showTime.getMovieVariation())
+                            .build();
+                }).toList();
+        return showTimeDetailResponses.isEmpty() ? null : showTimeDetailResponses;
+    }
+
+    private ShowTimeDetailResponseNew toShowTimeDetailResponseNew (List<ShowTimeEntity> showTime) {
+        return ShowTimeDetailResponseNew.builder()
+                .showTimes(showTime)
+                .movieTheater(showTime.get(0).getCinemaTheater().getMovieTheater())
+                .cinemaTheater(showTime.get(0).getCinemaTheater())
+                .movie(showTime.get(0).getMovie())
+                .build();
+    }
 
     /**
      * Convert ShowTimeEntity to ShowTimeResponse
@@ -314,7 +349,7 @@ public class ShowTimeServiceImpl implements ShowTimeService {
         /* Kiểm tra giờ hành chính của rạp chiếu*/
         if (request.getStartTime().isBefore(MovieTheaterOfficeHours.OPENING_HOURS) || endTime.isAfter(MovieTheaterOfficeHours.CLOSING_HOURS)) {
             log.info("Showtime must be between {} and {}", MovieTheaterOfficeHours.OPENING_HOURS, MovieTheaterOfficeHours.CLOSING_HOURS);
-            throw new IllegalArgumentException("Showtime must be between " + MovieTheaterOfficeHours.OPENING_HOURS + " and " + MovieTheaterOfficeHours.CLOSING_HOURS);
+            throw new ConflictException("Showtime must be between " + MovieTheaterOfficeHours.OPENING_HOURS + " and " + MovieTheaterOfficeHours.CLOSING_HOURS);
         }
 
         /* Kiểm tra trạng thái phim trước khi tạo showtime */
@@ -340,7 +375,7 @@ public class ShowTimeServiceImpl implements ShowTimeService {
 
             if ((newStart.isBefore(existingEnd) || newStart.equals(existingEnd)) && (existingStart.isBefore(endTime) || existingStart.equals(endTime))) {
                 log.error("Showtime already exists at this time!");
-                throw new IllegalArgumentException("Showtime already exists at this time!");
+                throw new ConflictException("Showtime already exists at this time!");
             }
         }
         return endTime;

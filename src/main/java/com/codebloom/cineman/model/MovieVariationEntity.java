@@ -19,10 +19,10 @@ public class MovieVariationEntity {
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "name", columnDefinition = "NVARCHAR(60)", unique = true, nullable = false)
+    @Column(name = "name", length = 60, unique = true, nullable = false)
     private String name;
 
-    @Column(name = "status", columnDefinition = "TINYINT", nullable = false)
+    @Column(name = "status", nullable = false)
     private Boolean status;
 
     @OneToMany(mappedBy = "movieVariation")
@@ -30,3 +30,4 @@ public class MovieVariationEntity {
     private List<ShowTimeEntity> showTimes;
 
 }
+

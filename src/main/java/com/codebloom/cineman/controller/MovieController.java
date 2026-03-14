@@ -1,5 +1,6 @@
 package com.codebloom.cineman.controller;
 
+import com.codebloom.cineman.common.constant.MovieStatus;
 import com.codebloom.cineman.controller.request.MoviePageQueryRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
 import com.codebloom.cineman.service.MovieService;
@@ -24,6 +25,7 @@ public class MovieController {
     @Operation(summary = "Get all movie", description = "Api dùng để client lấy tất cả movie trong hệ thống không xác thực")
     @GetMapping("/all")
     public ResponseEntity<ApiResponse> getAllMovie( MoviePageQueryRequest req) {
+        applyDefaultStatus(req, MovieStatus.MOVIE_STATUS_DC);
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
@@ -38,6 +40,7 @@ public class MovieController {
     public ResponseEntity<ApiResponse> getAllMovieByMovieTheater(
             @PathVariable @Min(value = 1, message = "Id's movie theater is must be greater than or equal 1") Integer id,
             MoviePageQueryRequest req) {
+        applyDefaultStatus(req, MovieStatus.MOVIE_STATUS_DC);
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
@@ -57,6 +60,14 @@ public class MovieController {
                         .data(movieService.findById(id))
                         .build()
         );
+    }
+
+    private void applyDefaultStatus(MoviePageQueryRequest request, String defaultStatus) {
+        if (request.getStatus() == null || request.getStatus().isBlank()) {
+            request.setStatus(defaultStatus);
+            return;
+        }
+        request.setStatus(request.getStatus().trim().toUpperCase());
     }
 
 }

@@ -23,10 +23,10 @@ public class SnackTypeEntity implements Serializable {
     @Column(name = "snack_type_id")
     Integer id;
 
-    @Column(name = "name", columnDefinition = "NVARCHAR(100)", nullable = false)
+    @Column(name = "name", length = 100, nullable = false)
     String name;
 
-    @Column(name = "description", columnDefinition = "NVARCHAR(200)")
+    @Column(name = "description", length = 200)
     String description;
 
     @OneToMany(mappedBy = "snackType")
@@ -36,3 +36,4 @@ public class SnackTypeEntity implements Serializable {
     @Column(name = "is_active", nullable = false)
     Boolean isActive;
 }
+

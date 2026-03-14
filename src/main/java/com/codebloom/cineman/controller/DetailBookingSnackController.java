@@ -1,6 +1,8 @@
 package com.codebloom.cineman.controller;
 
 import com.codebloom.cineman.controller.request.DetailBookingSnackRequest;
+import com.codebloom.cineman.controller.request.DetailBookingSnackUpdateRequest;
+import com.codebloom.cineman.controller.request.UpdateMulDetailBookingSnack;
 import com.codebloom.cineman.controller.response.ApiResponse;
 import com.codebloom.cineman.service.DetailBookingSnackService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,4 +49,34 @@ public class DetailBookingSnackController {
                         .build()
         );
     }
+
+
+//    @Operation(summary = "Update multiple Snack to Invoice")
+//    @PutMapping("/update-multiple")
+//    public ResponseEntity<ApiResponse> updateMultiple(
+//            @RequestBody @Valid UpdateMulDetailBookingSnack request) {
+//        return ResponseEntity.status(HttpStatus.CREATED).body(
+//                ApiResponse.builder()
+//                        .status(HttpStatus.CREATED.value())
+//                        .message("Snack updated to Invoice successfully")
+//                        .data(detailBookingSnackService.updateMultiple(request.getIdsDelete(), request.getData()))
+//                        .build()
+//        );
+//    }
+
+    @Operation(summary = "Update multiple Snack to Invoice")
+    @DeleteMapping("/invoice/{id}/clear-multiple")
+    public ResponseEntity<ApiResponse> clearMultiple(
+            @PathVariable @Min(value = 1, message = "Id's invoice is must be greater than 0 !") Long id
+    ) {
+        detailBookingSnackService.clearByInvoiceId(id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Snack updated to Invoice successfully")
+                        .data(null)
+                        .build()
+        );
+    }
+
 }

@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.codebloom</groupId>
-	<artifactId>cineman</artifactId>
+	<artifactId>cineman-backend-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>cineman</name>
 	<description>Backend service for project Cinema Management System.</description>
@@ -27,7 +27,9 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>17</java.version>
+		<java.version>21</java.version>
+        <image.path>registry.hub.docker.com/repositories/sondoquang</image.path>
+        <start-class>com.codebloom.cineman.CinemanApplication</start-class>
 	</properties>
 	<dependencies>
 
@@ -63,11 +65,15 @@
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
+
+        <!--Dependency lombok-->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+
+        <!--Dependency test-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -80,10 +86,10 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
-		<!-- Dependency connect database SQL Server-->
+		<!-- Dependency connect database PostgreSQL -->
 		<dependency>
-			<groupId>com.microsoft.sqlserver</groupId>
-			<artifactId>mssql-jdbc</artifactId>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 
@@ -93,6 +99,7 @@
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>2.8.6</version>
 		</dependency>
+
 		<!-- Spring Security -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -186,10 +193,10 @@
 			<version>11.10.0</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-sqlserver -->
+		<!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-database-postgresql -->
 		<dependency>
 			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-sqlserver</artifactId>
+			<artifactId>flyway-database-postgresql</artifactId>
 			<version>11.10.0</version>
 		</dependency>
 
@@ -275,10 +282,10 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
+				<version>3.11.0</version>
 				<configuration>
-					<source>17</source>
-					<target>17</target>
+					<source>21</source>
+					<target>21</target>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>
@@ -288,7 +295,76 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
-		</plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>com.google.cloud.tools</groupId>-->
+<!--                <artifactId>jib-maven-plugin</artifactId>-->
+<!--                <version>2.8.0</version>-->
+<!--                <configuration>-->
+<!--                    <from>-->
+<!--                        <image>openjdk:21-alpine</image>-->
+<!--                    </from>-->
+<!--                    <to>-->
+<!--                        <image>${image.path}/${project.artifactId}:20251014</image>-->
+<!--&lt;!&ndash;                        <image>registry.hub.docker.com/repositories/sondoquang/cineman-backend-service:20241213</image>&ndash;&gt;-->
+<!--                        &lt;!&ndash; Setting dockerhub account &ndash;&gt;-->
+<!--                        <auth>-->
+<!--                            &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;-->
+<!--&lt;!&ndash;                            <username>${env.DOCKER_USERNAME}</username>&ndash;&gt;-->
+<!--                            <username>sondoquang3@gmail.com</username>-->
+<!--                            &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;-->
+<!--                            <password>Dfghjklo@1</password>-->
+<!--                        </auth>-->
+<!--                    </to>-->
+<!--                    <container>-->
+<!--                        <ports>-->
+<!--                            <port>8080</port>-->
+<!--                        </ports>-->
+<!--                        <environment>-->
+<!--                            <SPRING_PROFILES_ACTIVE>test</SPRING_PROFILES_ACTIVE>-->
+<!--                        </environment>-->
+<!--                    </container>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.4.6</version>
+                <configuration>
+                    <from>
+                        <!-- dùng JRE 21 cho runtime -->
+                        <image>eclipse-temurin:21-jre-alpine</image>
+                    </from>
+                    <to>
+                        <image>sondoquang/cineman-backend-service</image>
+                        <tags>
+                            <tag>20251014</tag>
+                        </tags>
+                    </to>
+                    <container>
+                        <mainClass>com.codebloom.cineman.CinemanApplication</mainClass>
+                        <ports>
+                            <port>8080</port>
+                        </ports>
+                        <!-- tùy chọn -->
+                        <jvmFlags>
+                            <jvmFlag>-Dspring.profiles.active=dev</jvmFlag>
+                        </jvmFlags>
+                    </container>
+                </configuration>
+            </plugin>
+        </plugins>
 		<finalName>
 			cineman
 		</finalName>

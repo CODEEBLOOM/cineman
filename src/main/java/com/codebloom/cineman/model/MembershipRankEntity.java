@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,20 +37,22 @@ public class MembershipRankEntity {
     @Column(name = "priority_level", nullable = false)
     private Integer priorityLevel;
 
-    @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
-    private Boolean status;
+    @Column(name = "status", nullable = false)
+    @Builder.Default
+    private Boolean status = Boolean.TRUE;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created_at", columnDefinition = "DATETIME")
+    @Column(name = "created_at")
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "updated_at", columnDefinition = "DATETIME")
-    @CreationTimestamp
+    @Column(name = "updated_at")
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
     @OneToMany (mappedBy = "membershipRank")
     @JsonIgnore
     private List<UserEntity> users;
 }
+

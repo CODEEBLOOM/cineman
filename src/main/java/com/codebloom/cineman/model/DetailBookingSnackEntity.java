@@ -16,12 +16,12 @@ import java.io.Serializable;
 @Builder
 @Entity
 @Table(name = "detail_booking_snacks", uniqueConstraints = { @UniqueConstraint(columnNames = {"invoice_id", "snack_id"})})
-@Check(constraints = "total_money >=0 AND total_snack >= 0")
+@Check(constraints = "total_price >= 0 AND total_snack >= 0")
 public class DetailBookingSnackEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @Column(name = "total_snack")
     private Integer totalSnack;

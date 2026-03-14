@@ -26,18 +26,18 @@ public class FeedbackEntity implements Serializable {
     Integer feedbackId;
 
 
-    @Column(name = "content", columnDefinition = "NVARCHAR(500)")
+    @Column(name = "content", length = 500)
     String content;
 
-    @Column(name = "satisfaction_level", columnDefinition = "TINYINT", nullable = false)
+    @Column(name = "satisfaction_level", nullable = false)
     @Enumerated(EnumType.ORDINAL)
     SatisfactionLevel satisfactionLevel;
 
-    @Column(name = "reason_for_review", columnDefinition = "NVARCHAR(100)", nullable = false)
+    @Column(name = "reason_for_review", length = 100, nullable = false)
     String reasonForReview;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "date_feedback", columnDefinition = "DATETIME")
+    @Column(name = "date_feedback")
     @CreationTimestamp
     Date dateFeedback;
 
@@ -50,3 +50,4 @@ public class FeedbackEntity implements Serializable {
     FeedbackTopicEntity topic;
 
 }
+

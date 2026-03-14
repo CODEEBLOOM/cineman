@@ -21,10 +21,10 @@ public class MovieStatusEntity implements Serializable {
     @Column(name = "status_id", length = 25)
     private String statusId;
 
-    @Column(name = "name", columnDefinition = "NVARCHAR(100)", nullable = false)
+    @Column(name = "name", length = 100, nullable = false)
     private String name;
 
-    @Column(name = "description", columnDefinition = "NVARCHAR(250)")
+    @Column(name = "description", length = 250)
     private String description;
 
     @Column(name = "active", nullable = false)
@@ -36,4 +36,5 @@ public class MovieStatusEntity implements Serializable {
 
 
 }
+
 

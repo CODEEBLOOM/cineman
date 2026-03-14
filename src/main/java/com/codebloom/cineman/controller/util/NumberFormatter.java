@@ -40,8 +40,5 @@ public class NumberFormatter {
         return DECIMAL_FORMAT.format(number);
     }
 
-    public static void main(String[] args) {
-        System.out.println(format(123456789));
-    }
 }
 

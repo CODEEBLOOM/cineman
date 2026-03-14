@@ -26,10 +26,10 @@ public class CinemaTypeEntity implements Serializable {
     @Column(name="code", nullable = false, length = 25)
     String code;
 
-    @Column(columnDefinition = "NVARCHAR(200)", nullable = false)
+    @Column(length = 200, nullable = false)
     String name;
 
-    @Column(columnDefinition = "NVARCHAR(250)")
+    @Column(length = 250)
     String description;
 
     @Column(name = "status", nullable = false)
@@ -41,3 +41,4 @@ public class CinemaTypeEntity implements Serializable {
 
 
 }
+

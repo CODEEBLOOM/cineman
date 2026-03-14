@@ -338,6 +338,11 @@ public class InvoiceServiceImpl implements InvoiceService {
         // Thêm QR code cho hóa đơn //
         String qrCode = xStr.getKey();
         invoiceEntity.setQrCode(qrCode);
+        if(invoiceEntity.getStaff() != null) {
+            invoiceEntity.setPaymentMethod(PaymentMethod.CASH);
+        }else{
+            invoiceEntity.setPaymentMethod(PaymentMethod.BANK_TRANSFER);
+        }
         InvoiceResponse invoiceResponse = toInvoiceResponse(invoiceRepository.save(invoiceEntity));
 
         // Câp nhật tràng thái cho ticket //
@@ -692,6 +697,15 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .customer(convertToUserResponse(invoice.getCustomer()))
                 .build();
     }
+
+    @Override
+    public void updateStatusUsed(String qrCode) {
+        InvoiceEntity invoice = invoiceRepository.findByQrCode(qrCode)
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy hóa đơn !"));
+        invoice.setStatus(InvoiceStatus.USED);
+        invoiceRepository.save(invoice);
+    }
+
 
     private MetaResponse toMetaResponse(Page<InvoiceEntity> page) {
         return MetaResponse.builder()

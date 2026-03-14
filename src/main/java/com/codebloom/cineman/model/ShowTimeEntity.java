@@ -43,7 +43,7 @@ public class ShowTimeEntity implements Serializable {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private LocalTime endTime;
 
-    @Column(name = "status", columnDefinition = "TINYINT", nullable = false)
+    @Column(name = "status", nullable = false)
     private ShowTimeStatus status;
 
     @OneToMany(mappedBy = "showTime")
@@ -66,3 +66,4 @@ public class ShowTimeEntity implements Serializable {
     private MovieVariationEntity movieVariation;
 
 }
+

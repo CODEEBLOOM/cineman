@@ -1,16 +1,17 @@
 package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.common.constant.MovieStatus;
-import com.codebloom.cineman.controller.request.MovieCreationRequest;
-import com.codebloom.cineman.controller.request.MovieUpdateRequest;
-import com.codebloom.cineman.controller.request.MoviePageQueryRequest;
+import com.codebloom.cineman.controller.request.*;
 import com.codebloom.cineman.controller.response.MetaResponse;
 import com.codebloom.cineman.controller.response.MoviePageableResponse;
 import com.codebloom.cineman.controller.response.MovieResponse;
+import com.codebloom.cineman.exception.ConflictException;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.*;
+import com.codebloom.cineman.repository.MovieGenresRepository;
 import com.codebloom.cineman.repository.MovieRepository;
 import com.codebloom.cineman.repository.MovieStatusRepository;
+import com.codebloom.cineman.service.GenreService;
 import com.codebloom.cineman.service.MovieService;
 import com.codebloom.cineman.service.MovieStatusService;
 import jakarta.transaction.Transactional;
@@ -22,10 +23,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +35,8 @@ public class MovieServiceImpl implements MovieService {
     private final MovieStatusRepository movieStatusRepository;
     private final MovieStatusService movieStatusService;
     private final ModelMapper modelMapper;
-
+    private final GenreService genreService;
+    private final MovieGenresRepository movieGenresRepository;
 
     /**
      * Find all movies
@@ -46,6 +46,11 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public MoviePageableResponse findAllByPage(MoviePageQueryRequest request) {
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
+        if (request.getStatus().equals("ALL")) {
+            MovieStatusEntity movieStatus = movieStatusRepository.findById(MovieStatus.MOVIE_STATUS_CNS)
+                    .orElseThrow(() -> new DataNotFoundException("Movie status not found"));
+            return movieToMoviePageableResponse(movieRepository.findAllByStatusNot(movieStatus, pageable));
+        }
         MovieStatusEntity movieStatus = movieStatusRepository.findById(request.getStatus())
                 .orElseThrow(() -> new DataNotFoundException("Movie status not found"));
         Page<MovieEntity> moviePage = movieRepository.findAllByStatus(movieStatus, pageable);
@@ -65,12 +70,14 @@ public class MovieServiceImpl implements MovieService {
         MovieStatusEntity movieStatus = movieStatusService.findById(request.getStatus());
 
         Page<MovieEntity> page;
-        if(request.getStatus().equals(MovieStatus.MOVIE_STATUS_SC)){
-            page = movieRepository.findAllByReleaseDateGreaterThanAndStatus(new Date(), movieStatus, pageable);
-        }else if (request.getStatus().equals(MovieStatus.MOVIE_STATUS_DB)){
-            page = movieRepository.findAllByStatus(movieStatus, pageable);
-        }else {
-            page = movieRepository.findAllByStatusAndMovieTheaterId(movieStatus, movieTheaterId, pageable);
+        switch (request.getStatus()) {
+            case MovieStatus.MOVIE_STATUS_CNS -> {
+                return null;
+            }
+            case MovieStatus.MOVIE_STATUS_SC ->
+                    page = movieRepository.findAllByReleaseDateGreaterThanEqualAndStatus(new Date(), movieStatus, pageable);
+            case MovieStatus.MOVIE_STATUS_DB -> page = movieRepository.findAllByStatus(movieStatus, pageable);
+            default -> page = movieRepository.findAllByStatusAndMovieTheaterId(movieStatus, movieTheaterId, pageable);
         }
         log.info("end findAllByPageAndFilter");
         return movieToMoviePageableResponse(page);
@@ -127,22 +134,37 @@ public class MovieServiceImpl implements MovieService {
     @Override
     @Transactional
     public MovieEntity save(MovieCreationRequest request) {
-        MovieStatusEntity status ;
-        Optional<MovieStatusEntity> movieStatus = movieStatusRepository.findById(MovieStatus.MOVIE_STATUS_SC);
-        if(movieStatus.isEmpty()){
-            MovieStatusEntity movieStatusEntity = new MovieStatusEntity();
-            movieStatusEntity.setStatusId(MovieStatus.MOVIE_STATUS_DB);
-            movieStatusEntity.setName("Đặc biệt");
-            movieStatusEntity.setDescription("Trạng thái dành cho các bộ phim chưa có xuất chiếu tai rạp !");
-            movieStatusEntity.setActive(true);
-            status = movieStatusRepository.save(movieStatusEntity);
-        }else {
-            status = movieStatus.get();
-        }
+//        MovieStatusEntity status ;
+        MovieStatusEntity movieStatus = movieStatusRepository.findById(request.getStatus())
+                .orElseThrow(() -> new DataNotFoundException("Movie status not found"));
+//        if(movieStatus.isEmpty()){
+//            MovieStatusEntity movieStatusEntity = new MovieStatusEntity();
+//            movieStatusEntity.setStatusId(MovieStatus.MOVIE_STATUS_DB);
+//            movieStatusEntity.setName("Đặc biệt");
+//            movieStatusEntity.setDescription("Trạng thái dành cho các bộ phim chưa có xuất chiếu tai rạp !");
+//            movieStatusEntity.setActive(true);
+//            status = movieStatusRepository.save(movieStatusEntity);
+//        }else {
+//            status = movieStatus.get();
+//        }
         MovieEntity movie = modelMapper.map(request, MovieEntity.class);
-        movie.setStatus(status);
+        movie.setStatus(movieStatus);
+        movieRepository.save(movie);
+
+        // Cho nó thể loại phim //
+        if (!request.getGenres().isEmpty()) {
+            for(Integer genreId : request.getGenres()) {
+                GenresEntity genresEntity = genreService.findById(genreId);
+
+                MovieGenresEntity movieGenresEntity = new MovieGenresEntity();
+                movieGenresEntity.setGenres(genresEntity);
+                movieGenresEntity.setMovie(movie);
+
+                movieGenresRepository.save(movieGenresEntity);
+            }
+        }
         log.info("Movie saved: {}", movie);
-        return movieRepository.save(movie);
+        return movie;
     }
 
 
@@ -155,14 +177,41 @@ public class MovieServiceImpl implements MovieService {
     public MovieResponse update(MovieUpdateRequest request) {
         MovieEntity movie = movieRepository.findById(request.getMovieId())
                 .orElseThrow(() -> new DataNotFoundException("Movie not found with id: " + request.getMovieId()));
-        MovieStatusEntity movieStatus = movieStatusService.findById(request.getStatus());
+        MovieStatusEntity movieStatus = movieStatusRepository.findById(request.getStatus())
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy trạng thái phim id: " + request.getStatus()));
 
         MovieEntity updateMovie = modelMapper.map(request, MovieEntity.class);
         updateMovie.setCreatedAt(movie.getCreatedAt());
         updateMovie.setUpdatedAt(new Date());
         updateMovie.setStatus(movieStatus);
 
+        Map<Integer, MovieGenresEntity> movieGenresMap = new HashMap<>();
+        if (movie.getMovieGenres() != null) {
+            for(MovieGenresEntity movieGenresEntity : movie.getMovieGenres()) {
+                movieGenresMap.put(movieGenresEntity.getGenres().getGenresId(), movieGenresEntity);
+            }
+        }
+        Set<MovieGenresEntity> movieGenres = new HashSet<>();
+        if (!request.getGenres().isEmpty()) {
+            for(Integer genreId : request.getGenres()) {
+                if (movieGenresMap.containsKey(genreId)) {
+                    movieGenres.add(movieGenresMap.get(genreId));
+                    continue;
+                }
+                GenresEntity genresEntity = genreService.findById(genreId);
+
+                MovieGenresEntity movieGenresEntity = new MovieGenresEntity();
+                movieGenresEntity.setGenres(genresEntity);
+                movieGenresEntity.setMovie(movie);
+
+                movieGenresRepository.save(movieGenresEntity);
+                movieGenres.add(movieGenresEntity);
+            }
+        }
+
+
         updateMovie = movieRepository.save(updateMovie);
+        updateMovie.setMovieGenres(movieGenres);
         return movieToMovieResponse(updateMovie);
     }
 
@@ -175,6 +224,11 @@ public class MovieServiceImpl implements MovieService {
     public void delete(Integer id) {
         MovieEntity movie = movieRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Movie not found with id: " + id));
+        if (
+                movie.getStatus().getStatusId().equals(MovieStatus.MOVIE_STATUS_DC)
+        ) {
+            throw new ConflictException("Phim đang chiếu không thể xóa !");
+        }
 
         MovieStatusEntity cancelledStatus = movieStatusRepository.findById(MovieStatus.MOVIE_STATUS_CNS)
                 .orElseGet(() -> {
@@ -209,11 +263,12 @@ public class MovieServiceImpl implements MovieService {
         });
         return MovieResponse.builder()
                 .movieId(movie.getMovieId())
-                .status(movie.getStatus().getName())
+                .status(movie.getStatus().getStatusId())
                 .synopsis(movie.getSynopsis())
                 .detailDescription(movie.getDetailDescription())
                 .title(movie.getTitle())
                 .releaseDate(movie.getReleaseDate())
+                .endDate(movie.getEndDate())
                 .language(movie.getLanguage())
                 .duration(movie.getDuration())
                 .rating(movie.getRating())
@@ -240,8 +295,7 @@ public class MovieServiceImpl implements MovieService {
                 .currentPage(page.getNumber())
                 .pageSize(page.getSize())
                 .totalPages(page.getTotalPages())
-                .totalElements((int) page.getTotalElements())
-                .build();
+                .totalElements((int) page.getTotalElements())                .build();
         metaResponse.setCurrentPage(page.getNumber());
         metaResponse.setTotalPages(page.getTotalPages());
         metaResponse.setPageSize(page.getSize());
@@ -252,5 +306,85 @@ public class MovieServiceImpl implements MovieService {
         moviePageableResponse.setMovies(movieResponses);
         return moviePageableResponse;
     }
+
+//    @Override
+//    @Transactional
+//    public MovieResponseNew createMovie(MovieCreationRequestNew movie) {
+//         MovieStatusEntity movieStatus = movieStatusRepository.findById(movie.getStatus())
+//                .orElseThrow(() -> new DataNotFoundException("Movie status not found with id: " + movie.getStatus()));
+//
+//        MovieEntity movieEntity = MovieEntity.builder()
+//                .title(movie.getTitle())
+//                .synopsis(movie.getSynopsis())
+//                .releaseDate(movie.getReleaseDate())
+//                .endDate(movie.getEndDate())
+//                .language(movie.getLanguage())
+//                .duration(movie.getDuration())
+//                .age(movie.getAge())
+//                .trailerLink(movie.getTrailerLink())
+//                .posterImage(movie.getPosterImage())
+//                .bannerImage(movie.getBannerImage())
+//                .detailDescription(movie.getDescription())
+//                .rating(Rating.GOOD)
+//                .status(movieStatus)
+//                .build();
+//        movieRepository.save(movieEntity);
+//
+//        // Genres
+//        if (movie.getGenres() != null || movie.getGenres().size() > 0) {
+//            for(Integer genreId: movie.getGenres()){
+//                MovieGenreRequest request = MovieGenreRequest.builder()
+//                        .movieId(movieEntity.getMovieId())
+//                        .genreId(genreId)
+//                        .build();
+//                movieGenreService.addMovieGenre(request);
+//            }
+//        }
+//
+//        MovieRoleEntity cast = movieRoleRepository.findByNameAndActive("cast", true)
+//                .orElseThrow(() -> new DataNotFoundException("Movie role not found with name: cast"));
+//        // Casts
+//        if(movie.getCasts() != null || movie.getCasts().size() > 0){
+//            for(Integer castId: movie.getCasts()){
+//                MovieParticipantRequest request = MovieParticipantRequest.builder()
+//                        .movieId(movieEntity.getMovieId())
+//                        .participantId(castId)
+//                        .movieRoleId(cast.getMovieRoleId())
+//                        .build();
+//                movieDirectorService.addParticipantMovie(request);
+//            }
+//        }
+//
+//        MovieRoleEntity director = movieRoleRepository.findByNameAndActive("director", true)
+//                .orElseThrow(() -> new DataNotFoundException("Movie role not found with name: director"));
+//
+//        // Directors
+//        if(movie.getDirectors() != null || movie.getDirectors().size() > 0){
+//            for(Integer directorId: movie.getDirectors()){
+//                MovieParticipantRequest request = MovieParticipantRequest.builder()
+//                        .movieId(movieEntity.getMovieId())
+//                        .participantId(directorId)
+//                        .movieRoleId(director.getMovieRoleId())
+//                        .build();
+//                movieDirectorService.addParticipantMovie(request);
+//            }
+//        }
+//
+//        return MovieResponseNew.builder()
+//                .movieId(movieEntity.getMovieId())
+//                .title(movieEntity.getTitle())
+//                .synopsis(movie.getSynopsis())
+//                .releaseDate(movieEntity.getReleaseDate())
+//                .endDate(movieEntity.getEndDate())
+//                .language(movieEntity.getLanguage())
+//                .duration(movieEntity.getDuration())
+//                .age(movieEntity.getAge())
+//                .trailerLink(movieEntity.getTrailerLink())
+//                .posterImage(movieEntity.getPosterImage())
+//                .bannerImage(movieEntity.getBannerImage())
+//                .detailDescription(movieEntity.getDetailDescription())
+//                .status(movieEntity.getStatus().getName())
+//                .build();
+//    }
 
 }

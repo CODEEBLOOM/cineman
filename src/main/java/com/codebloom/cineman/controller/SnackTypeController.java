@@ -1,8 +1,8 @@
 package com.codebloom.cineman.controller;
 
-
 import com.codebloom.cineman.controller.response.ApiResponse;
 import com.codebloom.cineman.service.SnackService;
+import com.codebloom.cineman.service.SnackTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
@@ -16,39 +16,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("${api.path}/snack")
+@RequestMapping("${api.path}/snack-type")
 @RequiredArgsConstructor
 @Tag(name = "Snack Client Controller")
 @Validated
-public class SnackController {
+public class SnackTypeController {
 
-    private final SnackService snackService;
+    private final SnackTypeService snackTypeService;
 
-    @Operation(summary = "Lấy tất cả snack là combo", description = "Lấy tất cả snack là combo")
-    @GetMapping("/combo/all")
-    public ResponseEntity<ApiResponse> getAllComboSnacks() {
+    @Operation(summary = "Lấy tất cả snack type", description = "Lấy tất cả snack type")
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse> getAllComboSnacksBySnackTypeId() {
         return ResponseEntity.ok(
                 ApiResponse.builder()
                         .message("Lấy tất cả snack là combo thành công.")
                         .status(HttpStatus.OK.value())
-                        .data(snackService.findAllComboSnacks())
+                        .data(snackTypeService.findAll())
                         .build()
         );
     }
-
-    @Operation(summary = "Lấy tất cả snack theo loại snack", description = "Lấy tất cả snack là combo")
-    @GetMapping("/{snackTypeId}/all")
-    public ResponseEntity<ApiResponse> getAllComboSnacksBySnackTypeId(
-            @PathVariable @Min(value = 1, message = "Id's snack type is must be greater than or equal 1 !") Integer snackTypeId
-    ) {
-        return ResponseEntity.ok(
-                ApiResponse.builder()
-                        .message("Lấy tất cả snack là combo thành công.")
-                        .status(HttpStatus.OK.value())
-                        .data(snackService.findAllSnacksByType(snackTypeId))
-                        .build()
-        );
-    }
-
 
 }

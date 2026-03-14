@@ -25,20 +25,20 @@ public class PermissionEntity implements Serializable {
     @Column(name = "permission_id")
     Integer permissionId;
 
-    @Column(name = "title", columnDefinition = "NVARCHAR(100)", nullable = false)
+    @Column(name = "title", length = 100, nullable = false)
     String title;
 
-    @Column(name = "description", columnDefinition = "NVARCHAR(500)")
+    @Column(name = "description", length = 500)
     String description;
 
     @Enumerated(EnumType.ORDINAL)
-    @Column(name = "method", columnDefinition = "TINYINT", nullable = false)
+    @Column(name = "method", nullable = false)
     Method method;
 
-    @Column(name = "url", columnDefinition = "VARCHAR(200)", nullable = false)
+    @Column(name = "url", length = 200, nullable = false)
     String url;
 
-    @Column(name = "category", columnDefinition = "NVARCHAR(255)")
+    @Column(name = "category", length = 255)
     String category;
 
     @Column(name = "created_at")
@@ -53,3 +53,4 @@ public class PermissionEntity implements Serializable {
     @JsonIgnore
     Set<RoleEntity> roles;
 }
+

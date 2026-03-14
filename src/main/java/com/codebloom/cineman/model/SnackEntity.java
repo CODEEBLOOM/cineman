@@ -25,16 +25,16 @@ public class SnackEntity implements Serializable {
     @Column(name = "snack_id")
     Integer id;
 
-    @Column(name = "name", columnDefinition = "NVARCHAR(100)", nullable = false)
+    @Column(name = "name", length = 100, nullable = false)
     String snackName;
 
     @Column(name = "unit_price", nullable = false)
     Double unitPrice;
 
-    @Column(name = "image", columnDefinition = "VARCHAR(100)", nullable = false)
+    @Column(name = "image", length = 100, nullable = false)
     String image;
 
-    @Column(name = "description", columnDefinition = "NVARCHAR(250)")
+    @Column(name = "description", length = 250)
     String description;
 
     @Column(name = "is_active", nullable = false)
@@ -48,3 +48,4 @@ public class SnackEntity implements Serializable {
     @JsonIgnore
     List<DetailBookingSnackEntity> detailBookingSnacks;
 }
+

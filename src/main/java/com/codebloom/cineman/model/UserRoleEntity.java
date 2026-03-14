@@ -22,10 +22,10 @@ public class UserRoleEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", columnDefinition = "NVARCHAR(50)")
+    @Column(name = "name", length = 50)
     private String name;
 
-    @Column(name = "description", columnDefinition = "NVARCHAR(200)")
+    @Column(name = "description", length = 200)
     private String description;
 
     @ManyToOne
@@ -38,3 +38,4 @@ public class UserRoleEntity implements Serializable {
     @JsonIgnore
     private RoleEntity role;
 }
+

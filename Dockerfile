@@ -1,9 +1,19 @@
-FROM openjdk:17
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 
-ARG JAR_FILE=target/*.jar
+WORKDIR /workspace
 
-COPY ${JAR_FILE} cineman.jar
+COPY pom.xml mvnw mvnw.cmd ./
+COPY .mvn .mvn
+COPY src src
+
+RUN chmod +x mvnw && ./mvnw -q -DskipTests package
+
+FROM eclipse-temurin:21-jre
+
+WORKDIR /app
+
+COPY --from=build /workspace/target/cineman.jar cineman.jar
 
 ENTRYPOINT ["java", "-jar", "cineman.jar"]
 
-EXPOSE 8080
+EXPOSE 8081

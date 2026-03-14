@@ -16,6 +16,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Builder
 @Table(name = "movies")
 public class MovieEntity implements Serializable {
 
@@ -28,13 +29,13 @@ public class MovieEntity implements Serializable {
     @JoinColumn(name = "status_id", nullable = false)
     private MovieStatusEntity status;
 
-    @Column(name = "title", columnDefinition = "NVARCHAR(100)", nullable = false)
+    @Column(name = "title", length = 100, nullable = false)
     private String title;
 
-    @Column(name = "synopsis", columnDefinition = "NVARCHAR(500)")
+    @Column(name = "synopsis", length = 500)
     private String synopsis;
 
-    @Column(name = "detail_description", columnDefinition = "NVARCHAR(1000)")
+    @Column(name = "detail_description", length = 1000)
     private String detailDescription;
 
     @Column(name = "release_date", nullable = false)
@@ -44,7 +45,7 @@ public class MovieEntity implements Serializable {
     @Column(name = "end_date", nullable = false)
     private Date endDate;
 
-    @Column(name = "language", columnDefinition = "NVARCHAR(50)", nullable = false)
+    @Column(name = "language", length = 50, nullable = false)
     private String language;
 
     @Column(name = "duration", nullable = false)
@@ -89,3 +90,4 @@ public class MovieEntity implements Serializable {
     private Set<MovieParticipantEntity> movieParticipants;
 
 }
+

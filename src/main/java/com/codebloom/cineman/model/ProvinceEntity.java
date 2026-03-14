@@ -26,7 +26,7 @@ public class ProvinceEntity {
     @Column(name = "code", nullable = false)
     Integer code;
 
-    @Column(columnDefinition = "NVARCHAR(150)", nullable = false)
+    @Column(length = 150, nullable = false)
     String name;
 
     @Column(name = "active", nullable = false)
@@ -45,3 +45,4 @@ public class ProvinceEntity {
     @OneToMany(mappedBy = "province")
     List<MovieTheaterEntity> movieTheaters;
 }
+

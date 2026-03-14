@@ -64,4 +64,19 @@ public class InvoiceAController {
         );
     }
 
+    @Operation(summary = "Update Status Used", description = "Api dùng để cập nhật trạng thái hóa đơn")
+    @PutMapping("/qr-code/{qrCode}")
+    public ResponseEntity<ApiResponse> updateStatus(
+            @PathVariable String qrCode
+    ) {
+        invoiceService.updateStatusUsed(qrCode);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("success")
+                        .data(null)
+                        .build()
+        );
+    }
+
 }

@@ -19,7 +19,6 @@ public class ShowTimeRequest {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @NotNull(message = "Show date is not null !")
-    @FutureOrPresent(message = "Show date must be greater than or equal current date !")
     private Date showDate;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
@@ -39,5 +38,9 @@ public class ShowTimeRequest {
     @NotNull(message = "Id's cinema theater is not null")
     @Min(value = 1, message = "Id's cinema theater is must be greater than 0")
     private Integer cinemaTheaterId;
+
+    @NotNull(message = "Id's cinema theater is not null")
+    @Min(value = 1, message = "Id's cinema theater is must be greater than 0")
+    private Integer movieVariationId;
 
 }

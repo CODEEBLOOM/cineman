@@ -2,15 +2,13 @@ package com.codebloom.cineman.controller.request;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class DetailBookingSnackRequest {
 
 
@@ -19,7 +17,7 @@ public class DetailBookingSnackRequest {
     private Integer snackId;
 
     @NotNull(message = "Số lượng snack không được để trống.")
-    @Min(value = 1, message = "Số lượng snack phải lớn hơn 0 !")
+    @Min(value = 0, message = "Số lượng snack phải lớn hơn hoặc bằng 0 !")
     private Integer totalSnack;
 
 

@@ -26,7 +26,7 @@ public class TicketEntity implements Serializable {
     @Column(name = "ticket_id")
     private Long id;
 
-    @Column(name = "status", columnDefinition = "TINYINT", nullable = false)
+    @Column(name = "status", nullable = false)
     private TicketStatus status;
 
     @Column(name = "price", nullable = false)
@@ -60,3 +60,4 @@ public class TicketEntity implements Serializable {
 
 
 }
+

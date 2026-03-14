@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -87,6 +88,21 @@ public class SnackServiceImpl implements SnackService {
                 .map(this::convert)
                 .toList();
         return response.isEmpty() ? null : response;
+    }
+
+    @Override
+    public List<SnackResponse> findAllSnacksByType(Integer snackTypeId) {
+        SnackTypeEntity snackType = snackTypeRepository.findById(snackTypeId)
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy snack type"));
+        List<SnackEntity> snacks = snackRepository.findBySnackTypeAndIsActive(snackType, true);
+        List<SnackResponse> response = new ArrayList<>();
+        if (!snacks.isEmpty()) {
+            response = snacks.stream()
+                    .map(this::convert)
+                    .toList();
+        }
+        return !response.isEmpty() ? response : null;
+
     }
 
     private SnackResponse convert(SnackEntity snack) {

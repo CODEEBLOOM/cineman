@@ -32,7 +32,7 @@ public interface TicketRepository extends JpaRepository<TicketEntity, Long> {
     @Query(value = """
         DELETE FROM tickets
         WHERE status = :ticketStatus
-          AND DATEADD(MINUTE, 10, create_booking) < GETDATE()
+          AND create_booking + interval '10 minute' < now()
     """, nativeQuery = true)
     void deleteAllTicketOutOfLimitTime(@Param("ticketStatus") TicketStatus ticketStatus);
 

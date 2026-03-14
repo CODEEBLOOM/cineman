@@ -18,5 +18,7 @@ public interface SnackService {
 
     List<SnackResponse> findAllComboSnacks();
 
+    List<SnackResponse> findAllSnacksByType(Integer snackTypeId);
+
 
 }

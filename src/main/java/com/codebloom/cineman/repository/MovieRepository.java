@@ -15,7 +15,7 @@ import java.util.Date;
 public interface MovieRepository extends JpaRepository<MovieEntity, Integer> {
     Page<MovieEntity> findAllByStatus(MovieStatusEntity status, Pageable pageable);
 
-    Page<MovieEntity> findAllByReleaseDateGreaterThanAndStatus(Date targetDate, MovieStatusEntity status, Pageable pageable);
+    Page<MovieEntity> findAllByReleaseDateGreaterThanEqualAndStatus(Date targetDate, MovieStatusEntity status, Pageable pageable);
 
     @Query(""" 
             SELECT DISTINCT st.movie
@@ -33,4 +33,6 @@ public interface MovieRepository extends JpaRepository<MovieEntity, Integer> {
                         AND st.showDate >= :showDate
             """)
     Page<MovieEntity> findAllMovieByCinemaTheaterIdAndShowDate(Integer cinemaTheaterId, ShowTimeStatus showTimeStatus, Date showDate, Pageable pageable);
+
+    Page<MovieEntity> findAllByStatusNot(MovieStatusEntity status, Pageable pageable);
 }

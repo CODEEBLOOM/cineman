@@ -23,13 +23,14 @@ public class FeedbackTopicEntity implements Serializable {
     @Column(name = "topic_id")
     private Integer topicId;
 
-    @Column(name = "topic_name", columnDefinition = "NVARCHAR(100)", nullable = false)
+    @Column(name = "topic_name", length = 100, nullable = false)
     private String topicName;
 
-    @Column(name = "description", columnDefinition = "NVARCHAR(200)")
+    @Column(name = "description", length = 200)
     private String description;
 
     @OneToMany(mappedBy = "topic")
     @JsonIgnore
     private List<FeedbackEntity> feedbacks;
 }
+

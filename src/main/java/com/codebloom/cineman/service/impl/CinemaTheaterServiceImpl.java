@@ -6,6 +6,7 @@ import com.codebloom.cineman.controller.request.CinemaTheaterResponse;
 import com.codebloom.cineman.controller.request.PageRequest;
 import com.codebloom.cineman.controller.response.DummySeat;
 import com.codebloom.cineman.controller.response.MetaResponse;
+import com.codebloom.cineman.exception.ConflictException;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.CinemaTheatersRepository;
@@ -147,6 +148,9 @@ public class CinemaTheaterServiceImpl implements CinemaTheaterService {
     public void delete(Integer id) {
         CinemaTheaterEntity cinemaTheater = cinemaTheatersRepository.findByStatusNotAndCinemaTheaterId(CinemaTheaterStatus.INVALID, id).orElseThrow(
                 () ->  new DataNotFoundException("Cinema Theater Not Found With Id: " + id));
+        if(cinemaTheater.getShowTimes() != null && !cinemaTheater.getShowTimes().isEmpty()) {
+            throw new ConflictException("Phòng chiếu đã có lịch chiếu không thể xóa !");
+        }
         cinemaTheater.setStatus(CinemaTheaterStatus.INVALID);
         cinemaTheatersRepository.save(cinemaTheater);
     }
@@ -181,6 +185,11 @@ public class CinemaTheaterServiceImpl implements CinemaTheaterService {
                 () ->  new DataNotFoundException("Cinema Theater Not Found With Id: " + id));
         cinemaTheater.setStatus(CinemaTheaterStatus.PUBLISHED);
         cinemaTheatersRepository.save(cinemaTheater);
+    }
+
+    @Override
+    public List<CinemaTheaterEntity> findAllByMovieTheaterId(Integer movieTheaterId) {
+        return cinemaTheatersRepository.findAllByStatusAndCinemaTheaterId(CinemaTheaterStatus.PUBLISHED, movieTheaterId);
     }
 
     /**

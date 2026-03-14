@@ -1,17 +1,18 @@
 spring:
   config:
     activate:
-      on-profile: dev
+      on-profile: test
   devtools:
     add-properties: true
-  # kêt nối database
+  flyway:
+    enabled: false
   datasource:
-    url: jdbc:sqlserver://localhost:1433;databaseName=cineman_system;encrypt=true;trustServerCertificate=true;
-    username: sa
-    password: 123456
-    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:postgresql://localhost:5432/cineman_test
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
   jpa:
-    database-platform: org.hibernate.dialect.SQLServer2012Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: false
@@ -31,4 +32,3 @@ openapi:
     version: 1.0.0
 jwt:
   secretKey: sontest15@2
-

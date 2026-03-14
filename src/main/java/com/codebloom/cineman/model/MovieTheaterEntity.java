@@ -25,10 +25,10 @@ public class MovieTheaterEntity implements Serializable {
     @Column(name = "movie_theater_id")
     Integer movieTheaterId;
 
-    @Column(columnDefinition = "nvarchar(200)", nullable = false)
+    @Column(length = 200, nullable = false)
     String name;
 
-    @Column(columnDefinition = "nvarchar(200)", nullable = false)
+    @Column(length = 200, nullable = false)
     String address;
 
     @Column(name = "hotline", length = 20, nullable = false)
@@ -49,4 +49,5 @@ public class MovieTheaterEntity implements Serializable {
     @JsonIgnore
     List<CinemaTheaterEntity> cinemaTheaters;
 }
+
 

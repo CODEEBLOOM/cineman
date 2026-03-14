@@ -36,17 +36,17 @@ public class InvoiceEntity implements Serializable {
     @Column(name = "phone_number", nullable = false, unique = true, length = 20)
     private String phoneNumber;
 
-    @Column(name = "status", columnDefinition = "TINYINT", nullable = false)
+    @Column(name = "status", nullable = false)
     @Enumerated(EnumType.ORDINAL)
     private InvoiceStatus status;
 
     @Column(name = "total_ticket", nullable = false)
     private Integer totalTicket;
 
-    @Column(name = "payment_method", columnDefinition = "TINYINT")
+    @Column(name = "payment_method")
     private PaymentMethod paymentMethod;
 
-    @Column(name = "total_amount", columnDefinition = "DECIMAL(10,2)")
+    @Column(name = "total_amount")
     private Double totalAmount;
 
     @Column(name = "vn_txn_ref")
@@ -56,12 +56,12 @@ public class InvoiceEntity implements Serializable {
     private String qrCode;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created_at", columnDefinition = "DATETIME")
+    @Column(name = "created_at")
     @CreationTimestamp
     private Date createdAt;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "updated_at", columnDefinition = "DATETIME")
+    @Column(name = "updated_at")
     @CreationTimestamp
     private Date updatedAt;
 
@@ -89,4 +89,5 @@ public class InvoiceEntity implements Serializable {
     @JsonIgnore
     private List<UserPointHistoryEntity> userPointHistories;
 }
+
 

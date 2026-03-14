@@ -24,7 +24,7 @@ public class SeatTypeEntity implements Serializable {
     @Enumerated(EnumType.STRING)
     private SeatType id;
 
-    @Column(name = "name", columnDefinition = "NVARCHAR(150)", nullable = false)
+    @Column(name = "name", length = 150, nullable = false)
     private String name;
 
     @Column(name = "price", nullable = false)
@@ -38,3 +38,4 @@ public class SeatTypeEntity implements Serializable {
     private List<SeatEntity> seats;
 
 }
+

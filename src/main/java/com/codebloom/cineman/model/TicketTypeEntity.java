@@ -25,17 +25,17 @@ public class TicketTypeEntity implements Serializable {
     @Column(name = "ticket_type_id")
     Integer id;
 
-    @Column(name = "name", columnDefinition = "NVARCHAR(100)", nullable = false)
+    @Column(name = "name", length = 100, nullable = false)
     @Enumerated(EnumType.STRING)
     TicketType name;
 
-    @Column(name = "description", columnDefinition = "NVARCHAR(200)")
+    @Column(name = "description", length = 200)
     String description;
 
     @Column(name = "price", nullable = false)
     Double price;
 
-    @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
+    @Column(name = "status", nullable = false)
     Boolean status;
 
     @OneToMany(mappedBy = "ticketType")
@@ -44,3 +44,4 @@ public class TicketTypeEntity implements Serializable {
 
 
 }
+

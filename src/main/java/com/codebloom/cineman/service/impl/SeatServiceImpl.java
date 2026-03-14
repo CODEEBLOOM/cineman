@@ -5,6 +5,7 @@ import com.codebloom.cineman.common.enums.SeatStatus;
 import com.codebloom.cineman.common.enums.SeatType;
 import com.codebloom.cineman.controller.request.SeatRequest;
 import com.codebloom.cineman.controller.response.SeatResponse;
+import com.codebloom.cineman.exception.ConflictException;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.exception.InvalidDataException;
 import com.codebloom.cineman.model.CinemaTheaterEntity;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,29 +77,30 @@ public class SeatServiceImpl implements SeatService {
     @Override
     @Transactional
     public SeatEntity save(SeatRequest seat) {
-        log.info("Saving seat: {}", seat);
-        SeatType existingSeatType = switch (seat.getSeatType()) {
-            case "VIP" -> SeatType.VIP;
-            case "DOUBLE" -> SeatType.DOUBLE;
-            case "REGULAR" -> SeatType.REGULAR;
-            default -> throw new DataNotFoundException("Seat Type Not Found");
-        };
-
-        SeatTypeEntity seatType = seatTypeRepository.findByIdAndStatus(existingSeatType, true)
-                .orElseThrow(() -> new DataNotFoundException("Seat Type Not Found With Name: " + seat.getSeatType()));
-
+        log.info("Saving seat request: {}", seat);
         CinemaTheaterEntity cinemaTheater = cinemaTheatersRepository.findByStatusNotAndCinemaTheaterId(CinemaTheaterStatus.INVALID, seat.getCinemaTheaterId())
                 .orElseThrow(() -> new DataNotFoundException("Cinema Theater Not Found"));
         checkCinemaTheaterStatus(cinemaTheater.getCinemaTheaterId());
+        validateSeatPosition(seat, cinemaTheater);
+
+        SeatType existingSeatType = parseSeatType(seat.getSeatType());
+        SeatTypeEntity seatType = seatTypeRepository.findByIdAndStatus(existingSeatType, true)
+                .orElseThrow(() -> new DataNotFoundException("Seat Type Not Found With Name: " + seat.getSeatType()));
+
         SeatEntity seatEntity = SeatEntity.builder()
                 .seatType(seatType)
-                .label(seat.getLabel().isEmpty() ? String.valueOf((char) ('A' + seat.getRowIndex() - 1)) : seat.getLabel())
+                .label(resolveSeatLabel(seat))
                 .columnIndex(seat.getColumnIndex())
                 .rowIndex(seat.getRowIndex())
                 .cinemaTheater(cinemaTheater)
                 .status(SeatStatus.ACTIVE)
                 .build();
-        log.info("Saved seat: {}", seat);
+        log.info("Validated seat before save: roomId={}, rowIndex={}, columnIndex={}, label={}, seatType={}",
+                cinemaTheater.getCinemaTheaterId(),
+                seatEntity.getRowIndex(),
+                seatEntity.getColumnIndex(),
+                seatEntity.getLabel(),
+                seatEntity.getSeatType().getId());
         return seatRepository.save(seatEntity);
     }
 
@@ -182,6 +185,10 @@ public class SeatServiceImpl implements SeatService {
     public SeatResponse changeStatus(long id) {
         SeatEntity seatEntity = seatRepository.findByIdAndStatusNot(id, SeatStatus.DELETED)
                 .orElseThrow(() -> new DataNotFoundException("Seat Not Found With Id: " + id));
+        if (seatEntity.getCinemaTheater().getShowTimes() != null && !seatEntity.getCinemaTheater().getShowTimes().isEmpty()) {
+            throw new ConflictException("Phòng chiếu đã có suất chiếu, không thể thay đổi trạng thái ghế " + id);
+        }
+
         if(seatEntity.getCinemaTheater().getStatus().equals(CinemaTheaterStatus.PUBLISHED)){
             if(seatEntity.getStatus().equals(SeatStatus.ACTIVE)){
                 seatEntity.setStatus(SeatStatus.INACTIVE);
@@ -223,5 +230,35 @@ public class SeatServiceImpl implements SeatService {
         if(cinemaTheater.getStatus().equals(CinemaTheaterStatus.PUBLISHED)){
             throw new InvalidDataException("Phòng chiếu đã được xuất bản, chỉ có thể cập nhật trạng thái ghế !");
         }
+    }
+
+    private SeatType parseSeatType(String seatType) {
+        if (seatType == null || seatType.isBlank()) {
+            throw new InvalidDataException("Seat type không được để trống");
+        }
+
+        try {
+            return SeatType.valueOf(seatType.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+            throw new InvalidDataException("Seat type không hợp lệ. Chỉ chấp nhận REGULAR, VIP hoặc DOUBLE");
+        }
+    }
+
+    private void validateSeatPosition(SeatRequest seat, CinemaTheaterEntity cinemaTheater) {
+        if (seat.getRowIndex() > cinemaTheater.getNumberOfRows()) {
+            throw new InvalidDataException("Row index vượt quá số hàng của phòng chiếu");
+        }
+
+        if (seat.getColumnIndex() > cinemaTheater.getNumberOfColumns()) {
+            throw new InvalidDataException("Column index vượt quá số cột của phòng chiếu");
+        }
+    }
+
+    private String resolveSeatLabel(SeatRequest seat) {
+        if (seat.getLabel() != null && !seat.getLabel().isBlank()) {
+            return seat.getLabel().trim();
+        }
+
+        return String.valueOf((char) ('A' + seat.getRowIndex() - 1)) + seat.getColumnIndex();
     }
 }
