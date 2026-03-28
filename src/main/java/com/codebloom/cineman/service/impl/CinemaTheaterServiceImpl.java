@@ -194,7 +194,7 @@ public class CinemaTheaterServiceImpl implements CinemaTheaterService {
 
     @Override
     public List<CinemaTheaterEntity> findAllByMovieTheaterId(Integer movieTheaterId) {
-        return cinemaTheatersRepository.findAllByStatusAndCinemaTheaterId(CinemaTheaterStatus.PUBLISHED, movieTheaterId);
+        return cinemaTheatersRepository.findAllByStatusAndMovieTheater_MovieTheaterId(CinemaTheaterStatus.PUBLISHED, movieTheaterId);
     }
 
     /**

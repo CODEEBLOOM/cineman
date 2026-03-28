@@ -22,6 +22,7 @@ public interface ShowTimeService {
     void delete(Long id);
     List<ShowTimeResponse> findShowTimeByMovieId(Integer movieId);
     List<ShowTimeResponse> findShowTimeByCinemaTheaterId(Integer cinemaTheaterId);
+    List<ShowTimeResponse> findOccupiedSlots(Integer cinemaTheaterId, Date showDate);
     List<ShowTimeEntity> findAllShowTimeByMovieIdAndMovieTheaterId(Integer movieId, Integer movieTheaterId);
     List<ShowTimeDetailResponse> findAllShowTimeByMovieIdAndMovieTheaterIdAndShowDateEqual(Integer movieId, Integer cinemaTheaterId, Date showDate);
     Long findCountByShowTimeId(Long showTimeId);

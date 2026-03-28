@@ -17,6 +17,7 @@ import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.CinemaTheatersRepository;
 import com.codebloom.cineman.repository.MovieRepository;
 import com.codebloom.cineman.repository.MovieVariationRepository;
+import com.codebloom.cineman.repository.SeatRepository;
 import com.codebloom.cineman.repository.ShowTimeRepository;
 import com.codebloom.cineman.service.MovieService;
 import com.codebloom.cineman.service.MovieStatusService;
@@ -28,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -47,6 +49,7 @@ public class ShowTimeServiceImpl implements ShowTimeService {
     private final MovieService movieService;
     private final MovieStatusService movieStatusService;
     private final MovieVariationRepository movieVariationRepository;
+    private final SeatRepository seatRepository;
 
     /**
      * Tạo một lịch chiếu phim
@@ -206,6 +209,20 @@ public class ShowTimeServiceImpl implements ShowTimeService {
     }
 
     @Override
+    public List<ShowTimeResponse> findOccupiedSlots(Integer cinemaTheaterId, Date showDate) {
+        Sort sort = Sort.by(Sort.Direction.ASC, "startTime");
+        CinemaTheaterEntity cinemaTheater = cinemaTheaterRepository.findByStatusNotAndCinemaTheaterId(CinemaTheaterStatus.INVALID, cinemaTheaterId)
+                .orElseThrow(() -> new DataNotFoundException("Cinema Theater Not Found With Id: " + cinemaTheaterId));
+
+        List<ShowTimeResponse> showTimes = showTimeRepository
+                .findAllByCinemaTheaterAndShowDateAndStatusNot(cinemaTheater, showDate, ShowTimeStatus.DELETED, sort)
+                .stream()
+                .map(this::convertToShowTimeResponse)
+                .toList();
+        return showTimes.isEmpty() ? null : showTimes;
+    }
+
+    @Override
     public List<ShowTimeEntity> findAllShowTimeByMovieIdAndMovieTheaterId(Integer movieId, Integer movieTheaterId) {
         Sort sort = Sort.by(Sort.Direction.ASC, "showDate");
         List<ShowTimeEntity> showTimes = showTimeRepository.findAllShowTimeByMovieIdAndMovieTheaterId(movieId, ShowTimeStatus.VALID, movieTheaterId, sort);
@@ -250,23 +267,27 @@ public class ShowTimeServiceImpl implements ShowTimeService {
      */
     @Override
     public SeatMapResponse findSeatMapByShowTimeIdAndCinemaTheaterId(Long id, Integer cinemaTheaterId) {
-//        CinemaTheaterEntity cinemaTheater = cinemaTheaterRepository.findByStatusNotAndCinemaTheaterId(CinemaTheaterStatus.INVALID, cinemaTheaterId)
-//                .orElseThrow(
-//                () ->  new DataNotFoundException("Cinema Theater Not Found With Id: " + cinemaTheaterId));
-//
-//        List<SeatEntity> seats = cinemaTheater.getSeats();
-//        return SeatMapResponse.builder()
-//                .seats(seats)
-//                .cinemaTheaterId(cinemaTheaterId)
-//                .numberOfColumn(cinemaTheater.getNumberOfColumns())
-//                .numberOfRows(cinemaTheater.getNumberOfRows())
-//                .doubleSeatRow(cinemaTheater.getDoubleSeatRow())
-//                .vipSeatRow(cinemaTheater.getVipSeatRow())
-//                .regularSeatRow(cinemaTheater.getRegularSeatRow())
-//                .status(cinemaTheater.getStatus())
-//                .build();
-//        return null;
-        return null;
+        ShowTimeEntity showTime = showTimeRepository.findByIdAndStatusNot(id, ShowTimeStatus.DELETED)
+                .orElseThrow(() -> new DataNotFoundException("Showtime Not Found With Id: " + id));
+
+        CinemaTheaterEntity cinemaTheater = cinemaTheaterRepository.findByStatusNotAndCinemaTheaterId(CinemaTheaterStatus.INVALID, cinemaTheaterId)
+                .orElseThrow(() -> new DataNotFoundException("Cinema Theater Not Found With Id: " + cinemaTheaterId));
+
+        if (!showTime.getCinemaTheater().getCinemaTheaterId().equals(cinemaTheaterId)) {
+            throw new ConflictException("Showtime does not belong to cinema theater: " + cinemaTheaterId);
+        }
+
+        List<SeatEntity> seats = seatRepository.findAllByStatusNotAndCinemaTheater(com.codebloom.cineman.common.enums.SeatStatus.DELETED, cinemaTheater);
+        return SeatMapResponse.builder()
+                .seats(seats)
+                .cinemaTheaterId(cinemaTheaterId)
+                .numberOfColumn(cinemaTheater.getNumberOfColumns())
+                .numberOfRows(cinemaTheater.getNumberOfRows())
+                .doubleSeatRow(cinemaTheater.getDoubleSeatRow())
+                .vipSeatRow(cinemaTheater.getVipSeatRow())
+                .regularSeatRow(cinemaTheater.getRegularSeatRow())
+                .status(cinemaTheater.getStatus())
+                .build();
     }
 
     /**
@@ -306,7 +327,35 @@ public class ShowTimeServiceImpl implements ShowTimeService {
 
     @Override
     public List<ShowTimeDetailResponse> findAllByFilter(ShowTimeRequestNew request) {
-        List<ShowTimeEntity> showTimes = showTimeRepository.findAll();
+        Integer movieTheaterId = request.getMovieTheaterId() != null ? Math.toIntExact(request.getMovieTheaterId()) : null;
+        Specification<ShowTimeEntity> specification = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+
+        if (movieTheaterId != null) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(
+                            root.get("cinemaTheater").get("movieTheater").get("movieTheaterId"),
+                            movieTheaterId
+                    )
+            );
+        }
+
+        if (request.getShowTimeStatus() != null) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("status"), request.getShowTimeStatus())
+            );
+        }
+
+        if (request.getShowDate() != null) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("showDate"), request.getShowDate())
+            );
+        }
+
+        Sort sort = Sort.by(
+                Sort.Order.desc("showDate"),
+                Sort.Order.asc("startTime")
+        );
+        List<ShowTimeEntity> showTimes = showTimeRepository.findAll(specification, sort);
         List<ShowTimeDetailResponse> showTimeDetailResponses = showTimes.stream()
                 .map(showTime -> {
                     return ShowTimeDetailResponse.builder()
