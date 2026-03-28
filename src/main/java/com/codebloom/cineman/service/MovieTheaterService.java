@@ -12,6 +12,7 @@ import java.util.List;
 
 public interface MovieTheaterService {
 
+    List<MovieTheaterResponse> findAll();
     MovieTheaterPage findAllByPage(PageRequest pageRequest);
     List<MovieTheaterResponse> findAllByProvinceId(Integer provinceId);
     MovieTheaterResponse findById(Integer id);

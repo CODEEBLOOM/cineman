@@ -1,5 +1,6 @@
 package com.codebloom.cineman.controller;
 
+import com.codebloom.cineman.common.enums.StatusPromotion;
 import com.codebloom.cineman.controller.response.ApiResponse;
 import com.codebloom.cineman.service.PromotionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,7 +11,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
@@ -21,14 +27,12 @@ public class PromotionController {
 
     private final PromotionService promotionService;
 
-
-    @Operation(summary = "Kiểm tra voucher")
+    @Operation(summary = "Kiem tra voucher")
     @PutMapping("/{code}/amount/{amount}/apply")
     public ResponseEntity<ApiResponse> applyPromotion(
-            @PathVariable("code") @NotNull(message = "Code giảm giá không được phép null !") String code,
-            @PathVariable("amount") @Min(value = 0, message = "Số tiền phải lớn hơn 0 !") Double amount
+            @PathVariable("code") @NotNull(message = "Code giam gia khong duoc phep null !") String code,
+            @PathVariable("amount") @Min(value = 0, message = "So tien phai lon hon 0 !") Double amount
     ) {
-
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
@@ -38,10 +42,10 @@ public class PromotionController {
         );
     }
 
-    @Operation(summary = "Kiểm tra voucher")
+    @Operation(summary = "Huy ap dung voucher")
     @PutMapping("/{id}/cancel")
     public ResponseEntity<ApiResponse> cancelPromotion(
-            @PathVariable("id") @NotNull(message = "Id giảm giá không được phép null !") Long id
+            @PathVariable("id") @NotNull(message = "Id giam gia khong duoc phep null !") Long id
     ) {
         promotionService.cancelPromotion(id);
         return ResponseEntity.status(HttpStatus.OK).body(
@@ -53,10 +57,10 @@ public class PromotionController {
         );
     }
 
-    @Operation(summary = "Revert quantity promotion", description = "Api dùng để cộng lại số lượng một mã giảm giá vì thanh toán thất bại.")
+    @Operation(summary = "Revert quantity promotion", description = "Api dung de cong lai so luong mot ma giam gia vi thanh toan that bai.")
     @PutMapping("/revert-quantity/invoice/{vnp_TxnRef}")
     public ResponseEntity<ApiResponse> revertQuantityPromotion(
-            @PathVariable @NotNull( message = "vnp_TxnRef không được phép null !") String vnp_TxnRef
+            @PathVariable @NotNull(message = "vnp_TxnRef khong duoc phep null !") String vnp_TxnRef
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
@@ -67,19 +71,18 @@ public class PromotionController {
         );
     }
 
-
-    @Operation(summary = "Revert quantity promotion", description = "Api dùng để cộng lại số lượng một mã giảm giá vì thanh toán thất bại.")
+    @Operation(summary = "Lay danh sach khuyen mai cua nguoi dung", description = "Co the loc theo trang thai ACTIVE hoac USED.")
     @GetMapping("/user/{userId}/all")
     public ResponseEntity<ApiResponse> getAllPromotion(
-            @PathVariable @Min(value =  1, message = "vnp_TxnRef không được phép null !") Long userId
+            @PathVariable @Min(value = 1, message = "userId khong duoc nho hon 1 !") Long userId,
+            @RequestParam(required = false) StatusPromotion status
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
                         .message("success")
-                        .data(promotionService.findAllPromotionByUserId(userId))
+                        .data(promotionService.findAllPromotionByUserId(userId, status))
                         .build()
         );
     }
-
 }

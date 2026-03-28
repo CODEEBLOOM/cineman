@@ -32,5 +32,5 @@ public interface PromotionService {
 
     Integer returnQuantityPromotion(String vnp_TxnRef);
 
-    List<PromotionResponse> findAllPromotionByUserId(Long userId);
+    List<PromotionResponse> findAllPromotionByUserId(Long userId, StatusPromotion status);
 }

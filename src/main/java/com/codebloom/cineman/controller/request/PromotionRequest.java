@@ -24,12 +24,12 @@ public class PromotionRequest {
 
     @NotNull(message = "Thời điểm bắt đầu không đươc phép null !")
     @AfterNow(message = "Thời điểm bắt đầu phải sau thời điểm hiện tại!")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime startDate;
 
     @Future(message = "Thời điểm kết thúc phải trong tương lai !")
     @AfterNow(message = "Thời điểm bắt đầu phải sau thời điểm hiện tại!")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime endDate;
 
     @NotNull(message = "Phần trăm của giảm giá không được phép null !")

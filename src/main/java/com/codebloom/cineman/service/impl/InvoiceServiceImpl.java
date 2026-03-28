@@ -1,6 +1,7 @@
 package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.common.enums.PaymentMethod;
+import com.codebloom.cineman.common.enums.StatusPromotion;
 import com.codebloom.cineman.common.enums.TicketStatus;
 import com.codebloom.cineman.common.enums.UserStatus;
 import com.codebloom.cineman.common.utils.XStr;
@@ -24,6 +25,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -219,7 +221,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                 throw new DataExistingException("Giảm giá đã được sử dụng cho hóa đơn khác !");
             }
 
-            promotion = promotionRepository.findById(invoice.getPromotionId())
+            promotion = Optional.of(findActivePromotion(invoice.getPromotionId()))
                     .orElseThrow(() -> new DataNotFoundException("Không tìm thấy khuyến mãi !"));
         }
 
@@ -306,7 +308,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                 throw new DataExistingException("Giảm giá đã được sử dụng cho hóa đơn khác !");
             }
 
-            promotion = promotionRepository.findById((Long) args[0])
+            promotion = Optional.of(findActivePromotion((Long) args[0]))
                     .orElseThrow(() -> new DataNotFoundException("Promotion not found"));
             if (promotion.getQuantity() == 0) {
                 throw new DataNotFoundException("Promotion not found");
@@ -531,8 +533,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     public InvoiceResponse applyPromotionToInvoice(Long id, Long promotionId) {
         InvoiceEntity invoice = invoiceRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Invoice not found"));
-        PromotionEntity promotion = promotionRepository.findById(promotionId)
-                .orElseThrow(() -> new DataNotFoundException("Promotion not found"));
+        PromotionEntity promotion = findActivePromotion(promotionId);
 
         if (invoice.getStatus() == InvoiceStatus.PAID || invoice.getStatus() == InvoiceStatus.CANCELLED) {
             throw new ConflictException("Invoice has been paid or cancelled");
@@ -540,7 +541,12 @@ public class InvoiceServiceImpl implements InvoiceService {
         if (invoice.getPromotion() != null) {
             throw new DataExistingException("Invoice has been applied promotion");
         }
+        if (invoice.getCustomer() != null && invoiceRepository.findByUserIdAndPromotionId(invoice.getCustomer().getUserId(), promotionId).isPresent()) {
+            throw new DataExistingException("Promotion has been used by this customer");
+        }
 
+        promotion.setQuantity(promotion.getQuantity() - 1);
+        promotion = promotionRepository.save(promotion);
         invoice.setPromotion(promotion);
         return toInvoiceResponse(invoiceRepository.save(invoice));
     }
@@ -861,6 +867,24 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .createBooking(savedTicket.getCreateBooking())
                 .seat(savedTicket.getSeat())
                 .build();
+    }
+
+    private PromotionEntity findActivePromotion(Long promotionId) {
+        PromotionEntity promotion = promotionRepository.findByIdAndStatus(promotionId, StatusPromotion.ACTIVE)
+                .orElseThrow(() -> new DataNotFoundException("Promotion not found"));
+
+        LocalDateTime now = LocalDateTime.now();
+        if (promotion.getStartDay().isAfter(now)) {
+            throw new ConflictException("Promotion is not started yet");
+        }
+        if (promotion.getEndDay().isBefore(now)) {
+            throw new ConflictException("Promotion has ended");
+        }
+        if (promotion.getQuantity() <= 0) {
+            throw new ConflictException("Promotion is out of quantity");
+        }
+
+        return promotion;
     }
 
 }

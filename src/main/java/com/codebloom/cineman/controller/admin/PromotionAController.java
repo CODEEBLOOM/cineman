@@ -1,6 +1,5 @@
 package com.codebloom.cineman.controller.admin;
 
-
 import com.codebloom.cineman.common.enums.StatusPromotion;
 import com.codebloom.cineman.controller.request.PromotionRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
@@ -12,94 +11,99 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
+@Validated
 @RequestMapping("${api.path}/admin/promotion")
-@Tag(name = "Promotion Controller Admin", description = "Quản lý khuyến mãi")
+@Tag(name = "Promotion Controller Admin", description = "Quan ly khuyen mai")
 public class PromotionAController {
 
     private final PromotionService promotionService;
 
-
-    @Operation(summary = "Tạo một khuyến mãi", description = "Tạo khuyến mãi -- status INACTIVE")
+    @Operation(summary = "Tao mot khuyen mai", description = "Tao khuyen mai voi trang thai mac dinh la INACTIVE")
     @PostMapping("/add")
     public ResponseEntity<ApiResponse> createPromotion(@RequestBody @Valid PromotionRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.builder()
-                        .message("Tạo khuyến mãi thành công")
+                        .message("Tao khuyen mai thanh cong")
                         .status(HttpStatus.CREATED.value())
                         .data(promotionService.create(request))
                         .build()
         );
     }
 
-    @Operation(summary = "Cập nhật thông tin khuyến mãi", description = "Cập nhật thông tin khuyến mãi")
+    @Operation(summary = "Cap nhat thong tin khuyen mai", description = "Cap nhat thong tin khuyen mai")
     @PostMapping("/{id}/update")
     public ResponseEntity<ApiResponse> updatePromotion(
-            @PathVariable @Min( value = 1 , message = "Id của promotion phải lớn hơn 1 !") Long id,
+            @PathVariable @Min(value = 1, message = "Id cua promotion phai lon hon 0") Long id,
             @RequestBody @Valid PromotionRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.builder()
-                        .message("Cập nhật khuyến mãi thành công")
+                        .message("Cap nhat khuyen mai thanh cong")
                         .status(HttpStatus.CREATED.value())
-                        .data(promotionService.update(id,request))
+                        .data(promotionService.update(id, request))
                         .build()
         );
     }
 
-    @Operation(summary = "Áp dụng khuyến mãi ", description = "Áp dụng khuyến mãi cho khách hàng sử dụng")
+    @Operation(summary = "Kich hoat khuyen mai", description = "Kich hoat khuyen mai cho khach hang su dung")
     @PostMapping("/{id}/apply")
     public ResponseEntity<ApiResponse> applyPromotion(
-            @PathVariable @Min( value = 1 , message = "Id của promotion phải lớn hơn 1 !") Long id) {
+            @PathVariable @Min(value = 1, message = "Id cua promotion phai lon hon 0") Long id) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.builder()
-                        .message("Áp dụng khuyến mãi cho khách hàng thành công")
+                        .message("Kich hoat khuyen mai thanh cong")
                         .status(HttpStatus.CREATED.value())
                         .data(promotionService.activePromotion(id))
                         .build()
         );
     }
 
-    @Operation(summary = "Xóa khuyến mãi", description = "Xóa khuyến mái")
+    @Operation(summary = "Xoa khuyen mai", description = "Xoa mem khuyen mai")
     @DeleteMapping("/{id}/delete")
     public ResponseEntity<ApiResponse> deletePromotion(
-            @PathVariable @Min( value = 1 , message = "Id của promotion phải lớn hơn 1 !") Long id) {
+            @PathVariable @Min(value = 1, message = "Id cua promotion phai lon hon 0") Long id) {
         promotionService.delete(id);
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
-                        .message("Xóa khuyến mãi thành công")
+                        .message("Xoa khuyen mai thanh cong")
                         .status(HttpStatus.OK.value())
                         .build()
         );
     }
 
-    @Operation(summary = "Tìm kiếm khuyến mãi theo id", description = "Tìm kiếm khuyến mãi theo id")
+    @Operation(summary = "Tim kiem khuyen mai theo id", description = "Lay thong tin chi tiet khuyen mai")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> findPromotionById(
-            @PathVariable @Min( value = 1 , message = "Id của promotion phải lớn hơn 1 !") Long id) {
+            @PathVariable @Min(value = 1, message = "Id cua promotion phai lon hon 0") Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
-                        .message("Xóa khuyến mãi thành công")
+                        .message("Tim khuyen mai thanh cong")
                         .status(HttpStatus.OK.value())
                         .data(promotionService.findById(id))
                         .build()
         );
     }
 
-    @Operation(summary = "Tìm kiếm khuyến mãi", description = "Tìm kiếm khuyến mãi")
+    @Operation(summary = "Tim kiem khuyen mai", description = "Lay danh sach khuyen mai")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse> findAll(
-            @RequestParam(required = false) StatusPromotion status
-    ){
+    public ResponseEntity<ApiResponse> findAll(@RequestParam(required = false) StatusPromotion status) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
-                        .message("Xóa khuyến mãi thành công")
+                        .message("Lay danh sach khuyen mai thanh cong")
                         .status(HttpStatus.OK.value())
                         .data(promotionService.findAll(status))
                         .build()
         );
     }
-
 }

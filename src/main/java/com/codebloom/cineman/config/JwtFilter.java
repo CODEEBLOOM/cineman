@@ -147,6 +147,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 // API for customer
                 Pair.of(String.format("%s/movie/movie-theater/**",apiPath),Method.GET),
+                Pair.of(String.format("%s/movie-theater/all",apiPath),Method.GET),
                 Pair.of(String.format("%s/show-times/movie/**/movie-theater/**",apiPath),Method.GET),
                 Pair.of(String.format("%s/movie/all",apiPath),Method.GET),
                 Pair.of(String.format("%s/movie/**",apiPath),Method.GET),

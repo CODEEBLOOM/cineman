@@ -235,7 +235,7 @@ public class UserServiceImpl implements UserService {
         /* Kiem tra neu email da ton tai va email trang thai dang laf pending thi cập nhat thooi*/
         Optional<UserEntity> existingUser = userRepository.findByEmailAndStatus(user.getEmail(), UserStatus.PENDING);
 
-        MembershipRankEntity membershipRank = membershipRankRepository.findByName("Normal")
+        MembershipRankEntity membershipRank = membershipRankRepository.findByNameAndStatus("Normal", Boolean.TRUE)
                 .orElseThrow(() -> new DataNotFoundException("Membership rank not found with name: Normal"));
 
         if (existingUser.isPresent()) {
@@ -369,7 +369,7 @@ public class UserServiceImpl implements UserService {
             if (optionalUser.isEmpty()) {
                 checkNewUser(userLoginDTO.getEmail(), userLoginDTO.getPhoneNumber());
                 String password = passwordEncoder.encode(userLoginDTO.getPassword());
-                MembershipRankEntity membershipRankEntity = membershipRankRepository.findByName("Normal")
+                MembershipRankEntity membershipRankEntity = membershipRankRepository.findByNameAndStatus("Normal", Boolean.TRUE)
                         .orElseThrow(() -> new DataNotFoundException("Membership rank not found with name: Normal"));
 
                 UserEntity newUser = UserEntity.builder()

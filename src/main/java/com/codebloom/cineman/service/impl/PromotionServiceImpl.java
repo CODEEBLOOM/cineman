@@ -36,27 +36,18 @@ public class PromotionServiceImpl implements PromotionService {
     private final InvoiceRepository invoiceRepository;
     private final XStr xStr;
 
-    /**
-     * Tạo một mới một giảm giá
-     * @param request thống tin giảm giá
-     * @return PromotionResponse
-     */
     @Override
     @Transactional
     public PromotionResponse create(PromotionRequest request) {
-
         UserEntity staff = userRepository.findByUserIdAndStatus(request.getStaffId(), UserStatus.ACTIVE)
-                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy nhân viên có id: " + request.getStaffId()));
+                .orElseThrow(() -> new DataNotFoundException("Khong tim thay nhan vien co id: " + request.getStaffId()));
 
-        if(request.getStartDate().isAfter(request.getEndDate())) {
-            throw new ConflictException("Ngày bắt đầu chương trình giảm giá phải trước ngày kết thúc !");
-        }
+        validatePromotionDateRange(request);
 
-        String code = xStr.getKey();
         PromotionEntity promotionEntity = PromotionEntity.builder()
                 .name(request.getName())
                 .content(request.getContent())
-                .code(code)
+                .code(xStr.getKey())
                 .startDay(request.getStartDate() != null ? request.getStartDate() : LocalDateTime.now())
                 .endDay(request.getEndDate() != null ? request.getEndDate() : LocalDateTime.now())
                 .discount(request.getDiscount())
@@ -71,14 +62,12 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     @Transactional
     public PromotionResponse update(Long id, PromotionRequest request) {
-        PromotionEntity promotionEntity = promotionRepository.findById(id)
-                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giảm giá có id: " + id));
-        if(promotionEntity.getStatus() == StatusPromotion.ACTIVE) {
-            throw new ConflictException("Không thể cập nhật thông tin của giảm giá đã hoạt động !");
+        PromotionEntity promotionEntity = findPromotionById(id);
+        if (promotionEntity.getStatus() == StatusPromotion.ACTIVE) {
+            throw new ConflictException("Khong the cap nhat thong tin cua giam gia da hoat dong");
         }
-        if(promotionEntity.getStatus() == StatusPromotion.DELETED) {
-            throw new ConflictException("Không thể cập nhật thông tin của giảm giá đã được xóa !");
-        }
+
+        validatePromotionDateRange(request);
 
         promotionEntity.setName(request.getName());
         promotionEntity.setContent(request.getContent());
@@ -90,19 +79,9 @@ public class PromotionServiceImpl implements PromotionService {
         return toPromotionResponse(promotionRepository.save(promotionEntity));
     }
 
-    /**
-     * Lay thong tin mot giam gia
-     * @param id id cua giam gia
-     * @return PromotionResponse
-     */
     @Override
     public PromotionResponse findById(Long id) {
-        PromotionEntity promotionEntity = promotionRepository.findById(id)
-                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giảm giá có id: " + id));
-        if(promotionEntity.getStatus() == StatusPromotion.DELETED) {
-            throw new DataNotFoundException("Không tìm thấy giảm giá có id: " + id);
-        }
-        return toPromotionResponse(promotionEntity);
+        return toPromotionResponse(findPromotionById(id));
     }
 
     @Override
@@ -112,82 +91,65 @@ public class PromotionServiceImpl implements PromotionService {
             return promotionRepository.findAllByStatus(status).stream()
                     .map(this::toPromotionResponse)
                     .toList();
-        }else {
-            return promotionRepository.findAll().stream()
-                    .map(this::toPromotionResponse)
-                    .toList();
         }
+
+        return promotionRepository.findAllByStatusNot(StatusPromotion.DELETED).stream()
+                .map(this::toPromotionResponse)
+                .toList();
     }
 
-    /**
-     * Xoa mot giam gia
-     * @param id id cua giam gia
-     */
     @Override
+    @Transactional
     public void delete(Long id) {
-        PromotionEntity promotionEntity = promotionRepository.findById(id)
-                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giảm giá có id: " + id));
+        PromotionEntity promotionEntity = findPromotionById(id);
+        if (invoiceRepository.existsByPromotionAndStatusIn(
+                promotionEntity,
+                List.of(InvoiceStatus.PENDING, InvoiceStatus.PROCESSING)
+        )) {
+            throw new ConflictException("Khuyen mai dang duoc gan voi hoa don dang xu ly, khong the xoa");
+        }
+
         promotionEntity.setStatus(StatusPromotion.DELETED);
         promotionRepository.save(promotionEntity);
     }
 
-
-    /**
-     * Chuyển trạng thái giảm giá thành hoạt động
-     * @param id id cua giam gia
-     * @return PromotionResponses
-     */
     @Override
     public PromotionResponse activePromotion(Long id) {
-        PromotionEntity promotionEntity = promotionRepository.findById(id)
-                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giảm giá có id: " + id));
-        if(promotionEntity.getStatus() == StatusPromotion.DELETED) {
-            throw new DataNotFoundException("Không tìm thấy giảm giá có id: " + id);
-        }
-
-        if(promotionEntity.getEndDay().isBefore(LocalDateTime.now())) {
-            throw new ConflictException("Giảm giá đã kết thúc từ ngày "+ promotionEntity.getEndDay());
+        PromotionEntity promotionEntity = findPromotionById(id);
+        if (promotionEntity.getEndDay().isBefore(LocalDateTime.now())) {
+            throw new ConflictException("Giam gia da ket thuc tu ngay " + promotionEntity.getEndDay());
         }
 
         promotionEntity.setStatus(StatusPromotion.ACTIVE);
         return toPromotionResponse(promotionRepository.save(promotionEntity));
     }
 
-    /**
-     * Kiểm tra một giảm giá của người dùng
-     * @param code code giảm giá
-     * @param amount tổng tiền hiện tại
-     * @return ApplyPromotionResponse
-     */
     @Override
     public ApplyPromotionResponse applyPromotion(String code, Double amount) {
         log.info("Apply promotion code: {} amount: {}", code, amount);
         long userId = 40;
-        UserEntity user = userRepository.findById(userId).orElseThrow(() -> new DataNotFoundException("Không tìm thấy người dùng"));
+        userRepository.findById(userId)
+                .orElseThrow(() -> new DataNotFoundException("Khong tim thay nguoi dung"));
+
         PromotionEntity promotionEntity = promotionRepository.findByCodeAndStatus(code, StatusPromotion.ACTIVE)
-                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giảm giá với code: " + code));
-        log.info("find promotion: {}", promotionEntity.toString());
-        // Check ngày //
+                .orElseThrow(() -> new DataNotFoundException("Khong tim thay giam gia voi code: " + code));
+        log.info("find promotion: {}", promotionEntity);
+
         LocalDateTime now = LocalDateTime.now();
-        if(promotionEntity.getStartDay().isAfter(now)) {
-            throw new DataNotFoundException("Giảm giá bắt đầu từ ngày: " + promotionEntity.getStartDay() );
+        if (promotionEntity.getStartDay().isAfter(now)) {
+            throw new DataNotFoundException("Giam gia bat dau tu ngay: " + promotionEntity.getStartDay());
         }
-
-        if(promotionEntity.getEndDay().isBefore(now)){
-            throw new DataNotFoundException("Giảm giá đã kết thúc !");
+        if (promotionEntity.getEndDay().isBefore(now)) {
+            throw new DataNotFoundException("Giam gia da ket thuc");
         }
-
-        // Check số lượng //
-        if(promotionEntity.getQuantity() <= 0) {
-            throw new DataNotFoundException("Giảm giá đã được sử dụng hết !");
+        if (promotionEntity.getQuantity() <= 0) {
+            throw new DataNotFoundException("Giam gia da duoc su dung het");
         }
-
-        if(promotionEntity.getLimitAmount() > amount) {
-            throw new DataNotFoundException("Tổng tiền tối thiểu là: " + promotionEntity.getLimitAmount() + " VND !");
+        if (promotionEntity.getLimitAmount() > amount) {
+            throw new DataNotFoundException("Tong tien toi thieu la: " + promotionEntity.getLimitAmount() + " VND");
         }
 
         Double discount = promotionEntity.getDiscount() * amount;
-
         return ApplyPromotionResponse.builder()
                 .id(promotionEntity.getId())
                 .code(promotionEntity.getCode())
@@ -195,58 +157,54 @@ public class PromotionServiceImpl implements PromotionService {
                 .build();
     }
 
-
     @Override
     public PromotionEntity validateToApplyPromotion(Long id) {
-        PromotionEntity promotionEntity = promotionRepository.findById(id)
-                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giảm giá có id: " + id));
-        this.applyPromotion(promotionEntity.getCode(), 0.0);
-        return null;
+        PromotionEntity promotionEntity = promotionRepository.findByIdAndStatus(id, StatusPromotion.ACTIVE)
+                .orElseThrow(() -> new DataNotFoundException("Khong tim thay giam gia co id: " + id));
+
+        LocalDateTime now = LocalDateTime.now();
+        if (promotionEntity.getStartDay().isAfter(now)) {
+            throw new ConflictException("Khuyen mai chua bat dau");
+        }
+        if (promotionEntity.getEndDay().isBefore(now)) {
+            throw new ConflictException("Khuyen mai da het han");
+        }
+        if (promotionEntity.getQuantity() <= 0) {
+            throw new ConflictException("Khuyen mai da het luot su dung");
+        }
+
+        return promotionEntity;
     }
 
-    /**
-     * Hàm hủy sử dụng giảm giá
-     * @param id id cua giam gia
-     */
     @Override
     public void cancelPromotion(Long id) {
         PromotionEntity promotionEntity = promotionRepository.findById(id)
-                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giảm giá có id: " + id));
+                .orElseThrow(() -> new DataNotFoundException("Khong tim thay giam gia co id: " + id));
         promotionEntity.setQuantity(promotionEntity.getQuantity() + 1);
         promotionRepository.save(promotionEntity);
     }
 
-    /**
-     * Hàm hủy sử dụng giảm giá
-     * @param vnp_TxnRef vnp_TxnRef cua hóa đơn
-     * @return Số lượng giảm giá mới của giảm giá
-     */
     @Override
     public Integer returnQuantityPromotion(String vnp_TxnRef) {
         InvoiceEntity invoiceEntity = invoiceRepository.findByVnTxnRef(vnp_TxnRef)
-                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy hóa đơn với vnp_TxnRef: " + vnp_TxnRef));
+                .orElseThrow(() -> new DataNotFoundException("Khong tim thay hoa don voi vnp_TxnRef: " + vnp_TxnRef));
 
-        if(invoiceEntity.getStatus() == InvoiceStatus.PAID || invoiceEntity.getStatus() == InvoiceStatus.CANCELLED) {
-            throw new ConflictException("Hóa đơn đã hủy hoặc đã thanh toán !");
+        if (invoiceEntity.getStatus() == InvoiceStatus.PAID || invoiceEntity.getStatus() == InvoiceStatus.CANCELLED) {
+            throw new ConflictException("Hoa don da huy hoac da thanh toan");
         }
+
         PromotionEntity promotionEntity = promotionRepository.findById(invoiceEntity.getPromotion().getId())
-                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giảm giá có id: " + invoiceEntity.getPromotion().getId()));
+                .orElseThrow(() -> new DataNotFoundException("Khong tim thay giam gia co id: " + invoiceEntity.getPromotion().getId()));
         promotionEntity.setQuantity(promotionEntity.getQuantity() + 1);
         promotionRepository.save(promotionEntity);
         return promotionEntity.getQuantity();
     }
 
-    /**
-     * Lấy toàn bộ thông tin giảm giá của người dùng
-     * @param userId id người dùng
-     * @return List<PromotionResponse>
-     */
     @Override
-    public List<PromotionResponse> findAllPromotionByUserId(Long userId) {
-
-        List<PromotionResponse> promotionEntities = promotionRepository.findAllPromotionByCustomerUsed(StatusPromotion.ACTIVE, userId)
+    public List<PromotionResponse> findAllPromotionByUserId(Long userId, StatusPromotion status) {
+        List<PromotionResponse> usedPromotions = promotionRepository.findAllPromotionByCustomerUsed(StatusPromotion.ACTIVE, userId)
                 .stream()
-                .map((promotionEntity) -> PromotionResponse.builder()
+                .map(promotionEntity -> PromotionResponse.builder()
                         .id(promotionEntity.getId())
                         .name(promotionEntity.getName())
                         .content(promotionEntity.getContent())
@@ -259,9 +217,10 @@ public class PromotionServiceImpl implements PromotionService {
                         .status(StatusPromotion.USED)
                         .build())
                 .toList();
-        List<PromotionResponse> promotionEntities1 = promotionRepository.findAllPromotionByCustomerNotUse(StatusPromotion.ACTIVE, userId)
+
+        List<PromotionResponse> availablePromotions = promotionRepository.findAllPromotionByCustomerNotUse(StatusPromotion.ACTIVE, userId)
                 .stream()
-                .map((promotionEntity) -> PromotionResponse.builder()
+                .map(promotionEntity -> PromotionResponse.builder()
                         .id(promotionEntity.getId())
                         .name(promotionEntity.getName())
                         .content(promotionEntity.getContent())
@@ -275,16 +234,22 @@ public class PromotionServiceImpl implements PromotionService {
                         .build())
                 .toList();
 
-        return Stream.concat(promotionEntities.stream(), promotionEntities1.stream())
-                .collect(Collectors.toList());
+        if (status == null) {
+            return Stream.concat(usedPromotions.stream(), availablePromotions.stream())
+                    .collect(Collectors.toList());
+        }
+
+        if (status == StatusPromotion.USED) {
+            return usedPromotions;
+        }
+
+        if (status == StatusPromotion.ACTIVE) {
+            return availablePromotions;
+        }
+
+        return List.of();
     }
 
-
-    /**
-     * Chuyen PromotionEntity thanh PromotionResponse
-     * @param promotionEntity Thông tin giảm giá
-     * @return PromotionResponse
-     */
     private PromotionResponse toPromotionResponse(PromotionEntity promotionEntity) {
         return PromotionResponse.builder()
                 .id(promotionEntity.getId())
@@ -298,5 +263,16 @@ public class PromotionServiceImpl implements PromotionService {
                 .limitAmount(promotionEntity.getLimitAmount())
                 .status(promotionEntity.getStatus())
                 .build();
+    }
+
+    private void validatePromotionDateRange(PromotionRequest request) {
+        if (request.getStartDate().isAfter(request.getEndDate())) {
+            throw new ConflictException("Ngay bat dau chuong trinh giam gia phai truoc ngay ket thuc");
+        }
+    }
+
+    private PromotionEntity findPromotionById(Long id) {
+        return promotionRepository.findByIdAndStatusNot(id, StatusPromotion.DELETED)
+                .orElseThrow(() -> new DataNotFoundException("Khong tim thay giam gia co id: " + id));
     }
 }

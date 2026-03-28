@@ -9,7 +9,12 @@ import com.codebloom.cineman.exception.DataExistingException;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.*;
+import com.codebloom.cineman.repository.projection.SeatSelectionProjection;
+import com.codebloom.cineman.repository.projection.TicketTypeSelectionProjection;
 import com.codebloom.cineman.service.TicketService;
+import com.codebloom.cineman.service.dto.TicketSelectionResult;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +34,9 @@ public class TicketServiceImpl implements TicketService {
     private final SeatRepository seatRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final InvoiceRepository invoiceRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public TicketResponse findById(Integer ticketId) {
@@ -164,6 +172,52 @@ public class TicketServiceImpl implements TicketService {
         return ticketRepository.save(ticketEntity);
     }
 
+    @Override
+    @Transactional
+    public TicketSelectionResult createSeatSelection(TicketRequest request) {
+
+        log.info("Create new ticket for realtime seat selection");
+
+        Double showTimePrice = showTimeRepository.findOriginPriceByIdAndStatus(request.getShowTimeId(), ShowTimeStatus.VALID)
+                .orElseThrow(() -> new DataNotFoundException("Show time not found or invalid"));
+
+        SeatSelectionProjection seatSelection = seatRepository.findSeatSelectionByIdAndStatus(request.getSeatId(), SeatStatus.ACTIVE)
+                .orElseThrow(() -> new DataNotFoundException("Seat not found or invalid"));
+
+        TicketTypeSelectionProjection ticketTypeSelection = ticketTypeRepository
+                .findSelectionByNameAndStatus(request.getTicketType(), true)
+                .orElseThrow(() -> new DataNotFoundException("Ticket type not found or invalid"));
+
+        if (!invoiceRepository.existsByIdAndStatusIsNot(request.getInvoiceId(), InvoiceStatus.CANCELLED)) {
+            throw new DataNotFoundException("Invoice not found");
+        }
+
+        if (ticketRepository.existsByShowTime_IdAndSeat_Id(request.getShowTimeId(), request.getSeatId())) {
+            throw new DataExistingException("Ticket already exist");
+        }
+
+        Double price = showTimePrice + ticketTypeSelection.getPrice() + seatSelection.getSeatTypePrice();
+
+        TicketEntity ticketEntity = TicketEntity.builder()
+                .showTime(entityManager.getReference(ShowTimeEntity.class, request.getShowTimeId()))
+                .ticketType(entityManager.getReference(TicketTypeEntity.class, ticketTypeSelection.getId()))
+                .invoice(entityManager.getReference(InvoiceEntity.class, request.getInvoiceId()))
+                .seat(entityManager.getReference(SeatEntity.class, request.getSeatId()))
+                .price(price)
+                .status(TicketStatus.PENDING)
+                .limitTime(10)
+                .build();
+
+        TicketEntity savedTicket = ticketRepository.save(ticketEntity);
+
+        return TicketSelectionResult.builder()
+                .ticketId(savedTicket.getId())
+                .invoiceId(request.getInvoiceId())
+                .price(price)
+                .seat(toSeatResponse(seatSelection))
+                .build();
+    }
+
 
 
     @Override
@@ -219,11 +273,7 @@ public class TicketServiceImpl implements TicketService {
      */
     @Override
     public Double getTotalMoneyOfTickets(Long invoiceId) {
-        List<TicketEntity> tickets = this.findByInvoiceId(invoiceId);
-        return tickets != null ? tickets
-                .stream()
-                .map(TicketEntity::getPrice)
-                .reduce(0.0, Double::sum) : 0.0;
+        return ticketRepository.sumPriceByInvoiceId(invoiceId);
     }
 
 
@@ -241,6 +291,24 @@ public class TicketServiceImpl implements TicketService {
                 .status(savedTicket.getStatus())
                 .limitTime(savedTicket.getLimitTime())
                 .createBooking(savedTicket.getCreateBooking())
+                .build();
+    }
+
+    private SeatResponse toSeatResponse(SeatSelectionProjection seatSelection) {
+        return SeatResponse.builder()
+                .id(seatSelection.getId())
+                .rowIndex(seatSelection.getRowIndex())
+                .columnIndex(seatSelection.getColumnIndex())
+                .label(seatSelection.getLabel())
+                .seatType(
+                        SeatTypeEntity.builder()
+                                .id(seatSelection.getSeatTypeId())
+                                .name(seatSelection.getSeatTypeName())
+                                .price(seatSelection.getSeatTypePrice())
+                                .status(seatSelection.getSeatTypeStatus())
+                                .build()
+                )
+                .status(seatSelection.getStatus())
                 .build();
     }
 }

@@ -4,6 +4,7 @@ import com.codebloom.cineman.controller.request.TicketRequest;
 import com.codebloom.cineman.controller.response.DummyTicket;
 import com.codebloom.cineman.controller.response.TicketResponse;
 import com.codebloom.cineman.model.TicketEntity;
+import com.codebloom.cineman.service.dto.TicketSelectionResult;
 
 import java.util.List;
 
@@ -14,6 +15,8 @@ public interface TicketService {
     List<DummyTicket> findAllTicketsByShowTimeIdAndUserId(Long showTimeId, Long userId);
 
     TicketEntity create(TicketRequest request);
+
+    TicketSelectionResult createSeatSelection(TicketRequest request);
 
     TicketResponse update(Long ticketId, TicketRequest request);
 

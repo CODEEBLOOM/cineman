@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +33,8 @@ public interface InvoiceRepository extends JpaRepository<InvoiceEntity, Long> {
     List<InvoiceEntity> findByCustomerAndStaffAndStatus(UserEntity customer, UserEntity staff, InvoiceStatus status);
 
     Optional<InvoiceEntity> findByIdAndStatusNot(Long id, InvoiceStatus status);
+
+    boolean existsByIdAndStatusIsNot(Long id, InvoiceStatus status);
 
     Optional<InvoiceEntity> findByVnTxnRefAndStatus(String vnTxnRef, InvoiceStatus invoiceStatus);
 
@@ -58,6 +61,8 @@ public interface InvoiceRepository extends JpaRepository<InvoiceEntity, Long> {
     List<InvoiceEntity> findByCustomerOrStaff(Long id);
 
     Optional<InvoiceEntity> findByCustomerAndPromotion(UserEntity customer, PromotionEntity promotion);
+
+    boolean existsByPromotionAndStatusIn(PromotionEntity promotion, Collection<InvoiceStatus> statuses);
 
     /**
      * Mỗi promotion chỉ áp dụng được cho 1 khách hàng trên 1 hóa đơn duy nhất

@@ -14,7 +14,13 @@ public interface PromotionRepository extends JpaRepository<PromotionEntity, Long
 
     Optional<PromotionEntity> findByCodeAndStatus(String code, StatusPromotion statusPromotion);
 
+    Optional<PromotionEntity> findByIdAndStatus(Long id, StatusPromotion status);
+
+    Optional<PromotionEntity> findByIdAndStatusNot(Long id, StatusPromotion status);
+
     List<PromotionEntity> findAllByStatus(StatusPromotion status);
+
+    List<PromotionEntity> findAllByStatusNot(StatusPromotion status);
 
     @Query(value = """
             SELECT p FROM PromotionEntity p WHERE p.status = :status AND p.id NOT IN (
