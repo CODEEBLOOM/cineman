@@ -56,6 +56,7 @@ public class SnackServiceImpl implements SnackService {
         return convert(updated);
     }
 
+    @Transactional
     @Override
     public void delete(int id) {
         SnackEntity snack = snackRepository.findByIdAndIsActive(id, true)

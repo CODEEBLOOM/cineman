@@ -28,6 +28,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -306,7 +307,31 @@ public class ShowTimeServiceImpl implements ShowTimeService {
 
     @Override
     public List<ShowTimeDetailResponse> findAllByFilter(ShowTimeRequestNew request) {
-        List<ShowTimeEntity> showTimes = showTimeRepository.findAll();
+        Sort sort = Sort.by(Sort.Order.desc("showDate"), Sort.Order.asc("startTime"));
+        Specification<ShowTimeEntity> specification = Specification.where(null);
+
+        if (request.getMovieTheaterId() != null) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(
+                            root.join("cinemaTheater").join("movieTheater").get("movieTheaterId"),
+                            request.getMovieTheaterId().intValue()
+                    ));
+        }
+
+        if (request.getShowDate() != null) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("showDate"), request.getShowDate()));
+        }
+
+        if (request.getShowTimeStatus() != null) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("status"), request.getShowTimeStatus()));
+        } else {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.notEqual(root.get("status"), ShowTimeStatus.DELETED));
+        }
+
+        List<ShowTimeEntity> showTimes = showTimeRepository.findAll(specification, sort);
         List<ShowTimeDetailResponse> showTimeDetailResponses = showTimes.stream()
                 .map(showTime -> {
                     return ShowTimeDetailResponse.builder()

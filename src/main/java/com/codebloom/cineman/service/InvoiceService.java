@@ -33,7 +33,7 @@ public interface InvoiceService {
 
     List<InvoiceDetailResponse> findByUserId(Long userId);
 
-    InvoiceDetailPageResponse findAllInvoicesByCreatedAtAndMovieTheater(Date createdAt, Integer pageNo, Integer pageSize, Integer... movieTheaterId);
+    InvoiceDetailPageResponse findAllInvoicesByShowDateAndMovieTheater(Date showDate, Integer pageNo, Integer pageSize, Integer... movieTheaterId);
 
     InvoiceTicketResponse  findInvoiceByQRCode(String qrCode);
 

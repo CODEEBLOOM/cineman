@@ -17,6 +17,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,13 +49,29 @@ class SnackTypeServiceImplTest {
         SnackEntity snack = SnackEntity.builder().id(2).isActive(true).snackType(snackType).build();
 
         when(snackTypeRepository.findByIdAndIsActive(1, true)).thenReturn(Optional.of(snackType));
-        when(snackRepository.findBySnackTypeAndIsActive(snackType, true)).thenReturn(List.of(snack));
+        when(snackRepository.findBySnackType(snackType)).thenReturn(List.of(snack));
 
         snackTypeService.delete(1);
 
         assertEquals(false, snackType.getIsActive());
         assertEquals(false, snack.getIsActive());
         verify(snackRepository).saveAll(List.of(snack));
+        verify(snackTypeRepository).save(snackType);
+    }
+
+    @Test
+    void deleteShouldNotResaveChildrenWhenAllSnacksAlreadyInactive() {
+        SnackTypeEntity snackType = SnackTypeEntity.builder().id(1).isActive(true).build();
+        SnackEntity inactiveSnack = SnackEntity.builder().id(2).isActive(false).snackType(snackType).build();
+
+        when(snackTypeRepository.findByIdAndIsActive(1, true)).thenReturn(Optional.of(snackType));
+        when(snackRepository.findBySnackType(snackType)).thenReturn(List.of(inactiveSnack));
+
+        snackTypeService.delete(1);
+
+        assertEquals(false, snackType.getIsActive());
+        assertEquals(false, inactiveSnack.getIsActive());
+        verify(snackRepository, never()).saveAll(List.of(inactiveSnack));
         verify(snackTypeRepository).save(snackType);
     }
 }

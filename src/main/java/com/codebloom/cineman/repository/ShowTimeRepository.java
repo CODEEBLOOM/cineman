@@ -9,6 +9,7 @@ import com.codebloom.cineman.model.ShowTimeEntity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> {
+public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long>, JpaSpecificationExecutor<ShowTimeEntity> {
 
     List<ShowTimeEntity> findAllByCinemaTheaterAndShowDateAndStatusNot(CinemaTheaterEntity cinemaTheater, Date showDate, ShowTimeStatus showTimeStatus, Sort sort);
 
@@ -135,6 +136,6 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> 
                 AND st.status = :showTimeStatus
                 AND st.showDate >= :showDate
         """)
-    List<ShowTimeEntity> findAllByFilter(Integer movieTheaterId, Sort sort);
+    List<ShowTimeEntity> findAllByFilter(Integer movieTheaterId, ShowTimeStatus showTimeStatus, Date showDate, Sort sort);
 
 }

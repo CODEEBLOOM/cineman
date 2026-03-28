@@ -51,9 +51,9 @@ spring:
       hibernate:
         format_sql: false
   sendgrid:
-    api-key: your_sendgrid_api_key_here
-    from-email: admin@em7802.cineman.io.vn
-    template-id: d-c59a7109d01d40ca97cd20310ad512f7
+    api-key: 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
+    from-email: sondoquang3@gmail.com
+    template-id: d-35719691e618440abf276a0f43260d7b
     verification-link: http://localhost:8081/api/v01/auth/confirm-email
 jwt:
   expirationDay: 30
@@ -86,5 +86,5 @@ vnpay:
   pay-url: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
   return-url: "http://localhost:3000/payment/payment-callback"
   tmn-code: "EKKOO4T6"
-  secret-key: "H6ZA06ZN7BKDXOZJ0GPRP4MVM958ZZ54"
+  secret-key: "LUVS2LLREFB2OB86U53EQ9W5DCSFZ69E"
   api-url: "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction"
