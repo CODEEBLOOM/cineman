@@ -11,9 +11,19 @@ import java.util.Optional;
 public interface ProvinceRepository extends JpaRepository<ProvinceEntity, Integer> {
     Optional<ProvinceEntity> findByName(String name);
 
+    Optional<ProvinceEntity> findByNameAndActive(String name, Boolean active);
+
     Optional<ProvinceEntity> findByCode(Integer code);
 
+    Optional<ProvinceEntity> findByCodeAndActive(Integer code, Boolean active);
+
+    Optional<ProvinceEntity> findByIdAndActive(Integer id, Boolean active);
+
     Optional<ProvinceEntity> findByNameAndCodeAndIdNot(String name, Integer code, Integer id);
+
+    Optional<ProvinceEntity> findByNameAndIdNot(String name, Integer id);
+
+    Optional<ProvinceEntity> findByCodeAndIdNot(Integer code, Integer id);
 
     List<ProvinceEntity> findAllByActive(Boolean active);
 }

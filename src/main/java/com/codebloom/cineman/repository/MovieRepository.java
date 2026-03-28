@@ -17,6 +17,34 @@ public interface MovieRepository extends JpaRepository<MovieEntity, Integer> {
 
     Page<MovieEntity> findAllByReleaseDateGreaterThanEqualAndStatus(Date targetDate, MovieStatusEntity status, Pageable pageable);
 
+    @Query("""
+            SELECT DISTINCT mtm.movie
+            FROM MovieTheaterMappingEntity mtm
+            WHERE mtm.active = true
+              AND mtm.movieTheater.movieTheaterId = :movieTheaterId
+              AND mtm.movie.status = :status
+              AND mtm.movie.releaseDate >= :targetDate
+            """)
+    Page<MovieEntity> findAllByReleaseDateGreaterThanEqualAndStatusAndMovieTheaterMapping(
+            Date targetDate,
+            MovieStatusEntity status,
+            Integer movieTheaterId,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT DISTINCT mtm.movie
+            FROM MovieTheaterMappingEntity mtm
+            WHERE mtm.active = true
+              AND mtm.movieTheater.movieTheaterId = :movieTheaterId
+              AND mtm.movie.status = :status
+            """)
+    Page<MovieEntity> findAllByStatusAndMovieTheaterMapping(
+            MovieStatusEntity status,
+            Integer movieTheaterId,
+            Pageable pageable
+    );
+
     @Query(""" 
             SELECT DISTINCT st.movie
             FROM ShowTimeEntity st
@@ -33,6 +61,15 @@ public interface MovieRepository extends JpaRepository<MovieEntity, Integer> {
                         AND st.showDate >= :showDate
             """)
     Page<MovieEntity> findAllMovieByCinemaTheaterIdAndShowDate(Integer cinemaTheaterId, ShowTimeStatus showTimeStatus, Date showDate, Pageable pageable);
+
+    @Query("""
+            SELECT DISTINCT st.movie
+            FROM ShowTimeEntity st
+            WHERE st.cinemaTheater.movieTheater.movieTheaterId = :movieTheaterId
+                        AND st.status = :showTimeStatus
+                        AND st.showDate >= :showDate
+            """)
+    Page<MovieEntity> findAllMovieByMovieTheaterIdAndShowDate(Integer movieTheaterId, ShowTimeStatus showTimeStatus, Date showDate, Pageable pageable);
 
     Page<MovieEntity> findAllByStatusNot(MovieStatusEntity status, Pageable pageable);
 }

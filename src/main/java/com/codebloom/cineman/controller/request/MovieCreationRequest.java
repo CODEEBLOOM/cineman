@@ -47,6 +47,18 @@ public class MovieCreationRequest {
     @NotNull(message = "Thể loại phim không được để trống!")
     private List<Integer> genres;
 
+    @NotEmpty(message = "Directors list is required")
+    private List<
+            @NotNull(message = "Director id must not be null")
+            @Min(value = 1, message = "Director id must be greater than 0")
+            Integer> directors;
+
+    @NotEmpty(message = "Casts list is required")
+    private List<
+            @NotNull(message = "Cast id must not be null")
+            @Min(value = 1, message = "Cast id must be greater than 0")
+            Integer> casts;
+
     @NotBlank(message = "Link trailer không được để trống!")
     @Pattern(regexp = "^(https?|ftp)://.*$", message = "Định dạng link trailer không hợp lệ!")
     private String trailerLink;

@@ -9,7 +9,6 @@ import com.codebloom.cineman.controller.request.UserRegisterRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
 import com.codebloom.cineman.controller.response.TokenResponse;
 import com.codebloom.cineman.controller.response.UserResponse;
-import com.codebloom.cineman.exception.InvalidDataException;
 import com.codebloom.cineman.service.AuthService;
 import com.codebloom.cineman.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,8 +23,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -140,23 +137,24 @@ public class AuthenticationController {
     public ResponseEntity<Void> logout(
             @RequestHeader( required = false, name = "Authorization") String token
     ) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            String email = authentication.getName();
-            if (email.isEmpty()) {
-                throw new InvalidDataException("Access Token Invalid");
-            }
-            userService.updateRefreshToken(token.substring(7), true);
-            ResponseCookie responseCookie = ResponseCookie.from("refreshToken", null)
-                    .httpOnly(true)
-                    .path("/")
-                    .maxAge(0)
-                    .build();
-            return ResponseEntity.status(OK)
-                    .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
-                    .build();
+        if (token == null || !token.startsWith("Bearer ")) {
+            return ResponseEntity.status(UNAUTHORIZED).build();
         }
-        return ResponseEntity.status(UNAUTHORIZED).body(null);
+
+        String accessToken = token.substring(7).trim();
+        if (accessToken.isEmpty()) {
+            return ResponseEntity.status(UNAUTHORIZED).build();
+        }
+
+        userService.updateRefreshToken(accessToken, true);
+        ResponseCookie responseCookie = ResponseCookie.from("refreshToken", null)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+        return ResponseEntity.status(OK)
+                .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+                .build();
     }
 
     @Operation(summary = "Confirm User", description = "API dùng để confirm email")

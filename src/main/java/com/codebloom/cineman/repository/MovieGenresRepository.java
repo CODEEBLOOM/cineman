@@ -10,5 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface MovieGenresRepository extends JpaRepository<MovieGenresEntity, Integer> {
+    void deleteAllByMovie(MovieEntity movie);
+
     Optional<MovieGenresEntity> findByMovieAndGenres(MovieEntity movieEntity, GenresEntity genresEntity);
 }
