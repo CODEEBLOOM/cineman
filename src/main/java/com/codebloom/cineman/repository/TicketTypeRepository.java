@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.List;
 
 
 @Repository
@@ -15,4 +16,10 @@ public interface TicketTypeRepository extends JpaRepository<TicketTypeEntity,Int
     Optional<TicketTypeEntity> findByIdAndStatus(Integer id, Boolean status);
     Optional<TicketTypeEntity> findByName(TicketType type);
     Optional<TicketTypeEntity> findByNameAndStatus(TicketType type, Boolean status);
+
+    Optional<TicketTypeEntity> findByIdAndStatus(Integer id, Boolean status);
+
+    Optional<TicketTypeEntity> findByNameAndStatusAndIdNot(TicketType type, Boolean status, Integer id);
+
+    List<TicketTypeEntity> findAllByStatus(Boolean status);
 }
