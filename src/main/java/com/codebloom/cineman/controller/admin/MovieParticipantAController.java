@@ -24,6 +24,17 @@ public class MovieParticipantAController {
 
     private final MovieParticipantService movieDirectorService;
 
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse> getAllMovieParticipants() {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Success")
+                        .data(movieDirectorService.findAll())
+                        .build()
+        );
+    }
+
     @PostMapping("/add")
     public ResponseEntity<ApiResponse> addDirectorForMovie(@RequestBody @Valid MovieParticipantRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(

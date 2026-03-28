@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -35,7 +35,7 @@ public class SnackServiceImpl implements SnackService {
                 .description(request.getDescription())
                 .isActive(true)
                 .build();
-        SnackTypeEntity snackType = snackTypeRepository.findById(request.getSnackTypeId())
+        SnackTypeEntity snackType = snackTypeRepository.findByIdAndIsActive(request.getSnackTypeId(), true)
                 .orElseThrow(() -> new DataNotFoundException("Snack Type not found"));
         snack.setSnackType(snackType);
         SnackEntity saved = snackRepository.save(snack);
@@ -45,21 +45,20 @@ public class SnackServiceImpl implements SnackService {
 
     @Override
     public SnackResponse update(int id, SnackRequest request) {
-        SnackEntity snack = snackRepository.findById(id)
+        SnackEntity snack = snackRepository.findByIdAndIsActive(id, true)
                 .orElseThrow(() -> new DataNotFoundException("Snack not found"));
         mapper.map(request, snack);
         snack.setId(id);
-        SnackTypeEntity snackType = snackTypeRepository.findById(request.getSnackTypeId())
+        SnackTypeEntity snackType = snackTypeRepository.findByIdAndIsActive(request.getSnackTypeId(), true)
                 .orElseThrow(() -> new DataNotFoundException("Snack Type not found"));
         snack.setSnackType(snackType);
-        snack.setIsActive(true);
         SnackEntity updated = snackRepository.save(snack);
         return convert(updated);
     }
 
     @Override
     public void delete(int id) {
-        SnackEntity snack = snackRepository.findById(id)
+        SnackEntity snack = snackRepository.findByIdAndIsActive(id, true)
                 .orElseThrow(() -> new DataNotFoundException("Snack not found"));
         snack.setIsActive(false);
         snackRepository.save(snack);
@@ -82,26 +81,20 @@ public class SnackServiceImpl implements SnackService {
 
     @Override
     public List<SnackResponse> findAllComboSnacks() {
-        SnackTypeEntity snackType = snackTypeRepository.findByNameAndIsActive("Combo", true);
-        List<SnackEntity> snacks = snackRepository.findBySnackTypeAndIsActive(snackType, true);
-        List<SnackResponse> response = snacks.stream()
-                .map(this::convert)
-                .toList();
-        return response.isEmpty() ? null : response;
+        return snackTypeRepository.findByNameAndIsActive("Combo", true)
+                .map(snackType -> snackRepository.findBySnackTypeAndIsActive(snackType, true).stream()
+                        .map(this::convert)
+                        .toList())
+                .orElse(Collections.emptyList());
     }
 
     @Override
     public List<SnackResponse> findAllSnacksByType(Integer snackTypeId) {
-        SnackTypeEntity snackType = snackTypeRepository.findById(snackTypeId)
+        SnackTypeEntity snackType = snackTypeRepository.findByIdAndIsActive(snackTypeId, true)
                 .orElseThrow(() -> new DataNotFoundException("Không tìm thấy snack type"));
-        List<SnackEntity> snacks = snackRepository.findBySnackTypeAndIsActive(snackType, true);
-        List<SnackResponse> response = new ArrayList<>();
-        if (!snacks.isEmpty()) {
-            response = snacks.stream()
-                    .map(this::convert)
-                    .toList();
-        }
-        return !response.isEmpty() ? response : null;
+        return snackRepository.findBySnackTypeAndIsActive(snackType, true).stream()
+                .map(this::convert)
+                .toList();
 
     }
 

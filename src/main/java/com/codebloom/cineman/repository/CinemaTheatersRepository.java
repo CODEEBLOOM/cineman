@@ -22,4 +22,13 @@ public interface CinemaTheatersRepository extends JpaRepository<CinemaTheaterEnt
     Optional<CinemaTheaterEntity> findByStatusAndCinemaTheaterId(CinemaTheaterStatus  status, Integer cinemaTheaterId);
 
     List<CinemaTheaterEntity> findAllByStatusAndCinemaTheaterId(CinemaTheaterStatus status, Integer cinemaTheaterId);
+<<<<<<< Updated upstream
+=======
+
+    List<CinemaTheaterEntity> findAllByStatusAndMovieTheater_MovieTheaterId(CinemaTheaterStatus status, Integer movieTheaterId);
+
+    List<CinemaTheaterEntity> findAllByStatusNotAndMovieTheater_MovieTheaterId(CinemaTheaterStatus status, Integer movieTheaterId);
+
+    List<CinemaTheaterEntity> findAllByStatusNotAndCinemaType_CinemaTypeId(CinemaTheaterStatus status, Integer cinemaTypeId);
+>>>>>>> Stashed changes
 }

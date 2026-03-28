@@ -18,5 +18,7 @@ public interface MovieParticipantRepository extends JpaRepository<MovieParticipa
     @Query("SELECT COUNT(mp) > 0 FROM MovieParticipantEntity mp WHERE mp.movieRole.movieRoleId = :movieRoleId")
     boolean existsByMovieRoleId(@Param("movieRoleId") Integer  movieRoleId);
 
+    void deleteAllByMovie(MovieEntity movie);
+
     Optional<MovieParticipantEntity> findByMovieAndParticipant(MovieEntity existingMovie, ParticipantEntity exitingParticipant);
 }

@@ -32,6 +32,8 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> 
 
     List<ShowTimeEntity> findAllByCinemaTheaterAndStatusNot(CinemaTheaterEntity cinemaTheater, ShowTimeStatus showTimeStatus, Sort sort);
 
+    List<ShowTimeEntity> findAllByCinemaTheaterInAndStatusNot(List<CinemaTheaterEntity> cinemaTheaters, ShowTimeStatus showTimeStatus);
+
     @Query("""
             SELECT st
             FROM ShowTimeEntity st
@@ -107,6 +109,15 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long> 
                         AND st.showDate >= CURRENT_DATE
             """)
     List<Date> findAllShowDateByCinemaTheaterIdAndStatusInFeatured(Integer cinemaTheaterId, ShowTimeStatus showTimeStatus, Sort sort);
+
+    @Query("""
+            SELECT distinct st.showDate
+            FROM ShowTimeEntity st
+            WHERE st.cinemaTheater.movieTheater.movieTheaterId = :movieTheaterId
+                        AND st.status = :showTimeStatus
+                        AND st.showDate >= CURRENT_DATE
+            """)
+    List<Date> findAllShowDateByMovieTheaterIdAndStatusInFeatured(Integer movieTheaterId, ShowTimeStatus showTimeStatus, Sort sort);
 
     @Query("""
            SELECT st

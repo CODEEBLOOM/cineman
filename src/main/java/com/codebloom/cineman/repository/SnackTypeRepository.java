@@ -5,9 +5,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SnackTypeRepository extends JpaRepository<SnackTypeEntity,Integer> {
 
-    SnackTypeEntity findByNameAndIsActive(String combo, Boolean active);
+    List<SnackTypeEntity> findByIsActive(Boolean isActive);
+
+    Optional<SnackTypeEntity> findByIdAndIsActive(Integer id, Boolean isActive);
+
+    Optional<SnackTypeEntity> findByNameAndIsActive(String combo, Boolean active);
 }

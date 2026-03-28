@@ -1,6 +1,7 @@
 package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.controller.request.MovieParticipantRequest;
+import com.codebloom.cineman.controller.response.MovieParticipantResponse;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.MovieRoleEntity;
 import com.codebloom.cineman.model.ParticipantEntity;
@@ -14,6 +15,8 @@ import com.codebloom.cineman.service.MovieService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class MovieParticipantServiceImpl implements MovieParticipantService {
@@ -22,6 +25,13 @@ public class MovieParticipantServiceImpl implements MovieParticipantService {
     private final MovieService movieService;
     private final MovieRoleService movieRoleService;
     private final ParticipantService participantService;
+
+    @Override
+    public List<MovieParticipantResponse> findAll() {
+        return movieParticipantRepository.findAll().stream()
+                .map(this::toResponse)
+                .toList();
+    }
 
     @Override
     public MovieParticipantEntity addParticipantMovie(MovieParticipantRequest request) {
@@ -62,5 +72,18 @@ public class MovieParticipantServiceImpl implements MovieParticipantService {
         MovieParticipantEntity existMovieParticipant = movieParticipantRepository.findByMovieAndParticipant(existingMovie, exitingParticipant)
                 .orElseThrow(() -> new DataNotFoundException("Participant of movie not found with id's movie: " + movieId + " and  id's participant: " + participantId));
         movieParticipantRepository.delete(existMovieParticipant);
+    }
+
+    private MovieParticipantResponse toResponse(MovieParticipantEntity movieParticipantEntity) {
+        return MovieParticipantResponse.builder()
+                .id(movieParticipantEntity.getId())
+                .movieId(movieParticipantEntity.getMovie().getMovieId())
+                .movieTitle(movieParticipantEntity.getMovie().getTitle())
+                .participantId(movieParticipantEntity.getParticipant().getParticipantId())
+                .participantBirthName(movieParticipantEntity.getParticipant().getBirthName())
+                .participantNickname(movieParticipantEntity.getParticipant().getNickname())
+                .movieRoleId(movieParticipantEntity.getMovieRole().getMovieRoleId())
+                .movieRoleName(movieParticipantEntity.getMovieRole().getName())
+                .build();
     }
 }
