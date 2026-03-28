@@ -39,4 +39,13 @@ public interface TicketRepository extends JpaRepository<TicketEntity, Long> {
     Optional<TicketEntity> findByIdAndStatus(Long id, TicketStatus ticketStatus);
 
     Optional<TicketEntity> findByShowTimeAndSeat(ShowTimeEntity showTimeEntity, SeatEntity seatEntity);
+
+    boolean existsByShowTime_IdAndSeat_Id(Long showTimeId, Long seatId);
+
+    @Query("""
+            SELECT COALESCE(SUM(t.price), 0)
+            FROM TicketEntity t
+            WHERE t.invoice.id = :invoiceId
+            """)
+    Double sumPriceByInvoiceId(@Param("invoiceId") Long invoiceId);
 }

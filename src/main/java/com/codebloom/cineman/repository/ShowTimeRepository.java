@@ -25,6 +25,13 @@ public interface ShowTimeRepository extends JpaRepository<ShowTimeEntity, Long>,
 
     Optional<ShowTimeEntity> findByIdAndStatus(Long id, ShowTimeStatus showTimeStatus);
 
+    @Query("""
+            SELECT st.originPrice
+            FROM ShowTimeEntity st
+            WHERE st.id = :id AND st.status = :showTimeStatus
+            """)
+    Optional<Double> findOriginPriceByIdAndStatus(Long id, ShowTimeStatus showTimeStatus);
+
     List<ShowTimeEntity> findAllByStatusNot(ShowTimeStatus showTimeStatus);
 
     Optional<ShowTimeEntity> findByIdAndStatusNot(Long id, ShowTimeStatus status);

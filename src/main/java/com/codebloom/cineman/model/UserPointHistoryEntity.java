@@ -3,6 +3,7 @@ package com.codebloom.cineman.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -32,7 +33,7 @@ public class UserPointHistoryEntity {
 
     @Column( name = "updated_at", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    @CreationTimestamp
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
     @ManyToOne
@@ -40,7 +41,7 @@ public class UserPointHistoryEntity {
     private UserEntity user;
 
     @ManyToOne
-    @JoinColumn(name = "invoice_id", nullable = false)
+    @JoinColumn(name = "invoice_id")
     private InvoiceEntity invoice;
 
 }

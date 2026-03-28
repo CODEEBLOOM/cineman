@@ -13,19 +13,19 @@ import lombok.Setter;
 @Builder
 public class UserPointHistoryRequest {
 
-    @NotNull(message = "Id người dùng không được phép null !")
-    @Min( value = 1, message = "Id người dùng phải lớn hơn 0 !")
+    @NotNull(message = "Id nguoi dung khong duoc phep null !")
+    @Min(value = 1, message = "Id nguoi dung phai lon hon 0 !")
     private Long userId;
 
-    @Min( value = 1, message = "Id hóa đơn khách hàng phải lớn hơn 0 !")
+    @Min(value = 1, message = "Id hoa don khach hang phai lon hon 0 !")
     private Long invoiceId;
 
-    @NotNull(message = "Số điểm quy đổi của khách hàng không được phép null !")
+    @NotNull(message = "So diem quy doi cua khach hang khong duoc phep null !")
+    @Min(value = 1, message = "So diem quy doi cua khach hang phai lon hon 0 !")
     private Integer changePoint;
 
-    @NotNull(message = "Lý do quy đổi điểm của khách hàng không được phép null !")
-    @NotBlank(message = "Lý do quy đổi điểm của khách hàng không được phép trống !")
-    @Size(min = 1, max = 200, message = "Lý do quy đổi điểm của khách hàng tối đa 200 kí tự !")
+    @NotNull(message = "Ly do quy doi diem cua khach hang khong duoc phep null !")
+    @NotBlank(message = "Ly do quy doi diem cua khach hang khong duoc phep trong !")
+    @Size(min = 1, max = 200, message = "Ly do quy doi diem cua khach hang toi da 200 ki tu !")
     private String reason;
-
 }

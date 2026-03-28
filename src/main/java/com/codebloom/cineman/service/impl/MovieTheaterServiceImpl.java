@@ -40,6 +40,14 @@ public class MovieTheaterServiceImpl implements MovieTheaterService {
     private final ModelMapper modelMapper;
 
     @Override
+    public List<MovieTheaterResponse> findAll() {
+        return movieTheaterRepository.findAllByStatus(true)
+                .stream()
+                .map(this::convert)
+                .toList();
+    }
+
+    @Override
     public MovieTheaterPage findAllByPage(PageRequest pageRequest) {
         Page<MovieTheaterEntity> page = movieTheaterRepository.findAllByStatus(true, org.springframework.data.domain.PageRequest.of(pageRequest.getPage(), pageRequest.getSize()));
         List<MovieTheaterResponse> list = page.getContent()

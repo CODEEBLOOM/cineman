@@ -1,5 +1,6 @@
 package com.codebloom.cineman.service.impl;
 
+import com.codebloom.cineman.common.enums.UserStatus;
 import com.codebloom.cineman.controller.request.MembershipRankRequest;
 import com.codebloom.cineman.controller.request.UserPointHistoryRequest;
 import com.codebloom.cineman.controller.response.MembershipRankResponse;
@@ -31,17 +32,12 @@ public class MembershipRankServiceImpl implements MembershipRankService {
     private final UserRepository userRepository;
     private final UserPointHistoryService userPointHistoryService;
 
-    /**
-     * Create membership rank
-     *
-     * @param request MembershipRankRequest
-     * @return MembershipRankResponse
-     */
     @Override
     @Transactional
     public MembershipRankResponse create(MembershipRankRequest request) {
         log.info("Create membership rank with name: {}", request.getName());
-        this.checkMembershipRankName(request.getName());
+        checkMembershipRankName(request.getName());
+
         MembershipRankEntity membershipRankEntity = MembershipRankEntity.builder()
                 .name(request.getName().trim())
                 .requiredPoint(request.getRequiredPoint())
@@ -56,21 +52,19 @@ public class MembershipRankServiceImpl implements MembershipRankService {
         return convertToMembershipRankResponse(membershipRankEntity);
     }
 
-    /**
-     * Update membership rank
-     * @param id id of membership rank
-     * @param request MembershipRankRequest
-     * @return MembershipRankResponse
-     */
     @Override
     @Transactional
     public MembershipRankResponse update(Integer id, MembershipRankRequest request) {
         log.info("Update membership rank with id: {}", id);
-        MembershipRankEntity membershipRankEntity = membershipRankRepository.findById(id)
+        MembershipRankEntity membershipRankEntity = membershipRankRepository.findByIdAndStatus(id, Boolean.TRUE)
                 .orElseThrow(() -> new DataNotFoundException("Membership rank not found"));
-        if (request.getName().equals(membershipRankEntity.getName())) {
-            throw new DataExistingException("Membership rank name is existed");
-        }
+
+        membershipRankRepository.findByName(request.getName().trim())
+                .filter(existingRank -> !existingRank.getId().equals(id))
+                .ifPresent(existingRank -> {
+                    throw new DataExistingException("Membership rank name is existed");
+                });
+
         membershipRankEntity.setName(request.getName().trim());
         membershipRankEntity.setRequiredPoint(request.getRequiredPoint());
         membershipRankEntity.setReturnPointsTicket(request.getReturnPointsTicket());
@@ -81,88 +75,76 @@ public class MembershipRankServiceImpl implements MembershipRankService {
     }
 
     @Override
+    @Transactional
     public void delete(Integer id) {
-        MembershipRankEntity membershipRankEntity = membershipRankRepository.findById(id)
+        MembershipRankEntity membershipRankEntity = membershipRankRepository.findByIdAndStatus(id, Boolean.TRUE)
                 .orElseThrow(() -> new DataNotFoundException("Membership rank not found with id: " + id));
         if (!membershipRankEntity.getUsers().isEmpty()) {
             throw new ConflictException("Cannot delete membership rank with id: " + id + " because it has users");
         }
-        membershipRankRepository.delete(membershipRankEntity);
+        membershipRankEntity.setStatus(Boolean.FALSE);
+        membershipRankRepository.save(membershipRankEntity);
     }
 
-    /**
-     * Find membership rank by id
-     * @param id id of membership rank
-     * @return MembershipRankResponse
-     */
     @Override
     public MembershipRankResponse findById(Integer id) {
-        MembershipRankEntity membershipRankEntity = membershipRankRepository.findById(id)
+        MembershipRankEntity membershipRankEntity = membershipRankRepository.findByIdAndStatus(id, Boolean.TRUE)
                 .orElseThrow(() -> new DataNotFoundException("Membership rank not found with id: " + id));
         return convertToMembershipRankResponse(membershipRankEntity);
     }
 
-    /**
-     * Find all membership rank
-     * @return List<MembershipRankResponse>
-     */
     @Override
     public List<MembershipRankResponse> findAll() {
-        List<MembershipRankResponse> membershipRankResponses = membershipRankRepository.findAll()
+        List<MembershipRankResponse> membershipRankResponses = membershipRankRepository.findAllByStatusOrderByPriorityLevelAsc(Boolean.TRUE)
                 .stream()
                 .map(this::convertToMembershipRankResponse)
                 .toList();
         return membershipRankResponses.isEmpty() ? null : membershipRankResponses;
     }
 
-    /**
-     * Upgrade membership rank
-     * @param userId id of user
-     * @param membershipRankId id of membership rank
-     * @return MembershipRankEntity
-     */
     @Override
+    @Transactional
     public MembershipRankEntity upgradeMembershipRank(Long userId, Integer membershipRankId) {
-        MembershipRankEntity membershipRankEntity = membershipRankRepository.findById(membershipRankId)
+        MembershipRankEntity targetRank = membershipRankRepository.findByIdAndStatus(membershipRankId, Boolean.TRUE)
                 .orElseThrow(() -> new DataNotFoundException("Membership rank not found with id: " + membershipRankId));
 
-        UserEntity userEntity = userRepository.findById(userId)
+        UserEntity userEntity = userRepository.findByUserIdAndStatus(userId, UserStatus.ACTIVE)
                 .orElseThrow(() -> new DataNotFoundException("User not found with id: " + userId));
-        int newSavePoint = userEntity.getSavePoint() - membershipRankEntity.getRequiredPoint();
-        if (newSavePoint < 0) {
-            throw new ConflictException("Điểm tích lũy không đủ để quy đổi !");
+
+        MembershipRankEntity currentRank = userEntity.getMembershipRank();
+        if (currentRank != null) {
+            if (currentRank.getId().equals(targetRank.getId())) {
+                throw new ConflictException("Nguoi dung dang o hang thanh vien nay!");
+            }
+            if (targetRank.getPriorityLevel() <= currentRank.getPriorityLevel()) {
+                throw new ConflictException("Chi co the nang len hang thanh vien cao hon!");
+            }
         }
-        userEntity.setMembershipRank(membershipRankEntity);
-        userEntity.setSavePoint(newSavePoint);
-        userRepository.save(userEntity);
+
+        String currentRankName = currentRank == null ? "Chua co hang" : currentRank.getName();
         userPointHistoryService.createTransaction(
                 UserPointHistoryRequest.builder()
                         .userId(userId)
-                        .changePoint(membershipRankEntity.getRequiredPoint() * -1)
-                        .reason("Nâng cấp thẻ thành viên: " + userEntity.getMembershipRank().getName() + " lên " + membershipRankEntity.getName())
+                        .changePoint(targetRank.getRequiredPoint())
+                        .reason("Nang cap the thanh vien: " + currentRankName + " len " + targetRank.getName())
                         .invoiceId(null)
                         .build()
         );
 
-        return userEntity.getMembershipRank();
+        UserEntity upgradedUser = userRepository.findByUserIdAndStatus(userId, UserStatus.ACTIVE)
+                .orElseThrow(() -> new DataNotFoundException("User not found with id: " + userId));
+        upgradedUser.setMembershipRank(targetRank);
+        userRepository.save(upgradedUser);
+
+        return upgradedUser.getMembershipRank();
     }
 
-    /**
-     * Check membership rank name is existed
-     * @param name Membership rank name
-     */
     private void checkMembershipRankName(String name) {
         membershipRankRepository.findByName(name).ifPresent(membershipRank -> {
-            throw new RuntimeException("Membership rank name is existed");
+            throw new DataExistingException("Membership rank name is existed");
         });
     }
 
-    /**
-     * Convert MembershipRankEntity to MembershipRankResponse
-     *
-     * @param entity MembershipRankEntity
-     * @return MembershipRankResponse
-     */
     private MembershipRankResponse convertToMembershipRankResponse(MembershipRankEntity entity) {
         return MembershipRankResponse.builder()
                 .id(entity.getId())

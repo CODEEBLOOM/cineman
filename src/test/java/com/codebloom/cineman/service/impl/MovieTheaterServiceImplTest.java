@@ -52,6 +52,41 @@ class MovieTheaterServiceImplTest {
     private MovieTheaterServiceImpl movieTheaterService;
 
     @Test
+    void findAllShouldReturnAllActiveMovieTheatersWithoutPagination() {
+        ProvinceEntity province = ProvinceEntity.builder().id(1).name("Ho Chi Minh").active(true).build();
+        CinemaTheaterEntity publishedCinemaTheater = CinemaTheaterEntity.builder()
+                .cinemaTheaterId(10)
+                .status(CinemaTheaterStatus.PUBLISHED)
+                .build();
+        CinemaTheaterEntity invalidCinemaTheater = CinemaTheaterEntity.builder()
+                .cinemaTheaterId(11)
+                .status(CinemaTheaterStatus.INVALID)
+                .build();
+        MovieTheaterEntity movieTheater = MovieTheaterEntity.builder()
+                .movieTheaterId(2)
+                .name("Cineman District 1")
+                .address("456 Street")
+                .hotline("0987654321")
+                .iframeCode("iframe")
+                .status(true)
+                .province(province)
+                .cinemaTheaters(List.of(publishedCinemaTheater, invalidCinemaTheater))
+                .build();
+
+        when(movieTheaterRepository.findAllByStatus(true)).thenReturn(List.of(movieTheater));
+
+        List<MovieTheaterResponse> response = movieTheaterService.findAll();
+
+        assertEquals(1, response.size());
+        assertEquals(2, response.get(0).getMovieTheaterId());
+        assertEquals("Cineman District 1", response.get(0).getName());
+        assertEquals("456 Street", response.get(0).getAddress());
+        assertEquals("0987654321", response.get(0).getHotline());
+        assertEquals(1, response.get(0).getNumbersOfCinemaTheater());
+        assertEquals(province, response.get(0).getProvince());
+    }
+
+    @Test
     void updateShouldMutateExistingMovieTheater() {
         MovieTheaterEntity existing = MovieTheaterEntity.builder()
                 .movieTheaterId(1)
