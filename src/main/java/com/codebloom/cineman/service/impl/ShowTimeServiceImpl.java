@@ -299,6 +299,11 @@ public class ShowTimeServiceImpl implements ShowTimeService {
     public List<Date> findAllShowDateByCinemaTheaterIdInFeatured(Integer cinemaTheaterId) {
         List<Date> showDates = showTimeRepository
                 .findAllShowDateByCinemaTheaterIdAndStatusInFeatured(cinemaTheaterId, ShowTimeStatus.VALID, Sort.by(Sort.Direction.ASC, "showDate"));
+        if (showDates.isEmpty()) {
+            log.info("No featured show dates found for cinema theater id {}, fallback to movie theater id", cinemaTheaterId);
+            showDates = showTimeRepository
+                    .findAllShowDateByMovieTheaterIdAndStatusInFeatured(cinemaTheaterId, ShowTimeStatus.VALID, Sort.by(Sort.Direction.ASC, "showDate"));
+        }
         return showDates.isEmpty() ? null : showDates;
     }
 
@@ -312,9 +317,11 @@ public class ShowTimeServiceImpl implements ShowTimeService {
     public List<MovieResponse> findAllMovieByCinemaTheaterIdAndShowDate(Integer cinemaTheaterId, Date showDate, MoviePageQueryRequest request) {
 
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
-        MovieStatusEntity movieStatus = movieStatusService.findById(MovieStatus.MOVIE_STATUS_SC);
-
         Page<MovieEntity> page = movieRepository.findAllMovieByCinemaTheaterIdAndShowDate(cinemaTheaterId,ShowTimeStatus.VALID, showDate, pageable);
+        if (page.isEmpty()) {
+            log.info("No movies found for cinema theater id {} on {}, fallback to movie theater id", cinemaTheaterId, showDate);
+            page = movieRepository.findAllMovieByMovieTheaterIdAndShowDate(cinemaTheaterId, ShowTimeStatus.VALID, showDate, pageable);
+        }
         return movieService.movieToMoviePageableResponse(page).getMovies();
     }
 

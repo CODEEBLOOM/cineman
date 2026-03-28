@@ -9,11 +9,14 @@ import com.codebloom.cineman.exception.ConflictException;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.MovieGenresRepository;
+import com.codebloom.cineman.repository.MovieParticipantRepository;
 import com.codebloom.cineman.repository.MovieRepository;
+import com.codebloom.cineman.repository.MovieRoleRepository;
 import com.codebloom.cineman.repository.MovieStatusRepository;
 import com.codebloom.cineman.service.GenreService;
 import com.codebloom.cineman.service.MovieService;
 import com.codebloom.cineman.service.MovieStatusService;
+import com.codebloom.cineman.service.ParticipantService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.util.*;
 
 
@@ -30,6 +34,8 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j
 public class MovieServiceImpl implements MovieService {
+    private static final Set<String> DIRECTOR_ROLE_NAMES = Set.of("director", "daodien");
+    private static final Set<String> CAST_ROLE_NAMES = Set.of("cast", "actor", "dienvien");
 
     private final MovieRepository movieRepository;
     private final MovieStatusRepository movieStatusRepository;
@@ -37,6 +43,9 @@ public class MovieServiceImpl implements MovieService {
     private final ModelMapper modelMapper;
     private final GenreService genreService;
     private final MovieGenresRepository movieGenresRepository;
+    private final MovieParticipantRepository movieParticipantRepository;
+    private final MovieRoleRepository movieRoleRepository;
+    private final ParticipantService participantService;
 
     /**
      * Find all movies
@@ -75,8 +84,17 @@ public class MovieServiceImpl implements MovieService {
                 return null;
             }
             case MovieStatus.MOVIE_STATUS_SC ->
-                    page = movieRepository.findAllByReleaseDateGreaterThanEqualAndStatus(new Date(), movieStatus, pageable);
-            case MovieStatus.MOVIE_STATUS_DB -> page = movieRepository.findAllByStatus(movieStatus, pageable);
+                    page = movieRepository.findAllByReleaseDateGreaterThanEqualAndStatusAndMovieTheaterMapping(
+                            new Date(),
+                            movieStatus,
+                            movieTheaterId,
+                            pageable
+                    );
+            case MovieStatus.MOVIE_STATUS_DB -> page = movieRepository.findAllByStatusAndMovieTheaterMapping(
+                    movieStatus,
+                    movieTheaterId,
+                    pageable
+            );
             default -> page = movieRepository.findAllByStatusAndMovieTheaterId(movieStatus, movieTheaterId, pageable);
         }
         log.info("end findAllByPageAndFilter");
@@ -149,20 +167,11 @@ public class MovieServiceImpl implements MovieService {
 //        }
         MovieEntity movie = modelMapper.map(request, MovieEntity.class);
         movie.setStatus(movieStatus);
-        movieRepository.save(movie);
+        movie = movieRepository.save(movie);
 
         // Cho nó thể loại phim //
-        if (!request.getGenres().isEmpty()) {
-            for(Integer genreId : request.getGenres()) {
-                GenresEntity genresEntity = genreService.findById(genreId);
-
-                MovieGenresEntity movieGenresEntity = new MovieGenresEntity();
-                movieGenresEntity.setGenres(genresEntity);
-                movieGenresEntity.setMovie(movie);
-
-                movieGenresRepository.save(movieGenresEntity);
-            }
-        }
+        movie.setMovieGenres(replaceMovieGenres(movie, request.getGenres()));
+        movie.setMovieParticipants(replaceMovieParticipants(movie, request.getDirectors(), request.getCasts()));
         log.info("Movie saved: {}", movie);
         return movie;
     }
@@ -174,45 +183,32 @@ public class MovieServiceImpl implements MovieService {
      * @return MovieResponse
      */
     @Override
+    @Transactional
     public MovieResponse update(MovieUpdateRequest request) {
         MovieEntity movie = movieRepository.findById(request.getMovieId())
                 .orElseThrow(() -> new DataNotFoundException("Movie not found with id: " + request.getMovieId()));
         MovieStatusEntity movieStatus = movieStatusRepository.findById(request.getStatus())
                 .orElseThrow(() -> new DataNotFoundException("Không tìm thấy trạng thái phim id: " + request.getStatus()));
 
-        MovieEntity updateMovie = modelMapper.map(request, MovieEntity.class);
-        updateMovie.setCreatedAt(movie.getCreatedAt());
-        updateMovie.setUpdatedAt(new Date());
-        updateMovie.setStatus(movieStatus);
+        movie.setTitle(request.getTitle());
+        movie.setSynopsis(request.getSynopsis());
+        movie.setDetailDescription(request.getDetailDescription());
+        movie.setReleaseDate(request.getReleaseDate());
+        movie.setEndDate(request.getEndDate());
+        movie.setLanguage(request.getLanguage());
+        movie.setDuration(request.getDuration());
+        movie.setAge(request.getAge());
+        movie.setTrailerLink(request.getTrailerLink());
+        movie.setPosterImage(request.getPosterImage());
+        movie.setBannerImage(request.getBannerImage());
+        movie.setUpdatedAt(new Date());
+        movie.setStatus(movieStatus);
 
-        Map<Integer, MovieGenresEntity> movieGenresMap = new HashMap<>();
-        if (movie.getMovieGenres() != null) {
-            for(MovieGenresEntity movieGenresEntity : movie.getMovieGenres()) {
-                movieGenresMap.put(movieGenresEntity.getGenres().getGenresId(), movieGenresEntity);
-            }
-        }
-        Set<MovieGenresEntity> movieGenres = new HashSet<>();
-        if (!request.getGenres().isEmpty()) {
-            for(Integer genreId : request.getGenres()) {
-                if (movieGenresMap.containsKey(genreId)) {
-                    movieGenres.add(movieGenresMap.get(genreId));
-                    continue;
-                }
-                GenresEntity genresEntity = genreService.findById(genreId);
+        movie.setMovieGenres(replaceMovieGenres(movie, request.getGenres()));
+        movie.setMovieParticipants(replaceMovieParticipants(movie, request.getDirectors(), request.getCasts()));
 
-                MovieGenresEntity movieGenresEntity = new MovieGenresEntity();
-                movieGenresEntity.setGenres(genresEntity);
-                movieGenresEntity.setMovie(movie);
-
-                movieGenresRepository.save(movieGenresEntity);
-                movieGenres.add(movieGenresEntity);
-            }
-        }
-
-
-        updateMovie = movieRepository.save(updateMovie);
-        updateMovie.setMovieGenres(movieGenres);
-        return movieToMovieResponse(updateMovie);
+        movie = movieRepository.save(movie);
+        return movieToMovieResponse(movie);
     }
 
 
@@ -253,14 +249,18 @@ public class MovieServiceImpl implements MovieService {
         List<GenresEntity> genres = new ArrayList<>();
         List<ParticipantEntity> directors = new ArrayList<>();
         List<ParticipantEntity> casts = new ArrayList<>();
-        movie.getMovieGenres().forEach(movieGenre -> genres.add(movieGenre.getGenres()));
-        movie.getMovieParticipants().forEach((movieParticipant) -> {
-            if(movieParticipant.getMovieRole().getName().trim().equalsIgnoreCase("director")){
-                directors.add(movieParticipant.getParticipant());
-            }else if (movieParticipant.getMovieRole().getName().trim().equalsIgnoreCase("cast")){
-                casts.add(movieParticipant.getParticipant());
-            }
-        });
+        if (movie.getMovieGenres() != null) {
+            movie.getMovieGenres().forEach(movieGenre -> genres.add(movieGenre.getGenres()));
+        }
+        if (movie.getMovieParticipants() != null) {
+            movie.getMovieParticipants().forEach((movieParticipant) -> {
+                if (isDirectorRole(movieParticipant.getMovieRole())) {
+                    directors.add(movieParticipant.getParticipant());
+                } else if (isCastRole(movieParticipant.getMovieRole())) {
+                    casts.add(movieParticipant.getParticipant());
+                }
+            });
+        }
         return MovieResponse.builder()
                 .movieId(movie.getMovieId())
                 .status(movie.getStatus().getStatusId())
@@ -280,6 +280,92 @@ public class MovieServiceImpl implements MovieService {
                 .casts(casts)
                 .genres(genres)
                 .build();
+    }
+
+    private boolean isDirectorRole(MovieRoleEntity movieRole) {
+        String normalizedRoleName = normalizeRoleName(movieRole);
+        return normalizedRoleName.equals("director")
+                || normalizedRoleName.equals("daodien");
+    }
+
+    private boolean isCastRole(MovieRoleEntity movieRole) {
+        String normalizedRoleName = normalizeRoleName(movieRole);
+        return normalizedRoleName.equals("cast")
+                || normalizedRoleName.equals("actor")
+                || normalizedRoleName.equals("dienvien");
+    }
+
+    private String normalizeRoleName(MovieRoleEntity movieRole) {
+        if (movieRole == null || movieRole.getName() == null) {
+            return "";
+        }
+        String normalized = Normalizer.normalize(movieRole.getName(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        return normalized
+                .toLowerCase(Locale.ROOT)
+                .replace('đ', 'd')
+                .replaceAll("\\s+", "");
+    }
+
+    private Set<MovieGenresEntity> replaceMovieGenres(MovieEntity movie, List<Integer> genreIds) {
+        movieGenresRepository.deleteAllByMovie(movie);
+        movieGenresRepository.flush();
+
+        Set<MovieGenresEntity> movieGenres = new LinkedHashSet<>();
+        for (Integer genreId : new LinkedHashSet<>(genreIds)) {
+            GenresEntity genresEntity = genreService.findById(genreId);
+
+            MovieGenresEntity movieGenresEntity = new MovieGenresEntity();
+            movieGenresEntity.setGenres(genresEntity);
+            movieGenresEntity.setMovie(movie);
+
+            movieGenresRepository.save(movieGenresEntity);
+            movieGenres.add(movieGenresEntity);
+        }
+        return movieGenres;
+    }
+
+    private Set<MovieParticipantEntity> replaceMovieParticipants(
+            MovieEntity movie,
+            List<Integer> directorIds,
+            List<Integer> castIds
+    ) {
+        movieParticipantRepository.deleteAllByMovie(movie);
+        movieParticipantRepository.flush();
+
+        Set<MovieParticipantEntity> movieParticipants = new LinkedHashSet<>();
+        MovieRoleEntity directorRole = resolveMovieRole(DIRECTOR_ROLE_NAMES, "director");
+        MovieRoleEntity castRole = resolveMovieRole(CAST_ROLE_NAMES, "cast/actor");
+
+        addMovieParticipants(movie, new LinkedHashSet<>(directorIds), directorRole, movieParticipants);
+        addMovieParticipants(movie, new LinkedHashSet<>(castIds), castRole, movieParticipants);
+        return movieParticipants;
+    }
+
+    private void addMovieParticipants(
+            MovieEntity movie,
+            Collection<Integer> participantIds,
+            MovieRoleEntity movieRole,
+            Set<MovieParticipantEntity> movieParticipants
+    ) {
+        for (Integer participantId : participantIds) {
+            ParticipantEntity participant = participantService.findById(participantId);
+
+            MovieParticipantEntity movieParticipant = new MovieParticipantEntity();
+            movieParticipant.setMovie(movie);
+            movieParticipant.setParticipant(participant);
+            movieParticipant.setMovieRole(movieRole);
+
+            movieParticipantRepository.save(movieParticipant);
+            movieParticipants.add(movieParticipant);
+        }
+    }
+
+    private MovieRoleEntity resolveMovieRole(Set<String> supportedRoleNames, String roleLabel) {
+        return movieRoleRepository.findAllByActive(true).stream()
+                .filter(movieRole -> supportedRoleNames.contains(normalizeRoleName(movieRole)))
+                .findFirst()
+                .orElseThrow(() -> new DataNotFoundException("Movie role not found with name: " + roleLabel));
     }
 
     /**

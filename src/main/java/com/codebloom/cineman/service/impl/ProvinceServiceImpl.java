@@ -1,10 +1,18 @@
 package com.codebloom.cineman.service.impl;
 
+import com.codebloom.cineman.common.enums.CinemaTheaterStatus;
+import com.codebloom.cineman.common.enums.ShowTimeStatus;
 import com.codebloom.cineman.controller.request.ProvinceRequest;
 import com.codebloom.cineman.exception.DataExistingException;
 import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.model.CinemaTheaterEntity;
+import com.codebloom.cineman.model.MovieTheaterEntity;
 import com.codebloom.cineman.model.ProvinceEntity;
+import com.codebloom.cineman.model.ShowTimeEntity;
+import com.codebloom.cineman.repository.CinemaTheatersRepository;
+import com.codebloom.cineman.repository.MovieTheaterRepository;
 import com.codebloom.cineman.repository.ProvinceRepository;
+import com.codebloom.cineman.repository.ShowTimeRepository;
 import com.codebloom.cineman.service.ProvinceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +28,9 @@ import java.util.List;
 public class ProvinceServiceImpl implements ProvinceService {
 
     private final ProvinceRepository provinceRepository;
+    private final MovieTheaterRepository movieTheaterRepository;
+    private final CinemaTheatersRepository cinemaTheatersRepository;
+    private final ShowTimeRepository showTimeRepository;
     private final ModelMapper modelMapper;
 
     /**
@@ -38,7 +49,7 @@ public class ProvinceServiceImpl implements ProvinceService {
      */
     @Override
     public ProvinceEntity findById(Integer id) {
-        return provinceRepository.findById(id)
+        return provinceRepository.findByIdAndActive(id, true)
                 .orElseThrow(() -> new DataNotFoundException("Province not found with id: " + id));
     }
 
@@ -50,7 +61,7 @@ public class ProvinceServiceImpl implements ProvinceService {
      */
     @Override
     public ProvinceEntity findByName(String provinceName) {
-        return provinceRepository.findByName(provinceName)
+        return provinceRepository.findByNameAndActive(provinceName, true)
                 .orElseThrow(() -> new DataNotFoundException("Province not found with name: " + provinceName));
     }
 
@@ -74,10 +85,16 @@ public class ProvinceServiceImpl implements ProvinceService {
      * @return ProvinceEntity
      */
     @Override
+    @Transactional
     public ProvinceEntity update(Integer id, ProvinceRequest province) {
-        provinceRepository
-                .findByNameAndCodeAndIdNot(province.getName(), province.getCode(), id)
-                .ifPresent((provinceEntity)  -> {throw new DataExistingException("Province already exist");});
+        provinceRepository.findByNameAndIdNot(province.getName(), id)
+                .ifPresent(existingProvince -> {
+                    throw new DataExistingException("Province already exist with name: " + province.getName());
+                });
+        provinceRepository.findByCodeAndIdNot(province.getCode(), id)
+                .ifPresent(existingProvince -> {
+                    throw new DataExistingException("Province already exist with code: " + province.getCode());
+                });
         ProvinceEntity existingProvince = findById(id);
         modelMapper.map(province, existingProvince);
 
@@ -89,10 +106,9 @@ public class ProvinceServiceImpl implements ProvinceService {
      * @param id id duy nhất của tỉnh thành
      */
     @Override
+    @Transactional
     public void delete(Integer id) {
-        ProvinceEntity existingProvince = findById(id);
-        existingProvince.setActive(false);
-        provinceRepository.save(existingProvince);
+        softDeleteProvince(findById(id));
     }
 
     /**
@@ -100,11 +116,11 @@ public class ProvinceServiceImpl implements ProvinceService {
      * @param provinceCode mã code
      */
     @Override
+    @Transactional
     public void deleteByCode(Integer provinceCode) {
-        ProvinceEntity existingProvince = provinceRepository.findByCode(provinceCode)
+        ProvinceEntity existingProvince = provinceRepository.findByCodeAndActive(provinceCode, true)
                 .orElseThrow(() -> new DataNotFoundException("Province not found with code: " + provinceCode));
-        existingProvince.setActive(false);
-        provinceRepository.save(existingProvince);
+        softDeleteProvince(existingProvince);
     }
 
     /**
@@ -113,10 +129,43 @@ public class ProvinceServiceImpl implements ProvinceService {
      */
     private void checkCodeAndName(ProvinceEntity province) {
         provinceRepository.findByName(province.getName())
-                .ifPresent((provinceEntity ) -> {throw new DataExistingException("Province already exist with name: " + province.getName());});
+                .ifPresent(existingProvince -> {
+                    throw new DataExistingException("Province already exist with name: " + province.getName());
+                });
 
         provinceRepository.findByCode(province.getCode())
-                .ifPresent((provinceEntity -> {throw  new DataExistingException("Province already exist with code: " + province.getCode());}));
+                .ifPresent(existingProvince -> {
+                    throw new DataExistingException("Province already exist with code: " + province.getCode());
+                });
+    }
+
+    private void softDeleteProvince(ProvinceEntity province) {
+        List<MovieTheaterEntity> movieTheaters = movieTheaterRepository.findAllByStatusAndProvince_Id(true, province.getId());
+        movieTheaters.forEach(movieTheater -> movieTheater.setStatus(false));
+
+        List<CinemaTheaterEntity> cinemaTheaters = movieTheaters.stream()
+                .flatMap(movieTheater -> cinemaTheatersRepository
+                        .findAllByStatusNotAndMovieTheater_MovieTheaterId(CinemaTheaterStatus.INVALID, movieTheater.getMovieTheaterId())
+                        .stream())
+                .toList();
+        softDeleteCinemaTheaters(cinemaTheaters);
+
+        province.setActive(false);
+        movieTheaterRepository.saveAll(movieTheaters);
+        provinceRepository.save(province);
+    }
+
+    private void softDeleteCinemaTheaters(List<CinemaTheaterEntity> cinemaTheaters) {
+        if (cinemaTheaters.isEmpty()) {
+            return;
+        }
+
+        List<ShowTimeEntity> showTimes = showTimeRepository.findAllByCinemaTheaterInAndStatusNot(cinemaTheaters, ShowTimeStatus.DELETED);
+        showTimes.forEach(showTime -> showTime.setStatus(ShowTimeStatus.DELETED));
+        cinemaTheaters.forEach(cinemaTheater -> cinemaTheater.setStatus(CinemaTheaterStatus.INVALID));
+
+        showTimeRepository.saveAll(showTimes);
+        cinemaTheatersRepository.saveAll(cinemaTheaters);
     }
 
 }

@@ -3,12 +3,15 @@ package com.codebloom.cineman.service.impl;
 import com.codebloom.cineman.controller.request.SnackTypeRequest;
 import com.codebloom.cineman.controller.response.SnackTypeResponse;
 import com.codebloom.cineman.exception.DataNotFoundException;
+import com.codebloom.cineman.model.SnackEntity;
 import com.codebloom.cineman.model.SnackTypeEntity;
+import com.codebloom.cineman.repository.SnackRepository;
 import com.codebloom.cineman.repository.SnackTypeRepository;
 import com.codebloom.cineman.service.SnackTypeService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,31 +19,33 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SnackTypeServiceImpl implements SnackTypeService {
     private final SnackTypeRepository snackTypeRepository;
+    private final SnackRepository snackRepository;
     private final ModelMapper modelMapper;
 
     @Override
+    @Transactional
     public void delete(Integer id) {
-        SnackTypeEntity entity = snackTypeRepository.findById(id)
+        SnackTypeEntity entity = snackTypeRepository.findByIdAndIsActive(id, true)
                 .orElseThrow(() -> new DataNotFoundException("Snack Type not found"));
+        List<SnackEntity> snacks = snackRepository.findBySnackTypeAndIsActive(entity, true);
+        snacks.forEach(snack -> snack.setIsActive(false));
+        if (!snacks.isEmpty()) {
+            snackRepository.saveAll(snacks);
+        }
         entity.setIsActive(false);
         snackTypeRepository.save(entity);
     }
 
     @Override
     public List<SnackTypeResponse> findAll() {
-        List<SnackTypeEntity> entities = snackTypeRepository.findAll()
-                .stream()
-                .filter(SnackTypeEntity::getIsActive)
-                .toList();
-
-        return entities.stream()
+        return snackTypeRepository.findByIsActive(true).stream()
                 .map(entity -> modelMapper.map(entity, SnackTypeResponse.class))
                 .toList();
     }
 
     @Override
     public SnackTypeResponse findById(Integer id) {
-        SnackTypeEntity entity = snackTypeRepository.findById(id)
+        SnackTypeEntity entity = snackTypeRepository.findByIdAndIsActive(id, true)
                 .orElseThrow(() -> new DataNotFoundException("Snack Type not found"));
         return modelMapper.map(entity, SnackTypeResponse.class);
     }
@@ -55,7 +60,7 @@ public class SnackTypeServiceImpl implements SnackTypeService {
 
     @Override
     public SnackTypeResponse update(Integer id, SnackTypeRequest request) {
-        SnackTypeEntity entity = snackTypeRepository.findById(id)
+        SnackTypeEntity entity = snackTypeRepository.findByIdAndIsActive(id, true)
                 .orElseThrow(() -> new DataNotFoundException("Snack Type not found"));
 
         entity.setName(request.getName());

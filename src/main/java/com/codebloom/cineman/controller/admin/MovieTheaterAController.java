@@ -16,12 +16,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("${api.path}/admin/movie-theater")
-@Tag(name = "Movie Theater Controller", description = "Quản lý rạp chiếu phim.")
+@Tag(name = "Movie Theater Controller", description = "Quan ly rap chieu phim.")
 public class MovieTheaterAController {
 
     private final MovieTheaterService movieTheaterService;
 
-    @Operation(summary = "Add movie theater", description = "API dùng để tạo mới rạp chiếu phim.")
+    @Operation(summary = "Add movie theater", description = "API dung de tao moi rap chieu phim.")
     @PostMapping("/add")
     public ResponseEntity<ApiResponse> createMovieThear(@RequestBody @Valid MovieTheaterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
@@ -33,7 +33,7 @@ public class MovieTheaterAController {
         );
     }
 
-    @Operation(summary = "Update movie theater", description = "API dùng để cập nhật thông tin rạp chiếu phim.")
+    @Operation(summary = "Update movie theater", description = "API dung de cap nhat thong tin rap chieu phim.")
     @PutMapping("/{id}/update")
     public ResponseEntity<ApiResponse> updateMovieTheater(
             @PathVariable @Min(1) Integer id,
@@ -47,7 +47,7 @@ public class MovieTheaterAController {
         );
     }
 
-    @Operation(summary = "Delete movie theater", description = "API dùng để xóa rạp chiếu phim.")
+    @Operation(summary = "Delete movie theater", description = "API dung de xoa rap chieu phim.")
     @DeleteMapping("/{id}/delete")
     public ResponseEntity<ApiResponse> deleteMovieTheater(
             @PathVariable @Min(1) Integer id) {
@@ -61,11 +61,9 @@ public class MovieTheaterAController {
         );
     }
 
-
-    @Operation(summary = "Find all movie theater", description = "API dùng để lấy tất cả thông tin rạp chiếu phim.")
+    @Operation(summary = "Find all movie theater", description = "API dung de lay tat ca thong tin rap chieu phim.")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse> findAllMovieTheater(
-            PageRequest pageRequest) {
+    public ResponseEntity<ApiResponse> findAllMovieTheater(PageRequest pageRequest) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
@@ -75,8 +73,20 @@ public class MovieTheaterAController {
         );
     }
 
+    @Operation(summary = "Find movie theater by province", description = "API lay danh sach rap chieu phim theo tinh/thanh.")
+    @GetMapping("/province/{provinceId}/all")
+    public ResponseEntity<ApiResponse> findAllMovieTheaterByProvinceId(
+            @PathVariable @Min(1) Integer provinceId) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Success")
+                        .data(movieTheaterService.findAllByProvinceId(provinceId))
+                        .build()
+        );
+    }
 
-    @Operation(summary = "Find movie theater by id", description = "API dùng để lấy thông tin rạp chiếu phim theo id.")
+    @Operation(summary = "Find movie theater by id", description = "API dung de lay thong tin rap chieu phim theo id.")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> findMovieTheaterById(
             @PathVariable @Min(1) Integer id) {
@@ -88,6 +98,4 @@ public class MovieTheaterAController {
                         .build()
         );
     }
-
-
 }

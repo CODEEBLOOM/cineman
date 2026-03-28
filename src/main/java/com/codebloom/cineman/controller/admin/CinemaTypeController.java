@@ -62,6 +62,7 @@ public class CinemaTypeController {
 
     @Operation(summary = "Create cinema type", description = "API dùng để cập nhật thông tin loại rạp chiếu có trong hệ thống.")
     @PostMapping("/{id}/update")
+    @PutMapping("/{id}/update")
     public ResponseEntity<ApiResponse> updateCinemaType(
             @PathVariable @Min(1) Integer id,
             @RequestBody @Valid CinemaTypeRequest cinemaTypeRequest) {
