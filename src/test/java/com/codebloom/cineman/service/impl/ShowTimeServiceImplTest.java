@@ -34,6 +34,7 @@ import java.util.Date;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -86,7 +87,7 @@ class ShowTimeServiceImplTest {
                 any(Specification.class),
                 eq(Sort.by(Sort.Order.desc("showDate"), Sort.Order.asc("startTime")))
         );
-        verify(showTimeRepository, never()).findAllByFilter(any(), any(), any());
+        verify(showTimeRepository, never()).findAllByFilter(anyInt(), any(), any(), any(Sort.class));
     }
 
     @Test

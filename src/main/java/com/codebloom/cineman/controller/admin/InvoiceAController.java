@@ -26,7 +26,7 @@ public class InvoiceAController {
 
     @Operation(summary = "Get all invoies by date", description = "API dùng để lấy ra toàn bộ hóa đơn theo ngày cơ bản.")
     @GetMapping("/all/date/{date}")
-    public ResponseEntity<ApiResponse> getAllGenres(
+    public ResponseEntity<ApiResponse> getAllInvoicesByShowDate(
             @PathVariable("date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
             @RequestParam(value = "pageNo", defaultValue = "0") Integer pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
@@ -36,10 +36,10 @@ public class InvoiceAController {
         InvoiceDetailPageResponse invoiceDetailPageResponse = null;
         if(movieTheaterId.isPresent()) {
             invoiceDetailPageResponse = invoiceService
-                    .findAllInvoicesByCreatedAtAndMovieTheater(date, pageNo, pageSize, movieTheaterId.get());
+                    .findAllInvoicesByShowDateAndMovieTheater(date, pageNo, pageSize, movieTheaterId.get());
         }else {
             invoiceDetailPageResponse = invoiceService
-                    .findAllInvoicesByCreatedAtAndMovieTheater(date, pageNo, pageSize);
+                    .findAllInvoicesByShowDateAndMovieTheater(date, pageNo, pageSize);
         }
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()

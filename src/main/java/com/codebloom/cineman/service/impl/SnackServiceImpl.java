@@ -47,15 +47,18 @@ public class SnackServiceImpl implements SnackService {
     public SnackResponse update(int id, SnackRequest request) {
         SnackEntity snack = snackRepository.findByIdAndIsActive(id, true)
                 .orElseThrow(() -> new DataNotFoundException("Snack not found"));
-        mapper.map(request, snack);
-        snack.setId(id);
         SnackTypeEntity snackType = snackTypeRepository.findByIdAndIsActive(request.getSnackTypeId(), true)
                 .orElseThrow(() -> new DataNotFoundException("Snack Type not found"));
+        snack.setSnackName(request.getSnackName());
+        snack.setUnitPrice(request.getUnitPrice());
+        snack.setImage(request.getImage());
+        snack.setDescription(request.getDescription());
         snack.setSnackType(snackType);
         SnackEntity updated = snackRepository.save(snack);
         return convert(updated);
     }
 
+    @Transactional
     @Override
     public void delete(int id) {
         SnackEntity snack = snackRepository.findByIdAndIsActive(id, true)

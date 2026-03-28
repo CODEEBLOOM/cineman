@@ -7,13 +7,13 @@ import java.util.List;
 
 public interface MovieVariationService {
 
-    List<MovieVariationEntity> findAll();
-
-    MovieVariationEntity findById(Integer id);
-
     MovieVariationEntity create(MovieVariationRequest request);
 
     MovieVariationEntity update(Integer id, MovieVariationRequest request);
+
+    List<MovieVariationEntity> findAll();
+
+    MovieVariationEntity findById(Integer id);
 
     void delete(Integer id);
 }

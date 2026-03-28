@@ -9,15 +9,51 @@ import com.codebloom.cineman.service.MovieVariationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j(topic = "MOVIE-VARIATION-SERVICE")
+@RequiredArgsConstructor
 public class MovieVariationServiceImpl implements MovieVariationService {
 
     private final MovieVariationRepository movieVariationRepository;
+
+    @Override
+    @Transactional
+    public MovieVariationEntity create(MovieVariationRequest request) {
+        String normalizedName = request.getName().trim();
+        MovieVariationEntity existingMovieVariation = movieVariationRepository.findByName(normalizedName).orElse(null);
+        if (existingMovieVariation != null) {
+            if (Boolean.TRUE.equals(existingMovieVariation.getStatus())) {
+                throw new DataExistingException("Movie variation already exists with name: " + normalizedName);
+            }
+            existingMovieVariation.setName(normalizedName);
+            existingMovieVariation.setStatus(true);
+            return movieVariationRepository.save(existingMovieVariation);
+        }
+
+        MovieVariationEntity movieVariationEntity = MovieVariationEntity.builder()
+                .name(normalizedName)
+                .status(true)
+                .build();
+        return movieVariationRepository.save(movieVariationEntity);
+    }
+
+    @Override
+    @Transactional
+    public MovieVariationEntity update(Integer id, MovieVariationRequest request) {
+        MovieVariationEntity movieVariationEntity = findById(id);
+        String normalizedName = request.getName().trim();
+        MovieVariationEntity existingMovieVariation = movieVariationRepository.findByName(normalizedName).orElse(null);
+        if (existingMovieVariation != null && !existingMovieVariation.getId().equals(id)) {
+            throw new DataExistingException("Movie variation already exists with name: " + normalizedName);
+        }
+        movieVariationEntity.setName(normalizedName);
+        movieVariationEntity.setStatus(true);
+        return movieVariationRepository.save(movieVariationEntity);
+    }
 
     @Override
     public List<MovieVariationEntity> findAll() {
@@ -31,39 +67,10 @@ public class MovieVariationServiceImpl implements MovieVariationService {
     }
 
     @Override
-    public MovieVariationEntity create(MovieVariationRequest request) {
-        movieVariationRepository.findByNameAndStatus(request.getName().trim(), true)
-                .ifPresent(movieVariation -> {
-                    throw new DataExistingException("Movie variation already exists with name: " + request.getName());
-                });
-
-        MovieVariationEntity movieVariation = MovieVariationEntity.builder()
-                .name(request.getName().trim())
-                .status(true)
-                .build();
-        return movieVariationRepository.save(movieVariation);
-    }
-
-    @Override
-    public MovieVariationEntity update(Integer id, MovieVariationRequest request) {
-        MovieVariationEntity movieVariation = movieVariationRepository.findByIdAndStatus(id, true)
-                .orElseThrow(() -> new DataNotFoundException("Movie variation not found with id: " + id));
-
-        movieVariationRepository.findByNameAndStatusAndIdNot(request.getName().trim(), true, id)
-                .ifPresent(existingMovieVariation -> {
-                    throw new DataExistingException("Movie variation already exists with name: " + request.getName());
-                });
-
-        movieVariation.setName(request.getName().trim());
-        movieVariation.setStatus(true);
-        return movieVariationRepository.save(movieVariation);
-    }
-
-    @Override
+    @Transactional
     public void delete(Integer id) {
-        MovieVariationEntity movieVariation = movieVariationRepository.findByIdAndStatus(id, true)
-                .orElseThrow(() -> new DataNotFoundException("Movie variation not found with id: " + id));
-        movieVariation.setStatus(false);
-        movieVariationRepository.save(movieVariation);
+        MovieVariationEntity movieVariationEntity = findById(id);
+        movieVariationEntity.setStatus(false);
+        movieVariationRepository.save(movieVariationEntity);
     }
 }

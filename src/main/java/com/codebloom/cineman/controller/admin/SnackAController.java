@@ -76,10 +76,10 @@ public class SnackAController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse> deleteSnack(@PathVariable @Min(value = 1, message = "Id's snack is must be greater than or equal 1 !") Integer id) {
         snackService.delete(id);
-        return  ResponseEntity.status(HttpStatus.NO_CONTENT).body(
+        return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .message("Xóa snack thành công.")
-                        .status(HttpStatus.NO_CONTENT.value())
+                        .status(HttpStatus.OK.value())
                         .data(id)
                         .build()
         );

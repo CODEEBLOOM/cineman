@@ -27,9 +27,15 @@ public class SnackTypeServiceImpl implements SnackTypeService {
     public void delete(Integer id) {
         SnackTypeEntity entity = snackTypeRepository.findByIdAndIsActive(id, true)
                 .orElseThrow(() -> new DataNotFoundException("Snack Type not found"));
-        List<SnackEntity> snacks = snackRepository.findBySnackTypeAndIsActive(entity, true);
-        snacks.forEach(snack -> snack.setIsActive(false));
-        if (!snacks.isEmpty()) {
+        List<SnackEntity> snacks = snackRepository.findBySnackType(entity);
+        boolean hasChanges = false;
+        for (SnackEntity snack : snacks) {
+            if (Boolean.TRUE.equals(snack.getIsActive())) {
+                snack.setIsActive(false);
+                hasChanges = true;
+            }
+        }
+        if (hasChanges) {
             snackRepository.saveAll(snacks);
         }
         entity.setIsActive(false);

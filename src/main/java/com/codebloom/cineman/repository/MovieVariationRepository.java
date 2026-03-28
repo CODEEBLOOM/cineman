@@ -13,7 +13,7 @@ public interface MovieVariationRepository extends JpaRepository<MovieVariationEn
 
     Optional<MovieVariationEntity> findByIdAndStatus(Integer id, Boolean status);
 
-    Optional<MovieVariationEntity> findByNameAndStatus(String name, Boolean status);
+    Optional<MovieVariationEntity> findByName(String name);
 
-    Optional<MovieVariationEntity> findByNameAndStatusAndIdNot(String name, Boolean status, Integer id);
+    Optional<MovieVariationEntity> findByNameAndStatus(String name, Boolean status);
 }

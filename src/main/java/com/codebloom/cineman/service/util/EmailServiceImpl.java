@@ -65,7 +65,7 @@ public class EmailServiceImpl implements EmailService {
             if (response.getStatusCode() == 202) {
                 log.info("Email sent successfully");
             } else {
-                log.info("Email sent failed");
+                log.error("Email sent failed. statusCode={}, body={}", response.getStatusCode(), response.getBody());
             }
         } catch (IOException e) {
             log.error("Error occurred while sending email, error: {}", e.getMessage());
@@ -118,7 +118,7 @@ public class EmailServiceImpl implements EmailService {
         if (response.getStatusCode() == 202) {
             log.info("Verification sent successfully");
         } else {
-            log.error("Verification sent failed");
+            log.error("Verification sent failed. statusCode={}, body={}", response.getStatusCode(), response.getBody());
         }
 
 

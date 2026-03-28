@@ -72,9 +72,45 @@ public interface InvoiceRepository extends JpaRepository<InvoiceEntity, Long> {
             """)
     Optional<InvoiceEntity> findByUserIdAndPromotionId(Long userId, Long promotionId);
 
-    @Query(value = "SELECT * FROM invoices WHERE CAST(created_at AS date) = CAST(:date as date)", nativeQuery = true)
-    Page<InvoiceEntity> findAllByCreatedDate(Date date, Pageable pageable);
+    @Query(
+            value = """
+                    SELECT DISTINCT i
+                    FROM InvoiceEntity i
+                    JOIN i.tickets t
+                    JOIN t.showTime st
+                    WHERE st.showDate = :showDate
+                    """,
+            countQuery = """
+                    SELECT COUNT(DISTINCT i.id)
+                    FROM InvoiceEntity i
+                    JOIN i.tickets t
+                    JOIN t.showTime st
+                    WHERE st.showDate = :showDate
+                    """
+    )
+    Page<InvoiceEntity> findAllByShowDate(Date showDate, Pageable pageable);
 
-    @Query("SELECT i  FROM InvoiceEntity i WHERE CAST(i.createdAt AS date) = CAST(:createdAt as date)")
-    Page<InvoiceEntity> findAllByCreatedAt(Date createdAt, Pageable pageable);
+    @Query(
+            value = """
+                    SELECT DISTINCT i
+                    FROM InvoiceEntity i
+                    JOIN i.tickets t
+                    JOIN t.showTime st
+                    JOIN st.cinemaTheater ct
+                    JOIN ct.movieTheater mt
+                    WHERE st.showDate = :showDate
+                      AND mt.movieTheaterId = :movieTheaterId
+                    """,
+            countQuery = """
+                    SELECT COUNT(DISTINCT i.id)
+                    FROM InvoiceEntity i
+                    JOIN i.tickets t
+                    JOIN t.showTime st
+                    JOIN st.cinemaTheater ct
+                    JOIN ct.movieTheater mt
+                    WHERE st.showDate = :showDate
+                      AND mt.movieTheaterId = :movieTheaterId
+                    """
+    )
+    Page<InvoiceEntity> findAllByShowDateAndMovieTheaterId(Date showDate, Integer movieTheaterId, Pageable pageable);
 }

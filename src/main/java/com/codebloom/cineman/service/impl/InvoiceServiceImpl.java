@@ -617,13 +617,13 @@ public class InvoiceServiceImpl implements InvoiceService {
      * @return List<InvoiceDetailPageResponse>
      */
     @Override
-    public InvoiceDetailPageResponse findAllInvoicesByCreatedAtAndMovieTheater(Date createdAt, Integer pageNo, Integer pageSize, Integer... movieTheaterId) {
-        Sort sort = Sort.by("created_at").descending();
+    public InvoiceDetailPageResponse findAllInvoicesByShowDateAndMovieTheater(Date showDate, Integer pageNo, Integer pageSize, Integer... movieTheaterId) {
+        Sort sort = Sort.by("createdAt").descending();
         PageRequest pageRequest = PageRequest.of(pageNo, pageSize, sort);
         Page<InvoiceEntity> page = null;
         InvoiceDetailPageResponse invoiceDetailPageResponse = new InvoiceDetailPageResponse();
         if (movieTheaterId.length > 0) {
-            page = invoiceRepository.findAllByCreatedDate(createdAt, pageRequest);
+            page = invoiceRepository.findAllByShowDateAndMovieTheaterId(showDate, movieTheaterId[0], pageRequest);
             List<InvoiceDetailResponse> invoiceDetailResponses = new ArrayList<>();
             for (InvoiceEntity invoice : page.getContent()) {
                 if (invoice.getStatus() == InvoiceStatus.PENDING || invoice.getStatus() == InvoiceStatus.CANCELLED) {
@@ -632,14 +632,11 @@ public class InvoiceServiceImpl implements InvoiceService {
                 if (invoice.getTickets().isEmpty()) {
                     continue;
                 }
-                Integer theaterId = invoice.getTickets().get(0).getShowTime().getCinemaTheater().getMovieTheater().getMovieTheaterId();
-                if (theaterId.equals(movieTheaterId[0])) {
-                    invoiceDetailResponses.add(toInvoiceDetailResponse(invoice));
-                }
+                invoiceDetailResponses.add(toInvoiceDetailResponse(invoice));
             }
             invoiceDetailPageResponse.setInvoiceDetailResponses(invoiceDetailResponses);
         }else{
-            page = invoiceRepository.findAllByCreatedAt(createdAt, PageRequest.of(pageNo, pageSize, Sort.by("createdAt").descending()));
+            page = invoiceRepository.findAllByShowDate(showDate, pageRequest);
             List<InvoiceDetailResponse> invoiceDetailResponses = new ArrayList<>();
             for (InvoiceEntity invoice : page.getContent()) {
                 if (invoice.getStatus() == InvoiceStatus.PENDING || invoice.getStatus() == InvoiceStatus.CANCELLED) {

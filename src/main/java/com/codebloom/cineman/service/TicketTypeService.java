@@ -7,13 +7,9 @@ import java.util.List;
 
 public interface TicketTypeService {
 
-    List<TicketTypeEntity> findAll();
-
-    TicketTypeEntity findById(Integer id);
-
     TicketTypeEntity create(TicketTypeRequest request);
-
     TicketTypeEntity update(Integer id, TicketTypeRequest request);
-
+    List<TicketTypeEntity> findAll();
+    TicketTypeEntity findById(Integer id);
     void delete(Integer id);
 }

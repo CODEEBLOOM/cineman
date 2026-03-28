@@ -10,8 +10,8 @@ import lombok.Setter;
 @Setter
 public class MovieVariationRequest {
 
-    @NotBlank(message = "Name's movie variation is must not blank !")
-    @NotNull(message = "Name's movie variation is must not null !")
-    @Size(min = 1, max = 60, message = "Name's movie variation is must less than or equal 60 character !")
+    @NotNull(message = "Name of movie variation must not be null!")
+    @NotBlank(message = "Name of movie variation must not be blank!")
+    @Size(min = 1, max = 100, message = "Name of movie variation must be less than or equal 100 characters!")
     private String name;
 }
