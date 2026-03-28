@@ -4,6 +4,7 @@ import com.codebloom.cineman.controller.request.SnackRequest;
 import com.codebloom.cineman.controller.response.SnackResponse;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.SnackEntity;
+import com.codebloom.cineman.model.SnackTypeEntity;
 import com.codebloom.cineman.repository.SnackRepository;
 import com.codebloom.cineman.repository.SnackTypeRepository;
 import org.junit.jupiter.api.Test;
@@ -68,6 +69,43 @@ class SnackServiceImplTest {
         snackService.delete(1);
 
         assertEquals(false, snack.getIsActive());
+        verify(snackRepository).save(snack);
+    }
+
+    @Test
+    void updateShouldReplaceSnackTypeWithoutMutatingManagedSnackTypeIdentifier() {
+        SnackRequest request = new SnackRequest();
+        request.setSnackName("Combo B");
+        request.setUnitPrice(20.0);
+        request.setImage("combo-b.jpg");
+        request.setDescription("Updated combo");
+        request.setSnackTypeId(2);
+
+        SnackTypeEntity currentType = SnackTypeEntity.builder().id(3).name("Old Type").isActive(true).build();
+        SnackTypeEntity newType = SnackTypeEntity.builder().id(2).name("Combo").isActive(true).build();
+        SnackEntity snack = SnackEntity.builder()
+                .id(1)
+                .snackName("Combo A")
+                .unitPrice(15.0)
+                .image("combo-a.jpg")
+                .description("Old combo")
+                .isActive(true)
+                .snackType(currentType)
+                .build();
+        SnackResponse response = new SnackResponse();
+
+        when(snackRepository.findByIdAndIsActive(1, true)).thenReturn(Optional.of(snack));
+        when(snackTypeRepository.findByIdAndIsActive(2, true)).thenReturn(Optional.of(newType));
+        when(snackRepository.save(snack)).thenReturn(snack);
+        when(modelMapper.map(snack, SnackResponse.class)).thenReturn(response);
+
+        snackService.update(1, request);
+
+        assertEquals("Combo B", snack.getSnackName());
+        assertEquals(20.0, snack.getUnitPrice());
+        assertEquals("combo-b.jpg", snack.getImage());
+        assertEquals("Updated combo", snack.getDescription());
+        assertEquals(2, snack.getSnackType().getId());
         verify(snackRepository).save(snack);
     }
 }

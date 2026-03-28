@@ -31,9 +31,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -204,6 +202,11 @@ public class ShowTimeServiceImpl implements ShowTimeService {
                 .map(this::convertToShowTimeResponse)
                 .toList();
         return showTimes.isEmpty() ? null : showTimes;
+    }
+
+    @Override
+    public List<ShowTimeResponse> findOccupiedSlots(Integer cinemaTheaterId, Date showDate) {
+        return List.of();
     }
 
     @Override

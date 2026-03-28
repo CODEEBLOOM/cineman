@@ -30,10 +30,10 @@ public class InvoiceEntity implements Serializable {
     @Column(name = "invoice_id")
     private Long id;
 
-    @Column(name = "email", nullable = false, unique = true, length = 150)
+    @Column(name = "email", nullable = false, length = 150)
     private String email;
 
-    @Column(name = "phone_number", nullable = false, unique = true, length = 20)
+    @Column(name = "phone_number", nullable = false, length = 20)
     private String phoneNumber;
 
     @Column(name = "status", nullable = false)
