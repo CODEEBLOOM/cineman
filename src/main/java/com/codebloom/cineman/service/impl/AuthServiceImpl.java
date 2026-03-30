@@ -2,6 +2,7 @@ package com.codebloom.cineman.service.impl;
 
 import com.codebloom.cineman.controller.request.LoginRequest;
 import com.codebloom.cineman.controller.response.TokenResponse;
+import com.codebloom.cineman.common.enums.UserStatus;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.exception.ForBiddenException;
 import com.codebloom.cineman.exception.InvalidDataException;
@@ -88,7 +89,7 @@ public class AuthServiceImpl implements AuthService {
             throw new DataNotFoundException("Email or password is incorrect");
         }
 
-        UserEntity user =  userRepository.findByEmail(request.getEmail())
+        UserEntity user =  userRepository.findByEmailAndStatus(request.getEmail(), UserStatus.ACTIVE)
                 .orElseThrow(() -> new UsernameNotFoundException("Email or password is incorrect"));
         UserPrincipal userPrincipal = new UserPrincipal(user);
 

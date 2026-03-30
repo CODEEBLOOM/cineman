@@ -22,5 +22,6 @@ public class ShowTimeResponse {
     private MovieResponse movie;
     private CinemaTheaterEntity cinemaTheater;
     private ShowTimeStatus status;
+    private Boolean special;
 
 }

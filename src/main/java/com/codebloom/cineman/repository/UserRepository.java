@@ -3,6 +3,8 @@ package com.codebloom.cineman.repository;
 
 import com.codebloom.cineman.common.enums.UserStatus;
 import com.codebloom.cineman.model.UserEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +13,10 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
+
+    List<UserEntity> findAllByStatus(UserStatus status);
+
+    Page<UserEntity> findAllByStatus(UserStatus status, Pageable pageable);
 
     Optional<UserEntity> findByEmail(String email);
 

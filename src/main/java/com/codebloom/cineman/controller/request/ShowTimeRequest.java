@@ -31,6 +31,8 @@ public class ShowTimeRequest {
 
     private ShowTimeStatus status = ShowTimeStatus.INVALID;
 
+    private Boolean special = false;
+
     @NotNull(message = "Id's movie is not null")
     @Min(value = 1, message = "Id's movie is must be greater than 0")
     private Integer movieId;

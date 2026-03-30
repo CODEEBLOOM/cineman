@@ -53,6 +53,133 @@ public interface MovieRepository extends JpaRepository<MovieEntity, Integer> {
             """)
     Page<MovieEntity> findAllByStatusAndMovieTheaterId(MovieStatusEntity status, Integer movieTheaterId, Pageable pageable);
 
+    @Query(
+            value = """
+                    SELECT DISTINCT mtm.movie
+                    FROM MovieTheaterMappingEntity mtm
+                    WHERE mtm.active = true
+                      AND mtm.movieTheater.movieTheaterId = :movieTheaterId
+                    """,
+            countQuery = """
+                    SELECT COUNT(DISTINCT mtm.movie.movieId)
+                    FROM MovieTheaterMappingEntity mtm
+                    WHERE mtm.active = true
+                      AND mtm.movieTheater.movieTheaterId = :movieTheaterId
+                    """
+    )
+    Page<MovieEntity> findAllDistinctMoviesByMovieTheaterId(
+            Integer movieTheaterId,
+            Pageable pageable
+    );
+
+    @Query(
+            value = """
+                    SELECT DISTINCT st.movie
+                    FROM ShowTimeEntity st
+                    WHERE st.cinemaTheater.movieTheater.movieTheaterId = :movieTheaterId
+                      AND st.movie.status.statusId = :movieStatusId
+                    """,
+            countQuery = """
+                    SELECT COUNT(DISTINCT st.movie.movieId)
+                    FROM ShowTimeEntity st
+                    WHERE st.cinemaTheater.movieTheater.movieTheaterId = :movieTheaterId
+                      AND st.movie.status.statusId = :movieStatusId
+                    """
+    )
+    Page<MovieEntity> findAllDistinctMoviesByMovieTheaterIdAndStatusWithShowTime(
+            Integer movieTheaterId,
+            String movieStatusId,
+            Pageable pageable
+    );
+
+    @Query(
+            value = """
+                    SELECT DISTINCT m
+                    FROM MovieEntity m
+                    WHERE (
+                        m.status.statusId = :specialMovieStatusId
+                        AND EXISTS (
+                            SELECT 1
+                            FROM MovieTheaterMappingEntity mtm
+                            WHERE mtm.movie = m
+                              AND mtm.active = true
+                              AND mtm.movieTheater.movieTheaterId = :movieTheaterId
+                        )
+                    )
+                    OR (
+                        m.status.statusId <> :specialMovieStatusId
+                        AND EXISTS (
+                            SELECT 1
+                            FROM ShowTimeEntity st
+                            WHERE st.movie = m
+                              AND st.cinemaTheater.movieTheater.movieTheaterId = :movieTheaterId
+                              AND st.special = true
+                        )
+                    )
+                    """,
+            countQuery = """
+                    SELECT COUNT(DISTINCT m.movieId)
+                    FROM MovieEntity m
+                    WHERE (
+                        m.status.statusId = :specialMovieStatusId
+                        AND EXISTS (
+                            SELECT 1
+                            FROM MovieTheaterMappingEntity mtm
+                            WHERE mtm.movie = m
+                              AND mtm.active = true
+                              AND mtm.movieTheater.movieTheaterId = :movieTheaterId
+                        )
+                    )
+                    OR (
+                        m.status.statusId <> :specialMovieStatusId
+                        AND EXISTS (
+                            SELECT 1
+                            FROM ShowTimeEntity st
+                            WHERE st.movie = m
+                              AND st.cinemaTheater.movieTheater.movieTheaterId = :movieTheaterId
+                              AND st.special = true
+                        )
+                    )
+                    """
+    )
+    Page<MovieEntity> findAllDistinctDbOrSpecialMoviesByMovieTheaterId(
+            Integer movieTheaterId,
+            String specialMovieStatusId,
+            Pageable pageable
+    );
+
+    @Query(
+            value = """
+                    SELECT DISTINCT m
+                    FROM MovieEntity m
+                    WHERE EXISTS (
+                        SELECT 1
+                        FROM MovieTheaterMappingEntity mtm
+                        WHERE mtm.movie = m
+                          AND mtm.active = true
+                          AND mtm.movieTheater.movieTheaterId = :movieTheaterId
+                          AND m.status.statusId = :specialMovieStatusId
+                    )
+                    """,
+            countQuery = """
+                    SELECT COUNT(DISTINCT m.movieId)
+                    FROM MovieEntity m
+                    WHERE EXISTS (
+                        SELECT 1
+                        FROM MovieTheaterMappingEntity mtm
+                        WHERE mtm.movie = m
+                          AND mtm.active = true
+                          AND mtm.movieTheater.movieTheaterId = :movieTheaterId
+                          AND m.status.statusId = :specialMovieStatusId
+                    )
+                    """
+    )
+    Page<MovieEntity> findAllDistinctMappedDbMoviesByMovieTheaterId(
+            Integer movieTheaterId,
+            String specialMovieStatusId,
+            Pageable pageable
+    );
+
     @Query("""
             SELECT DISTINCT st.movie
             FROM ShowTimeEntity st

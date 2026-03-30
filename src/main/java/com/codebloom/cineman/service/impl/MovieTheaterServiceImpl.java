@@ -7,6 +7,7 @@ import com.codebloom.cineman.controller.request.PageRequest;
 import com.codebloom.cineman.controller.response.MetaResponse;
 import com.codebloom.cineman.controller.response.MovieTheaterPage;
 import com.codebloom.cineman.controller.response.MovieTheaterResponse;
+import com.codebloom.cineman.exception.ConflictException;
 import com.codebloom.cineman.exception.DataExistingException;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.CinemaTheaterEntity;
@@ -20,7 +21,6 @@ import com.codebloom.cineman.service.MovieTheaterService;
 import com.codebloom.cineman.service.ProvinceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +37,6 @@ public class MovieTheaterServiceImpl implements MovieTheaterService {
     private final CinemaTheatersRepository cinemaTheatersRepository;
     private final ShowTimeRepository showTimeRepository;
     private final ProvinceService provinceService;
-    private final ModelMapper modelMapper;
 
     @Override
     public List<MovieTheaterResponse> findAll() {
@@ -91,11 +90,9 @@ public class MovieTheaterServiceImpl implements MovieTheaterService {
                     throw new DataExistingException("Movie theater already exists with hotline: " + movie.getHotline());
                 });
 
-        MovieTheaterEntity movieTheaterEntity = modelMapper.map(movie, MovieTheaterEntity.class);
+        MovieTheaterEntity movieTheaterEntity = new MovieTheaterEntity();
         ProvinceEntity province = provinceService.findById(movie.getProvinceId());
-        movieTheaterEntity.setMovieTheaterId(null);
-        movieTheaterEntity.setProvince(province);
-        movieTheaterEntity.setStatus(true);
+        applyMovieTheaterChanges(movieTheaterEntity, movie, province);
         movieTheaterRepository.save(movieTheaterEntity);
         return convert(movieTheaterEntity);
     }
@@ -111,9 +108,7 @@ public class MovieTheaterServiceImpl implements MovieTheaterService {
         MovieTheaterEntity movieTheaterEntity = movieTheaterRepository.findByMovieTheaterIdAndStatus(id, true)
                 .orElseThrow(() -> new DataNotFoundException("Movie theater not found with id: " + id));
         ProvinceEntity province = provinceService.findById(movie.getProvinceId());
-        modelMapper.map(movie, movieTheaterEntity);
-        movieTheaterEntity.setProvince(province);
-        movieTheaterEntity.setStatus(true);
+        applyMovieTheaterChanges(movieTheaterEntity, movie, province);
         return convert(movieTheaterRepository.save(movieTheaterEntity));
     }
 
@@ -124,6 +119,9 @@ public class MovieTheaterServiceImpl implements MovieTheaterService {
                 .orElseThrow(() -> new DataNotFoundException("Movie theater not found with id: " + id));
         List<CinemaTheaterEntity> cinemaTheaters = cinemaTheatersRepository
                 .findAllByStatusNotAndMovieTheater_MovieTheaterId(CinemaTheaterStatus.INVALID, id);
+        if (hasActiveShowTimes(cinemaTheaters)) {
+            throw new ConflictException("Rạp chiếu đang có lịch chiếu, không thể xóa. Vui lòng hủy hoặc xóa tất cả lịch chiếu trước khi xóa rạp.");
+        }
         softDeleteCinemaTheaters(cinemaTheaters);
         theater.setStatus(false);
         movieTheaterRepository.save(theater);
@@ -147,6 +145,22 @@ public class MovieTheaterServiceImpl implements MovieTheaterService {
                 .iframeCode(theater.getIframeCode())
                 .cinemaTheaters(activeCinemaTheaters)
                 .build();
+    }
+
+    private void applyMovieTheaterChanges(MovieTheaterEntity movieTheaterEntity,
+                                          MovieTheaterRequest movie,
+                                          ProvinceEntity province) {
+        movieTheaterEntity.setName(movie.getName());
+        movieTheaterEntity.setAddress(movie.getAddress());
+        movieTheaterEntity.setHotline(movie.getHotline());
+        movieTheaterEntity.setIframeCode(movie.getIframeCode());
+        movieTheaterEntity.setProvince(province);
+        movieTheaterEntity.setStatus(true);
+    }
+
+    private boolean hasActiveShowTimes(List<CinemaTheaterEntity> cinemaTheaters) {
+        return !cinemaTheaters.isEmpty()
+                && !showTimeRepository.findAllByCinemaTheaterInAndStatusNot(cinemaTheaters, ShowTimeStatus.DELETED).isEmpty();
     }
 
     private void softDeleteCinemaTheaters(List<CinemaTheaterEntity> cinemaTheaters) {

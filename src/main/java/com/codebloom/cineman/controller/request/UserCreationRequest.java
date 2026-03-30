@@ -1,16 +1,14 @@
 package com.codebloom.cineman.controller.request;
 
 import com.codebloom.cineman.common.enums.GenderUser;
-import com.codebloom.cineman.common.enums.UserType;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -49,9 +47,7 @@ public class UserCreationRequest {
     private String avatar;
     private String facebookId;
     private String googleId ;
-
-    @Builder.Default
-    private UserType userType = UserType.USER;
+    private Set<String> roleIds;
 
     public boolean isGoogleAccountIdValid() {
         return googleId != null && !googleId.isEmpty();

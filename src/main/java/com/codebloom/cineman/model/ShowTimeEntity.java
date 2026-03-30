@@ -46,6 +46,9 @@ public class ShowTimeEntity implements Serializable {
     @Column(name = "status", nullable = false)
     private ShowTimeStatus status;
 
+    @Column(name = "is_special", nullable = false)
+    private Boolean special;
+
     @OneToMany(mappedBy = "showTime")
     @JsonIgnore
     private List<TicketEntity> tickets;

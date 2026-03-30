@@ -2,6 +2,7 @@ package com.codebloom.cineman.config;
 
 import com.codebloom.cineman.common.enums.Method;
 import com.codebloom.cineman.common.enums.TokenType;
+import com.codebloom.cineman.common.enums.UserStatus;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.UserEntity;
 import com.codebloom.cineman.repository.UserRepository;
@@ -98,16 +99,26 @@ public class JwtFilter extends OncePerRequestFilter {
         if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
 
-            if(jwtService.validateToken(token,TokenType.ACCESS_TOKEN, userDetails)){
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            if (!userDetails.isEnabled() || !jwtService.validateToken(token, TokenType.ACCESS_TOKEN, userDetails)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write(errorResponse(
+                        "Tai khoan khong con hoat dong hoac token khong hop le",
+                        HttpServletResponse.SC_UNAUTHORIZED,
+                        "Unauthorized"
+                ));
+                return;
             }
+
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
 
             // đã qua bước authentication //
             // Authority check
-            UserEntity userEntity = userRepository.findByEmail(username)
-                    .orElseThrow(() -> new DataNotFoundException("User not found"));
+            UserEntity userEntity = userRepository.findByEmailAndStatus(username, UserStatus.ACTIVE)
+                    .orElseThrow(() -> new DataNotFoundException("Active user not found"));
             Long userId = userEntity.getUserId();
 
             // Gọi hàm kiểm tra permission
