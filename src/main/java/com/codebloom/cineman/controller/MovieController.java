@@ -32,7 +32,7 @@ public class MovieController {
                         .message("success")
                         .data(movieService.findAllByPage(req))
                         .build()
-        );
+        );  
     }
 
     @Operation(summary = "Get all movie by movie theater", description = "Api dùng để client lấy tất cả movie trong hệ thống theo id rạp chiếu")
@@ -40,7 +40,7 @@ public class MovieController {
     public ResponseEntity<ApiResponse> getAllMovieByMovieTheater(
             @PathVariable @Min(value = 1, message = "Id's movie theater is must be greater than or equal 1") Integer id,
             MoviePageQueryRequest req) {
-        applyDefaultStatus(req, MovieStatus.MOVIE_STATUS_DC);
+        normalizeStatus(req);
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
@@ -65,6 +65,13 @@ public class MovieController {
     private void applyDefaultStatus(MoviePageQueryRequest request, String defaultStatus) {
         if (request.getStatus() == null || request.getStatus().isBlank()) {
             request.setStatus(defaultStatus);
+            return;
+        }
+        request.setStatus(request.getStatus().trim().toUpperCase());
+    }
+
+    private void normalizeStatus(MoviePageQueryRequest request) {
+        if (request.getStatus() == null || request.getStatus().isBlank()) {
             return;
         }
         request.setStatus(request.getStatus().trim().toUpperCase());

@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -42,5 +43,6 @@ public class UserUpdateRequest {
     @NotNull( message = "Giới tính khách hàng không được phép null !")
     private GenderUser gender;
     private String avatar;
+    private Set<String> roleIds;
 
 }

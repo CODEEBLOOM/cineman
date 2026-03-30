@@ -31,6 +31,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
@@ -76,11 +77,13 @@ public class ShowTimeServiceImpl implements ShowTimeService {
                 .endTime(endTime)
                 .originPrice(request.getOriginPrice())
                 .status(request.getStatus())
+                .special(Boolean.TRUE.equals(request.getSpecial()))
                 .movie(movie)
                 .cinemaTheater(cinemaTheater)
                 .movieVariation(movieVariationEntity)
                 .build();
         showTimeEntity = showTimeRepository.save(showTimeEntity);
+        syncMovieStatusAfterShowTimeChanged(movie.getMovieId());
         log.info("Created Showtime With Id: {} and status: {}", showTimeEntity.getId(), showTimeEntity.getStatus());
         return convertToShowTimeResponse(showTimeEntity);
     }
@@ -98,6 +101,7 @@ public class ShowTimeServiceImpl implements ShowTimeService {
         log.info("Update Showtime With Id: {} and request: {}", id, request);
         ShowTimeEntity showTimeEntity = showTimeRepository.findById(id)
                 .orElseThrow(() -> new ConflictException("Showtime Not Found With Id: " + id));
+        Integer oldMovieId = showTimeEntity.getMovie().getMovieId();
         if (showTimeEntity.getStatus().equals(ShowTimeStatus.VALID)) {
             throw new ConflictException("Showtime is not available to update !");
         } else {
@@ -109,13 +113,23 @@ public class ShowTimeServiceImpl implements ShowTimeService {
                     .orElseThrow(() -> new ConflictException("Movie Not Found With Id: " + request.getMovieId()));
 
             LocalTime endTime = this.checkShowTime(request, movie, cinemaTheater, showTimeEntity.getId());
+            MovieVariationEntity movieVariationEntity = movieVariationRepository.findById(request.getMovieVariationId())
+                    .orElseThrow(() -> new DataNotFoundException("Movie Variation Not Found With Id: " + request.getMovieVariationId()));
 
             showTimeEntity.setShowDate(request.getShowDate());
             showTimeEntity.setStartTime(request.getStartTime());
             showTimeEntity.setEndTime(endTime);
             showTimeEntity.setOriginPrice(request.getOriginPrice());
             showTimeEntity.setStatus(request.getStatus());
+            showTimeEntity.setSpecial(Boolean.TRUE.equals(request.getSpecial()));
+            showTimeEntity.setMovie(movie);
+            showTimeEntity.setCinemaTheater(cinemaTheater);
+            showTimeEntity.setMovieVariation(movieVariationEntity);
             showTimeEntity = showTimeRepository.save(showTimeEntity);
+            syncMovieStatusAfterShowTimeChanged(movie.getMovieId());
+            if (!oldMovieId.equals(movie.getMovieId())) {
+                syncMovieStatusAfterShowTimeChanged(oldMovieId);
+            }
             log.info("Updated Showtime With Id: {} and status: {}", id, showTimeEntity.getStatus());
             return convertToShowTimeResponse(showTimeEntity);
         }
@@ -158,8 +172,10 @@ public class ShowTimeServiceImpl implements ShowTimeService {
         log.info("Delete Showtime With Id: {}", id);
         ShowTimeEntity showTimeEntity = showTimeRepository.findByIdAndStatusNot(id, ShowTimeStatus.DELETED)
                 .orElseThrow(() -> new DataNotFoundException("Showtime Not Found With Id: " + id));
+        Integer movieId = showTimeEntity.getMovie().getMovieId();
         showTimeEntity.setStatus(ShowTimeStatus.DELETED);
         showTimeRepository.save(showTimeEntity);
+        syncMovieStatusAfterShowTimeChanged(movieId);
     }
 
     /**
@@ -334,6 +350,11 @@ public class ShowTimeServiceImpl implements ShowTimeService {
                     criteriaBuilder.notEqual(root.get("status"), ShowTimeStatus.DELETED));
         }
 
+        if (request.getSpecial() != null) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("special"), request.getSpecial()));
+        }
+
         List<ShowTimeEntity> showTimes = showTimeRepository.findAll(specification, sort);
         List<ShowTimeDetailResponse> showTimeDetailResponses = showTimes.stream()
                 .map(showTime -> {
@@ -371,6 +392,7 @@ public class ShowTimeServiceImpl implements ShowTimeService {
                 .startTime(showTimeEntity.getStartTime())
                 .endTime(showTimeEntity.getEndTime())
                 .status(showTimeEntity.getStatus())
+                .special(Boolean.TRUE.equals(showTimeEntity.getSpecial()))
                 .originPrice(showTimeEntity.getOriginPrice())
                 .movie(movieResponse)
                 .cinemaTheater(showTimeEntity.getCinemaTheater())
@@ -414,5 +436,57 @@ public class ShowTimeServiceImpl implements ShowTimeService {
             }
         }
         return endTime;
+    }
+
+    private void syncMovieStatusAfterShowTimeChanged(Integer movieId) {
+        MovieEntity movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new DataNotFoundException("Movie Not Found With Id: " + movieId));
+
+        if (MovieStatus.MOVIE_STATUS_CNS.equals(movie.getStatus().getStatusId())) {
+            return;
+        }
+
+        List<ShowTimeEntity> showTimes = showTimeRepository.findAllByMovieAndStatusNot(movie, ShowTimeStatus.DELETED);
+
+        String targetStatusId = hasAvailableShowTime(showTimes)
+                ? MovieStatus.MOVIE_STATUS_DC
+                : isMovieEnded(movie)
+                ? MovieStatus.MOVIE_STATUS_NC
+                : MovieStatus.MOVIE_STATUS_SC;
+
+        if (targetStatusId.equals(movie.getStatus().getStatusId())) {
+            return;
+        }
+
+        movie.setStatus(movieStatusService.findById(targetStatusId));
+    }
+
+    private boolean hasAvailableShowTime(List<ShowTimeEntity> showTimes) {
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
+        return showTimes.stream()
+                .filter(showTime -> showTime.getStatus() == ShowTimeStatus.VALID)
+                .anyMatch(showTime -> {
+                    LocalDate showDate = toLocalDate(showTime.getShowDate());
+                    if (showDate.isAfter(today)) {
+                        return true;
+                    }
+                    if (showDate.isBefore(today)) {
+                        return false;
+                    }
+                    return showTime.getEndTime() == null || showTime.getEndTime().isAfter(now);
+                });
+    }
+
+    private boolean isMovieEnded(MovieEntity movie) {
+        return toLocalDate(movie.getEndDate()).isBefore(LocalDate.now());
+    }
+
+    private LocalDate toLocalDate(Date date) {
+        if (date instanceof java.sql.Date sqlDate) {
+            return sqlDate.toLocalDate();
+        }
+        return new java.sql.Date(date.getTime()).toLocalDate();
     }
 }

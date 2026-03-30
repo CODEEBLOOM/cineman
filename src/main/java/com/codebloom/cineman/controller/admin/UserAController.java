@@ -23,7 +23,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
 @RequestMapping("${api.path}/admin/user")
-@Tag(name = "User Controller ( User api )")
+    @Tag(name = "User Controller ( User api )")
 @RequiredArgsConstructor
 @Slf4j(topic = "USER-CONTROLLER")
 public class UserAController {

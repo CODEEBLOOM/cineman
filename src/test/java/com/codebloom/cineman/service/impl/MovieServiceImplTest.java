@@ -199,7 +199,7 @@ class MovieServiceImplTest {
     }
 
     @Test
-    void findAllByPageAndFilter_shouldUseMappingForUpcomingMovies() {
+    void findAllByPageAndFilter_shouldUseMovieTheaterMappingForStatusFilter() {
         MoviePageQueryRequest request = new MoviePageQueryRequest();
         request.setPage(0);
         request.setSize(8);
@@ -218,9 +218,8 @@ class MovieServiceImplTest {
                 .build();
         Page<MovieEntity> page = new PageImpl<>(List.of(movie), PageRequest.of(0, 8), 1);
 
-        when(movieStatusService.findById(MovieStatus.MOVIE_STATUS_SC)).thenReturn(movieStatus);
-        when(movieRepository.findAllByReleaseDateGreaterThanEqualAndStatusAndMovieTheaterMapping(
-                any(Date.class),
+        when(movieStatusRepository.findById(MovieStatus.MOVIE_STATUS_SC)).thenReturn(Optional.of(movieStatus));
+        when(movieRepository.findAllByStatusAndMovieTheaterMapping(
                 eq(movieStatus),
                 eq(7),
                 any(PageRequest.class)
@@ -231,6 +230,70 @@ class MovieServiceImplTest {
         assertThat(response.getMovies())
                 .extracting(MovieResponse::getMovieId)
                 .containsExactly(1);
+    }
+
+    @Test
+    void findAllByPageAndFilter_shouldUseShowTimeForNowShowingStatus() {
+        MoviePageQueryRequest request = new MoviePageQueryRequest();
+        request.setPage(0);
+        request.setSize(8);
+        request.setStatus(MovieStatus.MOVIE_STATUS_DC);
+
+        MovieEntity movie = MovieEntity.builder()
+                .movieId(3)
+                .title("Now Showing")
+                .status(MovieStatusEntity.builder()
+                        .statusId(MovieStatus.MOVIE_STATUS_DC)
+                        .active(true)
+                        .build())
+                .movieGenres(Collections.emptySet())
+                .movieParticipants(Collections.emptySet())
+                .build();
+        Page<MovieEntity> page = new PageImpl<>(List.of(movie), PageRequest.of(0, 8), 1);
+
+        when(movieRepository.findAllDistinctMoviesByMovieTheaterIdAndStatusWithShowTime(
+                eq(7),
+                eq(MovieStatus.MOVIE_STATUS_DC),
+                any(PageRequest.class)
+        )).thenReturn(page);
+
+        MoviePageableResponse response = movieService.findAllByPageAndFilter(request, 7);
+
+        assertThat(response.getMovies())
+                .extracting(MovieResponse::getMovieId)
+                .containsExactly(3);
+    }
+
+    @Test
+    void findAllByPageAndFilter_shouldUseDbOrSpecialQueryForDbStatus() {
+        MoviePageQueryRequest request = new MoviePageQueryRequest();
+        request.setPage(0);
+        request.setSize(8);
+        request.setStatus(MovieStatus.MOVIE_STATUS_DB);
+
+        MovieEntity movie = MovieEntity.builder()
+                .movieId(2)
+                .title("Special")
+                .status(MovieStatusEntity.builder()
+                        .statusId(MovieStatus.MOVIE_STATUS_SC)
+                        .active(true)
+                        .build())
+                .movieGenres(Collections.emptySet())
+                .movieParticipants(Collections.emptySet())
+                .build();
+        Page<MovieEntity> page = new PageImpl<>(List.of(movie), PageRequest.of(0, 8), 1);
+
+        when(movieRepository.findAllDistinctDbOrSpecialMoviesByMovieTheaterId(
+                eq(7),
+                eq(MovieStatus.MOVIE_STATUS_DB),
+                any(PageRequest.class)
+        )).thenReturn(page);
+
+        MoviePageableResponse response = movieService.findAllByPageAndFilter(request, 7);
+
+        assertThat(response.getMovies())
+                .extracting(MovieResponse::getMovieId)
+                .containsExactly(2);
     }
 
     private Set<MovieParticipantEntity> buildMovieParticipants(

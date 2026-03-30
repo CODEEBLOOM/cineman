@@ -55,7 +55,7 @@ public class MovieTheaterAController {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
-                        .message("Update movie theater success")
+                        .message("Delete movie theater success")
                         .data(null)
                         .build()
         );

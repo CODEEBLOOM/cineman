@@ -21,7 +21,6 @@ import com.codebloom.cineman.service.util.EmailService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j(topic = "USER-SERVICE")
@@ -37,7 +37,6 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final ModelMapper modelMapper;
     private final UserRoleRepository userRoleRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
@@ -53,7 +52,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserResponse> findAll() {
         List<UserResponse> userResponses = new ArrayList<>();
-        userRepository.findAll().forEach(user -> userResponses.add(convertToUserResponse(user)));
+        userRepository.findAllByStatus(UserStatus.ACTIVE)
+                .forEach(user -> userResponses.add(convertToUserResponse(user)));
         return userResponses;
     }
 
@@ -66,7 +66,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserPaginationResponse findAll(PageRequest pageRequest) {
         Pageable pageable = org.springframework.data.domain.PageRequest.of(pageRequest.getPage(), pageRequest.getSize());
-        Page<UserEntity> list = userRepository.findAll(pageable);
+        Page<UserEntity> list = userRepository.findAllByStatus(UserStatus.ACTIVE, pageable);
         List<UserResponse> userResponses = new ArrayList<>();
         list.forEach(userEntity -> {
             UserResponse userResponse = convertToUserResponse(userEntity);
@@ -95,7 +95,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserResponse findById(Long userId) {
-        UserEntity user = userRepository.findById(userId)
+        UserEntity user = userRepository.findByUserIdAndStatus(userId, UserStatus.ACTIVE)
                 .orElseThrow(() -> new DataNotFoundException("User not found with user id: " + userId));
         return convertToUserResponse(user);
     }
@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserResponse findByEmail(String email) {
-        UserEntity user = userRepository.findByEmail(email)
+        UserEntity user = userRepository.findByEmailAndStatus(email, UserStatus.ACTIVE)
                 .orElseThrow(() -> new DataNotFoundException("User not found with email" + email));
         return convertToUserResponse(user);
     }
@@ -123,23 +123,25 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public long save(UserCreationRequest request) {
         log.info("Saving user {}", request);
-        UserEntity user = modelMapper.map(request, UserEntity.class);
+        UserEntity user = UserEntity.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .fullName(request.getFullName())
+                .phoneNumber(request.getPhoneNumber())
+                .address(request.getAddress())
+                .avatar(request.getAvatar())
+                .dateOfBirth(request.getDateOfBirth())
+                .gender(request.getGender())
+                .facebookId(request.getFacebookId())
+                .googleId(request.getGoogleId())
+                .savePoint(0)
+                .build();
+        Set<RoleEntity> requestedRoles = resolveRequestedRoles(request.getRoleIds());
         user.setStatus(UserStatus.ACTIVE);
         checkNewUser(user.getEmail(), user.getPhoneNumber());
         user = userRepository.save(user);
 
-        // Add role for account //
-        RoleEntity role = roleRepository.findById(request.getUserType().toString())
-                .orElseThrow(() -> new DataNotFoundException("Not found user role with role :" + request.getUserType()));
-
-        // User Role //
-        UserRoleEntity userRoleEntity = new UserRoleEntity();
-        userRoleEntity.setRole(role);
-        userRoleEntity.setUser(user);
-        userRoleEntity.setName(role.getName());
-        userRoleEntity.setDescription("");
-
-        userRoleRepository.save(userRoleEntity);
+        syncUserRoles(user, requestedRoles, "");
         log.info("Saved user {}", user);
         return user.getUserId();
     }
@@ -151,7 +153,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserResponse update(UserUpdateRequest user) {
-        UserEntity existingUser = userRepository.findById(user.getUserId())
+        UserEntity existingUser = userRepository.findByUserIdAndStatus(user.getUserId(), UserStatus.ACTIVE)
                 .orElseThrow(() -> new DataNotFoundException("User not found with user id: " + user.getUserId()));
         userRepository.findByEmailAndPhoneNumberAndUserIdNot(user.getEmail(), user.getPhoneNumber(), existingUser.getUserId())
                 .ifPresent((userEntity) -> {
@@ -163,6 +165,11 @@ public class UserServiceImpl implements UserService {
         existingUser.setDateOfBirth(user.getDateOfBirth());
         existingUser.setAddress(user.getAddress());
         existingUser.setGender(user.getGender());
+        existingUser.setAvatar(user.getAvatar());
+
+        if (user.getRoleIds() != null) {
+            syncUserRoles(existingUser, resolveRequestedRoles(user.getRoleIds()), "");
+        }
 
         return convertToUserResponse(userRepository.save(existingUser));
     }
@@ -173,7 +180,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void changePassword(ChangePasswordRequest changePasswordRequest) {
-        UserEntity userEntity = userRepository.findByEmail(changePasswordRequest.getEmail())
+        UserEntity userEntity = userRepository.findByEmailAndStatus(changePasswordRequest.getEmail(), UserStatus.ACTIVE)
                 .orElseThrow(() -> new DataNotFoundException("User not found with user id: " + changePasswordRequest.getEmail()));
 
         if (!changePasswordRequest.getPassword().equals(changePasswordRequest.getConfirmPassword())) {
@@ -194,10 +201,12 @@ public class UserServiceImpl implements UserService {
      * @param userId id của tài khoản
      */
     @Override
+    @Transactional
     public void delete(Long userId) {
-        UserEntity user = userRepository.findById(userId)
+        UserEntity user = userRepository.findByUserIdAndStatus(userId, UserStatus.ACTIVE)
                 .orElseThrow(() -> new DataNotFoundException("User not found with user id: " + userId));
         user.setStatus(UserStatus.INACTIVE);
+        user.setRefreshToken(null);
         userRepository.save(user);
     }
 
@@ -303,8 +312,12 @@ public class UserServiceImpl implements UserService {
             throw new ForBiddenException("Token is expired");
         }
         String email = jwtService.extractUsername(token, tokenType);
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new DataNotFoundException("User not found with user id: " + email));
+        if (TokenType.VERIFY_EMAIL.equals(tokenType)) {
+            return userRepository.findByEmailAndStatus(email, UserStatus.PENDING)
+                    .orElseThrow(() -> new DataNotFoundException("Pending user not found with email: " + email));
+        }
+        return userRepository.findByEmailAndStatus(email, UserStatus.ACTIVE)
+                .orElseThrow(() -> new DataNotFoundException("Active user not found with email: " + email));
     }
 
     /**
@@ -364,6 +377,9 @@ public class UserServiceImpl implements UserService {
         // Kiểm tra Google Account ID
         if (userLoginDTO.isGoogleAccountIdValid()) {
             optionalUser = userRepository.findByGoogleId(userLoginDTO.getGoogleId());
+            if (optionalUser.isPresent() && !UserStatus.ACTIVE.equals(optionalUser.get().getStatus())) {
+                throw new ForBiddenException("Tai khoan khong con hoat dong");
+            }
 
             // Tạo người dùng mới nếu không tìm thấy
             if (optionalUser.isEmpty()) {
@@ -501,5 +517,62 @@ public class UserServiceImpl implements UserService {
                         throw new DataExistingException("Phone number already exists at least one user!");
                     }}
                 });
+    }
+
+    private Set<RoleEntity> resolveRequestedRoles(Set<String> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            throw new InvalidDataException("User must have at least one role");
+        }
+
+        Set<String> normalizedRoleIds = roleIds.stream()
+                .filter(Objects::nonNull)
+                .map(roleId -> roleId.trim().toUpperCase(Locale.ROOT))
+                .filter(roleId -> !roleId.isBlank())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        if (normalizedRoleIds.isEmpty()) {
+            throw new InvalidDataException("User must have at least one role");
+        }
+
+        List<RoleEntity> roles = roleRepository.findAllById(normalizedRoleIds);
+        if (roles.size() != normalizedRoleIds.size()) {
+            Set<String> foundRoleIds = roles.stream()
+                    .map(RoleEntity::getRoleId)
+                    .collect(Collectors.toSet());
+            Set<String> missingRoleIds = normalizedRoleIds.stream()
+                    .filter(roleId -> !foundRoleIds.contains(roleId))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            throw new DataNotFoundException("Role not found with ids: " + missingRoleIds);
+        }
+
+        roles.forEach(role -> {
+            if (Boolean.FALSE.equals(role.getStatus())) {
+                throw new ConflictException("Role is inactive and cannot be assigned: " + role.getRoleId());
+            }
+        });
+        return new LinkedHashSet<>(roles);
+    }
+
+    private void syncUserRoles(UserEntity user, Set<RoleEntity> roles, String description) {
+        List<UserRoleEntity> existingRoles = userRoleRepository.findAllByUser_UserId(user.getUserId());
+        if (!existingRoles.isEmpty()) {
+            userRoleRepository.deleteAll(existingRoles);
+        }
+
+        Set<UserRoleEntity> userRoles = roles.stream()
+                .map(role -> {
+                    UserRoleEntity userRoleEntity = new UserRoleEntity();
+                    userRoleEntity.setRole(role);
+                    userRoleEntity.setUser(user);
+                    userRoleEntity.setName(role.getName());
+                    userRoleEntity.setDescription(description);
+                    return userRoleEntity;
+                })
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        if (!userRoles.isEmpty()) {
+            userRoleRepository.saveAll(userRoles);
+        }
+        user.setUserRoles(userRoles);
     }
 }

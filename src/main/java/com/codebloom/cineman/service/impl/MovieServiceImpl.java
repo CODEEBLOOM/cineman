@@ -76,26 +76,29 @@ public class MovieServiceImpl implements MovieService {
     public MoviePageableResponse findAllByPageAndFilter(MoviePageQueryRequest request, Integer movieTheaterId) {
         log.info("movieTheaterId: {}", movieTheaterId);
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
-        MovieStatusEntity movieStatus = movieStatusService.findById(request.getStatus());
-
+        String statusFilter = normalizeMovieStatusFilter(request.getStatus());
         Page<MovieEntity> page;
-        switch (request.getStatus()) {
-            case MovieStatus.MOVIE_STATUS_CNS -> {
-                return null;
-            }
-            case MovieStatus.MOVIE_STATUS_SC ->
-                    page = movieRepository.findAllByReleaseDateGreaterThanEqualAndStatusAndMovieTheaterMapping(
-                            new Date(),
-                            movieStatus,
-                            movieTheaterId,
-                            pageable
-                    );
-            case MovieStatus.MOVIE_STATUS_DB -> page = movieRepository.findAllByStatusAndMovieTheaterMapping(
-                    movieStatus,
+        if (MovieStatus.MOVIE_STATUS_DB.equals(statusFilter)) {
+            page = movieRepository.findAllDistinctDbOrSpecialMoviesByMovieTheaterId(
+                    movieTheaterId,
+                    MovieStatus.MOVIE_STATUS_DB,
+                    pageable
+            );
+        } else if (MovieStatus.MOVIE_STATUS_DC.equals(statusFilter)) {
+            page = movieRepository.findAllDistinctMoviesByMovieTheaterIdAndStatusWithShowTime(
+                    movieTheaterId,
+                    MovieStatus.MOVIE_STATUS_DC,
+                    pageable
+            );
+        } else if (statusFilter != null) {
+            MovieStatusEntity movieStatus = movieStatusRepository.findById(statusFilter)
+                    .orElseThrow(() -> new DataNotFoundException("Movie status not found"));
+            page = movieRepository.findAllByStatusAndMovieTheaterMapping(movieStatus, movieTheaterId, pageable);
+        } else {
+            page = movieRepository.findAllDistinctMoviesByMovieTheaterId(
                     movieTheaterId,
                     pageable
             );
-            default -> page = movieRepository.findAllByStatusAndMovieTheaterId(movieStatus, movieTheaterId, pageable);
         }
         log.info("end findAllByPageAndFilter");
         return movieToMoviePageableResponse(page);
@@ -293,6 +296,14 @@ public class MovieServiceImpl implements MovieService {
         return normalizedRoleName.equals("cast")
                 || normalizedRoleName.equals("actor")
                 || normalizedRoleName.equals("dienvien");
+    }
+
+    private String normalizeMovieStatusFilter(String status) {
+        if (status == null || status.isBlank()) {
+            return null;
+        }
+        String normalizedStatus = status.trim().toUpperCase(Locale.ROOT);
+        return "ALL".equals(normalizedStatus) ? null : normalizedStatus;
     }
 
     private String normalizeRoleName(MovieRoleEntity movieRole) {

@@ -15,13 +15,15 @@ public interface PermissionRepository extends JpaRepository<PermissionEntity,Int
         JOIN p.roles r
         JOIN r.userRoles ur
         WHERE ur.user.userId = :userId
+          AND (r.status = true OR r.status IS NULL)
     """)
     List<PermissionEntity> findAllByUserId(@Param("userId") Long userId);
 
     @Query("""
         SELECT p FROM PermissionEntity p
         JOIN p.roles r
-        WHERE r.name = 'GUEST'
+        WHERE r.roleId = 'GUEST'
+          AND (r.status = true OR r.status IS NULL)
     """)
     List<PermissionEntity> findAllByRoleGuest();
 }

@@ -20,4 +20,6 @@ public class ShowTimeRequestNew {
 
     private ShowTimeStatus showTimeStatus;
 
+    private Boolean special;
+
 }
