@@ -4,6 +4,7 @@ import com.codebloom.cineman.common.constant.MovieStatus;
 import com.codebloom.cineman.controller.request.*;
 import com.codebloom.cineman.controller.response.MetaResponse;
 import com.codebloom.cineman.controller.response.MoviePageableResponse;
+import com.codebloom.cineman.controller.response.MovieReviewContextResponse;
 import com.codebloom.cineman.controller.response.MovieResponse;
 import com.codebloom.cineman.exception.ConflictException;
 import com.codebloom.cineman.exception.DataNotFoundException;
@@ -14,6 +15,7 @@ import com.codebloom.cineman.repository.MovieRepository;
 import com.codebloom.cineman.repository.MovieRoleRepository;
 import com.codebloom.cineman.repository.MovieStatusRepository;
 import com.codebloom.cineman.service.GenreService;
+import com.codebloom.cineman.service.MovieReviewService;
 import com.codebloom.cineman.service.MovieService;
 import com.codebloom.cineman.service.MovieStatusService;
 import com.codebloom.cineman.service.ParticipantService;
@@ -46,6 +48,7 @@ public class MovieServiceImpl implements MovieService {
     private final MovieParticipantRepository movieParticipantRepository;
     private final MovieRoleRepository movieRoleRepository;
     private final ParticipantService participantService;
+    private final MovieReviewService movieReviewService;
 
     /**
      * Find all movies
@@ -252,6 +255,7 @@ public class MovieServiceImpl implements MovieService {
         List<GenresEntity> genres = new ArrayList<>();
         List<ParticipantEntity> directors = new ArrayList<>();
         List<ParticipantEntity> casts = new ArrayList<>();
+        MovieReviewContextResponse reviewContext = movieReviewService.getReviewContext(movie.getMovieId());
         if (movie.getMovieGenres() != null) {
             movie.getMovieGenres().forEach(movieGenre -> genres.add(movieGenre.getGenres()));
         }
@@ -282,6 +286,11 @@ public class MovieServiceImpl implements MovieService {
                 .directors(directors)
                 .casts(casts)
                 .genres(genres)
+                .averageRating(reviewContext.getAverageRating())
+                .reviewCount(reviewContext.getReviewCount())
+                .canReview(reviewContext.getCanReview())
+                .hasReviewed(reviewContext.getHasReviewed())
+                .myReview(reviewContext.getMyReview())
                 .build();
     }
 

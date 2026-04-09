@@ -7,6 +7,12 @@ spring:
   profiles:
     active: @spring.profiles.active@
 
+app:
+  mail:
+    from-name: Poly Cinemas
+    from-address: ${APP_MAIL_FROM:${spring.mail.username:no-reply@localhost}}
+    verification-link: ${APP_MAIL_VERIFICATION_LINK:http://localhost:${server.port}${api.path}/auth/confirm-email}
+
 management:
   endpoints:
     web:

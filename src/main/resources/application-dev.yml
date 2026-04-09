@@ -50,11 +50,6 @@ spring:
     properties:
       hibernate:
         format_sql: false
-  sendgrid:
-    api-key: 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
-    from-email: sondoquang3@gmail.com
-    template-id: d-35719691e618440abf276a0f43260d7b
-    verification-link: http://localhost:8081/api/v01/auth/confirm-email
 jwt:
   expirationDay: 30
   expirationMinutes: 30

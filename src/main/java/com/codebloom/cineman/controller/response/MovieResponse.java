@@ -2,10 +2,8 @@ package com.codebloom.cineman.controller.response;
 
 
 import com.codebloom.cineman.common.enums.Rating;
-import com.codebloom.cineman.model.MovieRoleEntity;
-import com.codebloom.cineman.model.MovieVariationEntity;
-import com.codebloom.cineman.model.ParticipantEntity;
 import com.codebloom.cineman.model.GenresEntity;
+import com.codebloom.cineman.model.ParticipantEntity;
 import lombok.*;
 
 import java.util.Date;
@@ -33,4 +31,9 @@ public class MovieResponse {
     private List<ParticipantEntity> directors;
     private List<ParticipantEntity> casts;
     private List<GenresEntity> genres ;
+    private Double averageRating;
+    private Long reviewCount;
+    private Boolean canReview;
+    private Boolean hasReviewed;
+    private MovieReviewResponse myReview;
 }

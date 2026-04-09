@@ -125,4 +125,21 @@ public interface InvoiceRepository extends JpaRepository<InvoiceEntity, Long> {
                     """
     )
     Page<InvoiceEntity> findAllByShowDateAndMovieTheaterId(Date showDate, Integer movieTheaterId, Pageable pageable);
+
+    @Query("""
+            SELECT DISTINCT i
+            FROM InvoiceEntity i
+            JOIN i.tickets t
+            JOIN t.showTime st
+            WHERE i.customer.userId = :userId
+              AND st.movie.movieId = :movieId
+              AND i.status IN :statuses
+            ORDER BY i.createdAt DESC, i.id DESC
+            """)
+    List<InvoiceEntity> findEligibleInvoicesForMovieReview(
+            Long userId,
+            Integer movieId,
+            Collection<InvoiceStatus> statuses,
+            Pageable pageable
+    );
 }
