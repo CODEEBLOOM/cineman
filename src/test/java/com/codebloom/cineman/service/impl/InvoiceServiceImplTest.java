@@ -3,12 +3,14 @@ package com.codebloom.cineman.service.impl;
 import com.codebloom.cineman.common.enums.InvoiceStatus;
 import com.codebloom.cineman.common.utils.XStr;
 import com.codebloom.cineman.controller.response.InvoiceDetailPageResponse;
+import com.codebloom.cineman.controller.response.InvoiceResponse;
 import com.codebloom.cineman.model.CinemaTheaterEntity;
 import com.codebloom.cineman.model.InvoiceEntity;
 import com.codebloom.cineman.model.MovieEntity;
 import com.codebloom.cineman.model.MovieTheaterEntity;
 import com.codebloom.cineman.model.ShowTimeEntity;
 import com.codebloom.cineman.model.TicketEntity;
+import com.codebloom.cineman.model.UserEntity;
 import com.codebloom.cineman.repository.InvoiceRepository;
 import com.codebloom.cineman.repository.PromotionRepository;
 import com.codebloom.cineman.repository.TicketRepository;
@@ -34,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -110,6 +113,22 @@ class InvoiceServiceImplTest {
         assertEquals(2, response.getMeta().getTotalElements());
         verify(invoiceRepository).findAllByShowDateAndMovieTheaterId(eq(showDate), eq(7), any(PageRequest.class));
         verify(invoiceRepository, never()).findAllByShowDate(any(Date.class), any(PageRequest.class));
+    }
+
+    @Test
+    void findByUserIdAndShowTimeIdShouldIgnoreUsedInvoiceForSameShowTime() {
+        UserEntity customer = UserEntity.builder()
+                .userId(10L)
+                .build();
+        InvoiceEntity usedInvoice = paidInvoice(3L, 7);
+        usedInvoice.setCustomer(customer);
+        usedInvoice.setStatus(InvoiceStatus.USED);
+
+        when(invoiceRepository.findByCustomerOrStaff(10L)).thenReturn(List.of(usedInvoice));
+
+        InvoiceResponse response = invoiceService.findByUserIdAndShowTimeId(10L, 1L);
+
+        assertNull(response);
     }
 
     private InvoiceEntity paidInvoice(Long invoiceId, Integer movieTheaterId) {

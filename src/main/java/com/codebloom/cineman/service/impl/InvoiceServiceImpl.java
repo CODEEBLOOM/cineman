@@ -72,7 +72,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         for (InvoiceEntity invoice : invoiceEntity) {
 
             // Nếu chưa thanh toán và không phải là Hủy //
-            if (invoice.getStatus() != InvoiceStatus.PAID && invoice.getStatus() != InvoiceStatus.CANCELLED) {
+            if (invoice.getStatus() == InvoiceStatus.PENDING) {
 
                 // Nếu tìm thấy hóa đơn rồi thì xóa các hóa đơn còn lại chưa thanh toán đi //
                 if (existInvoice != null && invoice.getTickets().isEmpty()) {
@@ -221,13 +221,13 @@ public class InvoiceServiceImpl implements InvoiceService {
                 throw new DataExistingException("Giảm giá đã được sử dụng cho hóa đơn khác !");
             }
 
-            promotion = Optional.of(findActivePromotion(invoice.getPromotionId()))
+            promotion = Optional.of(findActivePromotion(invoice.getPromotionId(), customer))
                     .orElseThrow(() -> new DataNotFoundException("Không tìm thấy khuyến mãi !"));
         }
 
         InvoiceEntity invoiceEntity = invoiceRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Invoice not found"));
-        if (invoiceEntity.getStatus() == InvoiceStatus.PAID || invoiceEntity.getStatus() == InvoiceStatus.CANCELLED) {
+        if (!isUpdatableInvoiceStatus(invoiceEntity.getStatus())) {
             throw new DataNotFoundException("Invoice not found");
         }
 
@@ -290,8 +290,11 @@ public class InvoiceServiceImpl implements InvoiceService {
     public InvoiceResponse updateTnx(Long id, String tnxRef, Object... args) {
 
         log.info("updateTnx id: {}, tnxRef: {}, promotionId: {} totalAmount: {}", id, tnxRef, args.length > 0 ? args[0] : null, args.length > 1 ? args[1] : null);
-        InvoiceEntity invoiceEntity = invoiceRepository.findByIdAndStatusNot(id, InvoiceStatus.CANCELLED)
+        InvoiceEntity invoiceEntity = invoiceRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Invoice not found"));
+        if (!isUpdatableInvoiceStatus(invoiceEntity.getStatus())) {
+            throw new ConflictException("Invoice is not editable");
+        }
         invoiceEntity.setVnTxnRef(tnxRef);
         invoiceEntity.setTotalAmount(args[1] != null ? (Double) args[1] : invoiceEntity.getTotalAmount());
 
@@ -304,16 +307,18 @@ public class InvoiceServiceImpl implements InvoiceService {
             }
 
             // Khuyến mãi đã được áp dụng cho hóa đơn khác của khách hàng này //
-            if (invoiceRepository.findByUserIdAndPromotionId(invoiceEntity.getCustomer().getUserId(), (Long) args[0]).isPresent()) {
+            if (invoiceEntity.getCustomer() != null
+                    && invoiceRepository.findByUserIdAndPromotionId(invoiceEntity.getCustomer().getUserId(), (Long) args[0]).isPresent()) {
                 throw new DataExistingException("Giảm giá đã được sử dụng cho hóa đơn khác !");
             }
 
-            promotion = Optional.of(findActivePromotion((Long) args[0]))
+            promotion = Optional.of(findActivePromotion((Long) args[0], invoiceEntity.getCustomer()))
                     .orElseThrow(() -> new DataNotFoundException("Promotion not found"));
             if (promotion.getQuantity() == 0) {
                 throw new DataNotFoundException("Promotion not found");
             }
-            if (invoiceRepository.findByCustomerAndPromotion(invoiceEntity.getCustomer(), promotion).isPresent()) {
+            if (invoiceEntity.getCustomer() != null
+                    && invoiceRepository.findByCustomerAndPromotion(invoiceEntity.getCustomer(), promotion).isPresent()) {
                 throw new DataExistingException("Giảm giá đã được bạn sử dụng cho hóa đơn khác !");
             }
             promotion.setQuantity(promotion.getQuantity() - 1);
@@ -533,9 +538,9 @@ public class InvoiceServiceImpl implements InvoiceService {
     public InvoiceResponse applyPromotionToInvoice(Long id, Long promotionId) {
         InvoiceEntity invoice = invoiceRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Invoice not found"));
-        PromotionEntity promotion = findActivePromotion(promotionId);
+        PromotionEntity promotion = findActivePromotion(promotionId, invoice.getCustomer());
 
-        if (invoice.getStatus() == InvoiceStatus.PAID || invoice.getStatus() == InvoiceStatus.CANCELLED) {
+        if (invoice.getStatus() != InvoiceStatus.PENDING) {
             throw new ConflictException("Invoice has been paid or cancelled");
         }
         if (invoice.getPromotion() != null) {
@@ -586,34 +591,18 @@ public class InvoiceServiceImpl implements InvoiceService {
      * @return List<InvoiceResponse>
      */
     @Override
-    public List<InvoiceDetailResponse> findByUserId(Long userId) {
+    public List<InvoiceDetailResponse> findByUserId(Long userId, InvoiceStatus status) {
         UserEntity user = userRepository.findByUserIdAndStatus(userId, UserStatus.ACTIVE)
                 .orElseThrow(() -> new DataNotFoundException("User not found"));
-        List<InvoiceEntity> invoices = invoiceRepository.findByCustomerOrStaff(user, user);
-        List<InvoiceDetailResponse> invoiceDetailResponses = new ArrayList<>();
-        for (InvoiceEntity invoice : invoices) {
-            if (invoice.getStatus() == InvoiceStatus.PENDING || invoice.getStatus() == InvoiceStatus.CANCELLED) {
-                continue;
-            }
+        List<InvoiceEntity> invoices = status == null
+                ? invoiceRepository.findByCustomerOrStaff(user, user)
+                : invoiceRepository.findByUserAndStatus(user, status);
 
-            if (invoice.getTickets().isEmpty()) {
-                continue;
-            }
-
-            double totalMoneyTicket = !invoice.getTickets().isEmpty() ? invoice.getTickets().stream()
-                    .mapToDouble(TicketEntity::getPrice)
-                    .sum(): 0.0;
-            double totalMoneySnack = !invoice.getDetailBookingSnacks().isEmpty() ? invoice.getDetailBookingSnacks().stream()
-                    .mapToDouble(DetailBookingSnackEntity::getTotalMoney)
-                    .sum(): 0.0;
-            double totalMoneyDiscount = !invoice.getUserPointHistories().isEmpty()  ? invoice.getUserPointHistories().stream()
-                            .filter(userPointHistory -> userPointHistory.getChangePoint() < 0)
-                            .mapToDouble(UserPointHistoryEntity::getChangePoint)
-                            .sum() : 0.0;
-            double totalMoneyPromotion = invoice.getPromotion() != null ? invoice.getPromotion().getDiscount() * totalMoneyTicket : 0.0;
-            invoiceDetailResponses.add(toInvoiceDetailResponse(invoice));
-        }
-        return invoiceDetailResponses;
+        return invoices.stream()
+                .sorted(Comparator.comparing(InvoiceEntity::getCreatedAt,
+                        Comparator.nullsLast(Comparator.reverseOrder())))
+                .map(this::toInvoiceDetailResponse)
+                .toList();
     }
 
     /**
@@ -719,6 +708,10 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .build();
     }
 
+    private boolean isUpdatableInvoiceStatus(InvoiceStatus status) {
+        return status == InvoiceStatus.PENDING || status == InvoiceStatus.PROCESSING;
+    }
+
     private InvoiceEntity getInvoice(UserEntity customer, UserEntity staff) {
         List<InvoiceEntity> invoices = invoiceRepository.findByCustomerAndStaffAndStatus(customer, staff, InvoiceStatus.PENDING);
         InvoiceEntity existingInvoice = null;
@@ -772,6 +765,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         List<DetailBookingSnackResponse> detailBookingSnackResponses = invoice.getDetailBookingSnacks().stream()
                 .map(this::convert)
                 .toList();
+        TicketEntity firstTicket = invoice.getTickets().isEmpty() ? null : invoice.getTickets().get(0);
         double totalMoneyTicket = !invoice.getTickets().isEmpty() ? invoice.getTickets().stream()
                 .mapToDouble(TicketEntity::getPrice)
                 .sum(): 0.0;
@@ -802,11 +796,11 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .createdAt(invoice.getCreatedAt())
                 .updatedAt(invoice.getUpdatedAt())
                 .tickets(ticketResponses)
-                .cinemaTheater(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime().getCinemaTheater())
+                .cinemaTheater(firstTicket == null ? null : firstTicket.getShowTime().getCinemaTheater())
                 .detailBookingSnacks(detailBookingSnackResponses)
-                .showTime(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime())
-                .movie(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime().getMovie())
-                .movieTheater(invoice.getTickets() == null ? null : invoice.getTickets().get(0).getShowTime().getCinemaTheater().getMovieTheater())
+                .showTime(firstTicket == null ? null : firstTicket.getShowTime())
+                .movie(firstTicket == null ? null : firstTicket.getShowTime().getMovie())
+                .movieTheater(firstTicket == null ? null : firstTicket.getShowTime().getCinemaTheater().getMovieTheater())
                 .build();
     }
 
@@ -869,7 +863,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .build();
     }
 
-    private PromotionEntity findActivePromotion(Long promotionId) {
+    private PromotionEntity findActivePromotion(Long promotionId, UserEntity customer) {
         PromotionEntity promotion = promotionRepository.findByIdAndStatus(promotionId, StatusPromotion.ACTIVE)
                 .orElseThrow(() -> new DataNotFoundException("Promotion not found"));
 
@@ -882,6 +876,20 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
         if (promotion.getQuantity() <= 0) {
             throw new ConflictException("Promotion is out of quantity");
+        }
+
+        List<MembershipRankEntity> membershipRanks = promotion.getMembershipRanks();
+        if (membershipRanks != null && !membershipRanks.isEmpty()) {
+            if (customer == null || customer.getMembershipRank() == null) {
+                throw new ConflictException("Promotion is not available for this customer rank");
+            }
+
+            boolean allowed = membershipRanks.stream()
+                    .map(MembershipRankEntity::getId)
+                    .anyMatch(rankId -> rankId.equals(customer.getMembershipRank().getId()));
+            if (!allowed) {
+                throw new ConflictException("Promotion is not available for this customer rank");
+            }
         }
 
         return promotion;

@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -47,5 +48,11 @@ public class PromotionRequest {
     @NotNull(message = "Id nhân viên tạo giảm giá không được phép null !")
     @Min(value = 1, message = "Id nhân viên tạo giảm giá phải lớn hơn 0 !")
     private Long staffId;
+
+    @NotNull(message = "Id loai khuyen mai khong duoc phep null !")
+    @Min(value = 1, message = "Id loai khuyen mai phai lon hon 0 !")
+    private Long promotionTypeId;
+
+    private List<@Min(value = 1, message = "Id membership rank phai lon hon 0 !") Integer> membershipRankIds;
 
 }

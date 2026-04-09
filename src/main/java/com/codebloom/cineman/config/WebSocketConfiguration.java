@@ -2,22 +2,22 @@
     
     import lombok.RequiredArgsConstructor;
     import lombok.extern.slf4j.Slf4j;
-    import org.springframework.context.annotation.Bean;
-    import org.springframework.context.annotation.Configuration;
-    import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-    import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-    import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-    import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-    import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.messaging.simp.config.ChannelRegistration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
     
     @Configuration
     @EnableWebSocketMessageBroker
     @RequiredArgsConstructor
     @Slf4j(topic = "WEBSOCKET-CONFIGURATION")
-    public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
-    
-    //    @Autowired
-    //    AppHandshakeInterceptor interceptor;
+public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
+
+    private final WebSocketAuthChannelInterceptor webSocketAuthChannelInterceptor;
 
         @Bean
         public ThreadPoolTaskScheduler myMessageBrokerScheduler() {
@@ -39,11 +39,16 @@
         }
     
         @Override
-        public void configureMessageBroker(MessageBrokerRegistry registry) {
-            log.info("Cấu hình Message Broker /cineman/topic và /cineman/app");
-            registry.setApplicationDestinationPrefixes("/cineman/app");
-            registry.enableSimpleBroker("/cineman/topic", "/queue");
-            registry.setUserDestinationPrefix("/user");
-        }
-    
+    public void configureMessageBroker(MessageBrokerRegistry registry) {
+        log.info("Cấu hình Message Broker /cineman/topic và /cineman/app");
+        registry.setApplicationDestinationPrefixes("/cineman/app");
+        registry.enableSimpleBroker("/cineman/topic", "/queue");
+        registry.setUserDestinationPrefix("/user");
     }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(webSocketAuthChannelInterceptor);
+    }
+
+}

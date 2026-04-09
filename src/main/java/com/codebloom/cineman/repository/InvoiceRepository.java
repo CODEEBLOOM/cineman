@@ -44,6 +44,13 @@ public interface InvoiceRepository extends JpaRepository<InvoiceEntity, Long> {
 
     List<InvoiceEntity> findByCustomerOrStaff(UserEntity customer, UserEntity staff);
 
+    @Query("""
+            SELECT i FROM InvoiceEntity i
+                        WHERE (i.customer = :user OR i.staff = :user)
+                            AND i.status = :status
+            """)
+    List<InvoiceEntity> findByUserAndStatus(UserEntity user, InvoiceStatus status);
+
     List<InvoiceEntity> findByStaff(UserEntity staff);
 
     @Query("""

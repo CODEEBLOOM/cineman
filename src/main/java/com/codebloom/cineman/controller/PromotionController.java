@@ -75,13 +75,15 @@ public class PromotionController {
     @GetMapping("/user/{userId}/all")
     public ResponseEntity<ApiResponse> getAllPromotion(
             @PathVariable @Min(value = 1, message = "userId khong duoc nho hon 1 !") Long userId,
-            @RequestParam(required = false) StatusPromotion status
+            @RequestParam(required = false) StatusPromotion status,
+            @RequestParam(required = false) Long promotionTypeId,
+            @RequestParam(required = false) Boolean expiringSoon
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
                         .status(HttpStatus.OK.value())
                         .message("success")
-                        .data(promotionService.findAllPromotionByUserId(userId, status))
+                        .data(promotionService.findAllPromotionByUserId(userId, status, promotionTypeId, expiringSoon))
                         .build()
         );
     }

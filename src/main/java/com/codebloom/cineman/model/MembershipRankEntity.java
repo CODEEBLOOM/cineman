@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -54,5 +55,10 @@ public class MembershipRankEntity {
     @OneToMany (mappedBy = "membershipRank")
     @JsonIgnore
     private List<UserEntity> users;
+
+    @ManyToMany(mappedBy = "membershipRanks")
+    @JsonIgnore
+    @Builder.Default
+    private List<PromotionEntity> promotions = new ArrayList<>();
 }
 

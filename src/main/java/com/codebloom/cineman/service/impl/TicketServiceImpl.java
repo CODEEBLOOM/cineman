@@ -146,8 +146,7 @@ public class TicketServiceImpl implements TicketService {
         TicketTypeEntity ticketTypeEntity = ticketTypeRepository.findByNameAndStatus(request.getTicketType(), true)
                 .orElseThrow(() -> new DataNotFoundException("Ticket type not found or invalid"));
 
-        InvoiceEntity invoiceEntity = invoiceRepository.findByIdAndStatusNot(request.getInvoiceId(), InvoiceStatus.CANCELLED)
-                    .orElseThrow(() -> new DataNotFoundException("Invoice not found"));
+        InvoiceEntity invoiceEntity = getPendingInvoice(request.getInvoiceId());
 
         ticketRepository.findByShowTimeAndSeat(showTimeEntity, seatEntity)
                 .ifPresent(ticket -> {
@@ -188,9 +187,7 @@ public class TicketServiceImpl implements TicketService {
                 .findSelectionByNameAndStatus(request.getTicketType(), true)
                 .orElseThrow(() -> new DataNotFoundException("Ticket type not found or invalid"));
 
-        if (!invoiceRepository.existsByIdAndStatusIsNot(request.getInvoiceId(), InvoiceStatus.CANCELLED)) {
-            throw new DataNotFoundException("Invoice not found");
-        }
+        getPendingInvoice(request.getInvoiceId());
 
         if (ticketRepository.existsByShowTime_IdAndSeat_Id(request.getShowTimeId(), request.getSeatId())) {
             throw new DataExistingException("Ticket already exist");
@@ -235,7 +232,7 @@ public class TicketServiceImpl implements TicketService {
         TicketEntity ticketEntity = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new DataNotFoundException("Ticket not found"));
 
-        if(ticketEntity.getInvoice().getStatus() == InvoiceStatus.PAID) {
+        if(ticketEntity.getInvoice().getStatus() != InvoiceStatus.PENDING) {
             throw new DataNotFoundException("Ticket must not be deleted");
         }
         ticketRepository.delete(ticketEntity);
@@ -310,5 +307,14 @@ public class TicketServiceImpl implements TicketService {
                 )
                 .status(seatSelection.getStatus())
                 .build();
+    }
+
+    private InvoiceEntity getPendingInvoice(Long invoiceId) {
+        InvoiceEntity invoiceEntity = invoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> new DataNotFoundException("Invoice not found"));
+        if (invoiceEntity.getStatus() != InvoiceStatus.PENDING) {
+            throw new DataNotFoundException("Invoice is not available for seat selection");
+        }
+        return invoiceEntity;
     }
 }

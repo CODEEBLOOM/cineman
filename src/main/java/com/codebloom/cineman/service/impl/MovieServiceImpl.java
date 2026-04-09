@@ -392,11 +392,8 @@ public class MovieServiceImpl implements MovieService {
                 .currentPage(page.getNumber())
                 .pageSize(page.getSize())
                 .totalPages(page.getTotalPages())
-                .totalElements((int) page.getTotalElements())                .build();
-        metaResponse.setCurrentPage(page.getNumber());
-        metaResponse.setTotalPages(page.getTotalPages());
-        metaResponse.setPageSize(page.getSize());
-        metaResponse.setTotalElements(page.getNumberOfElements());
+                .totalElements((int) page.getTotalElements())
+                .build();
 
         MoviePageableResponse moviePageableResponse = new MoviePageableResponse();
         moviePageableResponse.setMeta(metaResponse);

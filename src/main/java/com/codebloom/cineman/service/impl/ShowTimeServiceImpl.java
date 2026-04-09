@@ -1,5 +1,6 @@
 package com.codebloom.cineman.service.impl;
 
+import com.codebloom.cineman.controller.request.AutoShowTimeRequest;
 import com.codebloom.cineman.common.constant.MovieStatus;
 import com.codebloom.cineman.common.constant.MovieTheaterOfficeHours;
 import com.codebloom.cineman.common.enums.CinemaTheaterStatus;
@@ -16,6 +17,7 @@ import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.model.*;
 import com.codebloom.cineman.repository.CinemaTheatersRepository;
 import com.codebloom.cineman.repository.MovieRepository;
+import com.codebloom.cineman.repository.MovieTheaterMappingRepository;
 import com.codebloom.cineman.repository.MovieVariationRepository;
 import com.codebloom.cineman.repository.ShowTimeRepository;
 import com.codebloom.cineman.service.MovieService;
@@ -33,8 +35,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +46,7 @@ public class ShowTimeServiceImpl implements ShowTimeService {
     private final ShowTimeRepository showTimeRepository;
     private final CinemaTheatersRepository cinemaTheaterRepository;
     private final MovieRepository movieRepository;
+    private final MovieTheaterMappingRepository movieTheaterMappingRepository;
     private final MovieService movieService;
     private final MovieStatusService movieStatusService;
     private final MovieVariationRepository movieVariationRepository;
@@ -86,6 +89,99 @@ public class ShowTimeServiceImpl implements ShowTimeService {
         syncMovieStatusAfterShowTimeChanged(movie.getMovieId());
         log.info("Created Showtime With Id: {} and status: {}", showTimeEntity.getId(), showTimeEntity.getStatus());
         return convertToShowTimeResponse(showTimeEntity);
+    }
+
+    @Override
+    @Transactional
+    public List<ShowTimeResponse> autoCreate(AutoShowTimeRequest request) {
+        log.info("Auto create showtimes with request: {}", request);
+        validateAutoCreateRequest(request);
+
+        movieVariationRepository.findByIdAndStatus(request.getMovieVariationId(), true)
+                .orElseThrow(() -> new DataNotFoundException("Movie Variation Not Found With Id: " + request.getMovieVariationId()));
+
+        List<CinemaTheaterEntity> cinemaTheaters = cinemaTheaterRepository
+                .findAllByStatusAndMovieTheater_MovieTheaterId(CinemaTheaterStatus.PUBLISHED, request.getMovieTheaterId())
+                .stream()
+                .sorted(Comparator.comparing(CinemaTheaterEntity::getCinemaTheaterId))
+                .toList();
+
+        if (cinemaTheaters.isEmpty()) {
+            throw new ConflictException("No published cinema theater found in movie theater id: " + request.getMovieTheaterId());
+        }
+
+        List<Integer> movieIds = new ArrayList<>(new LinkedHashSet<>(request.getMovieIds()));
+        Map<Integer, MovieEntity> movieById = movieRepository.findAllById(movieIds)
+                .stream()
+                .collect(Collectors.toMap(MovieEntity::getMovieId, movie -> movie));
+
+        List<MovieEntity> movies = new ArrayList<>();
+        for (Integer movieId : movieIds) {
+            MovieEntity movie = movieById.get(movieId);
+            if (movie == null) {
+                throw new DataNotFoundException("Movie Not Found With Id: " + movieId);
+            }
+            validateMovieForAutoCreate(movie, request.getMovieTheaterId(), request.getShowDate());
+            movies.add(movie);
+        }
+
+        List<ShowTimeResponse> createdShowTimes = new ArrayList<>();
+        int movieCursor = 0;
+        LocalTime schedulingStart = resolveSchedulingStart(request.getShowDate(), request.getStartTime());
+
+        for (CinemaTheaterEntity cinemaTheater : cinemaTheaters) {
+            List<ShowTimeEntity> existingShowTimes = showTimeRepository.findAllByCinemaTheaterAndShowDateAndStatusNot(
+                    cinemaTheater,
+                    request.getShowDate(),
+                    ShowTimeStatus.DELETED,
+                    Sort.by(Sort.Direction.ASC, "startTime")
+            );
+
+            LocalTime cursor = schedulingStart;
+            for (ShowTimeEntity existingShowTime : existingShowTimes) {
+                if (!existingShowTime.getStartTime().isAfter(request.getEndTime())) {
+                    LocalTime gapEnd = minTime(existingShowTime.getStartTime(), request.getEndTime());
+                    movieCursor = fillGapWithShowTimes(
+                            cinemaTheater,
+                            request,
+                            movies,
+                            cursor,
+                            gapEnd,
+                            false,
+                            movieCursor,
+                            createdShowTimes
+                    );
+                }
+
+                LocalTime nextCursor = existingShowTime.getEndTime().plusMinutes(request.getBufferMinutes());
+                if (nextCursor.isAfter(cursor)) {
+                    cursor = nextCursor;
+                }
+
+                if (!cursor.isBefore(request.getEndTime())) {
+                    break;
+                }
+            }
+
+            if (cursor.isBefore(request.getEndTime()) || cursor.equals(request.getEndTime())) {
+                movieCursor = fillGapWithShowTimes(
+                        cinemaTheater,
+                        request,
+                        movies,
+                        cursor,
+                        request.getEndTime(),
+                        true,
+                        movieCursor,
+                        createdShowTimes
+                );
+            }
+        }
+
+        if (createdShowTimes.isEmpty()) {
+            throw new ConflictException("No available slot to auto create showtime for this request");
+        }
+
+        return createdShowTimes;
     }
 
     /**
@@ -397,6 +493,131 @@ public class ShowTimeServiceImpl implements ShowTimeService {
                 .movie(movieResponse)
                 .cinemaTheater(showTimeEntity.getCinemaTheater())
                 .build();
+    }
+
+    private int fillGapWithShowTimes(
+            CinemaTheaterEntity cinemaTheater,
+            AutoShowTimeRequest request,
+            List<MovieEntity> movies,
+            LocalTime gapStart,
+            LocalTime gapEnd,
+            boolean allowEndTimeEqual,
+            int movieCursor,
+            List<ShowTimeResponse> createdShowTimes
+    ) {
+        LocalTime cursor = gapStart;
+        while (cursor.isBefore(gapEnd) && !movies.isEmpty()) {
+            int selectedMovieIndex = findNextFittingMovieIndex(movies, movieCursor, cursor, gapEnd, allowEndTimeEqual);
+            if (selectedMovieIndex < 0) {
+                break;
+            }
+
+            MovieEntity movie = movies.get(selectedMovieIndex);
+            ShowTimeRequest showTimeRequest = new ShowTimeRequest();
+            showTimeRequest.setShowDate(request.getShowDate());
+            showTimeRequest.setStartTime(cursor);
+            showTimeRequest.setOriginPrice(request.getOriginPrice());
+            showTimeRequest.setStatus(request.getStatus());
+            showTimeRequest.setSpecial(Boolean.TRUE.equals(request.getSpecial()));
+            showTimeRequest.setMovieId(movie.getMovieId());
+            showTimeRequest.setCinemaTheaterId(cinemaTheater.getCinemaTheaterId());
+            showTimeRequest.setMovieVariationId(request.getMovieVariationId());
+
+            createdShowTimes.add(create(showTimeRequest));
+            movieCursor = (selectedMovieIndex + 1) % movies.size();
+            cursor = cursor.plusMinutes(movie.getDuration()).plusMinutes(request.getBufferMinutes());
+        }
+        return movieCursor;
+    }
+
+    private int findNextFittingMovieIndex(
+            List<MovieEntity> movies,
+            int startIndex,
+            LocalTime slotStart,
+            LocalTime slotEnd,
+            boolean allowEndTimeEqual
+    ) {
+        for (int offset = 0; offset < movies.size(); offset++) {
+            int candidateIndex = (startIndex + offset) % movies.size();
+            MovieEntity movie = movies.get(candidateIndex);
+            LocalTime endTime = slotStart.plusMinutes(movie.getDuration());
+            boolean fits = allowEndTimeEqual ? !endTime.isAfter(slotEnd) : endTime.isBefore(slotEnd);
+            if (fits) {
+                return candidateIndex;
+            }
+        }
+        return -1;
+    }
+
+    private void validateAutoCreateRequest(AutoShowTimeRequest request) {
+        if (request.getStartTime() == null) {
+            request.setStartTime(MovieTheaterOfficeHours.OPENING_HOURS);
+        }
+        if (request.getEndTime() == null) {
+            request.setEndTime(MovieTheaterOfficeHours.CLOSING_HOURS);
+        }
+        if (request.getBufferMinutes() == null) {
+            request.setBufferMinutes(15);
+        }
+        if (request.getStatus() == null) {
+            request.setStatus(ShowTimeStatus.INVALID);
+        }
+        if (request.getSpecial() == null) {
+            request.setSpecial(false);
+        }
+
+        LocalDate showDate = toLocalDate(request.getShowDate());
+        LocalDate today = LocalDate.now();
+
+        if (showDate.isBefore(today)) {
+            throw new ConflictException("Show date cannot be in the past");
+        }
+
+        if (request.getStartTime().isBefore(MovieTheaterOfficeHours.OPENING_HOURS)
+                || request.getEndTime().isAfter(MovieTheaterOfficeHours.CLOSING_HOURS)) {
+            throw new ConflictException("Showtime must be between " + MovieTheaterOfficeHours.OPENING_HOURS + " and " + MovieTheaterOfficeHours.CLOSING_HOURS);
+        }
+
+        if (!request.getStartTime().isBefore(request.getEndTime())) {
+            throw new ConflictException("Start time must be before end time");
+        }
+    }
+
+    private void validateMovieForAutoCreate(MovieEntity movie, Integer movieTheaterId, Date showDate) {
+        if (!Boolean.TRUE.equals(
+                movieTheaterMappingRepository.findByMovie_MovieIdAndMovieTheater_MovieTheaterIdAndActiveTrue(movie.getMovieId(), movieTheaterId)
+                        .map(mapping -> mapping.getActive())
+                        .orElse(false)
+        )) {
+            throw new ConflictException("Movie id " + movie.getMovieId() + " is not active in movie theater id " + movieTheaterId);
+        }
+
+        if (movie.getReleaseDate().after(showDate)) {
+            throw new ConflictException("Movie id " + movie.getMovieId() + " is not released yet");
+        }
+
+        if (toLocalDate(movie.getEndDate()).isBefore(toLocalDate(showDate))) {
+            throw new ConflictException("Movie id " + movie.getMovieId() + " has already ended");
+        }
+
+        if (MovieStatus.MOVIE_STATUS_CNS.equals(movie.getStatus().getStatusId())
+                || MovieStatus.MOVIE_STATUS_NC.equals(movie.getStatus().getStatusId())) {
+            throw new ConflictException("Movie id " + movie.getMovieId() + " is not available");
+        }
+    }
+
+    private LocalTime resolveSchedulingStart(Date showDate, LocalTime requestedStart) {
+        LocalDate targetDate = toLocalDate(showDate);
+        if (!targetDate.isEqual(LocalDate.now())) {
+            return requestedStart;
+        }
+
+        LocalTime nextMinute = LocalTime.now().plusMinutes(1).withSecond(0).withNano(0);
+        return nextMinute.isAfter(requestedStart) ? nextMinute : requestedStart;
+    }
+
+    private LocalTime minTime(LocalTime first, LocalTime second) {
+        return first.isBefore(second) ? first : second;
     }
 
     private LocalTime checkShowTime(ShowTimeRequest request, MovieEntity movie, CinemaTheaterEntity cinemaTheater, Long... showTimeId) {

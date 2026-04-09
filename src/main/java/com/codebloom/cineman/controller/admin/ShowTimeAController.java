@@ -1,5 +1,6 @@
 package com.codebloom.cineman.controller.admin;
 
+import com.codebloom.cineman.controller.request.AutoShowTimeRequest;
 import com.codebloom.cineman.controller.request.ShowTimeRequest;
 import com.codebloom.cineman.controller.request.ShowTimeRequestNew;
 import com.codebloom.cineman.controller.response.ApiResponse;
@@ -100,6 +101,18 @@ public class ShowTimeAController {
                         .status(HttpStatus.CREATED.value())
                         .message("Add show time success")
                         .data(showTimeService.create(request))
+                        .build()
+        );
+    }
+
+    @Operation(summary = "Auto fill show times", description = "API dùng tạo lịch chiếu tự động để lấp đầy lịch trong ngày của rạp")
+    @PostMapping("/auto-fill")
+    public ResponseEntity<ApiResponse> autoFillShowTime(@RequestBody @Valid AutoShowTimeRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.builder()
+                        .status(HttpStatus.CREATED.value())
+                        .message("Auto fill show time success")
+                        .data(showTimeService.autoCreate(request))
                         .build()
         );
     }

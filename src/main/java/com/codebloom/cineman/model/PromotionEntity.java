@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -55,9 +56,22 @@ public class PromotionEntity implements Serializable  {
     private StatusPromotion status;
 
     @ManyToOne
+    @JoinColumn(name = "promotion_type_id")
+    private PromotionTypeEntity promotionType;
+
+    @ManyToOne
     @JoinColumn(name = "staff_id", nullable = false)
     @JsonIgnore
     private UserEntity staff;
+
+    @ManyToMany
+    @JoinTable(
+            name = "promotion_membership_ranks",
+            joinColumns = @JoinColumn(name = "promotion_id", referencedColumnName = "promotion_id"),
+            inverseJoinColumns = @JoinColumn(name = "membership_rank_id", referencedColumnName = "id")
+    )
+    @Builder.Default
+    private List<MembershipRankEntity> membershipRanks = new ArrayList<>();
 
     @OneToMany(mappedBy = "promotion")
     @JsonIgnore

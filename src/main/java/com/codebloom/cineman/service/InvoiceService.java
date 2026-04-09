@@ -1,6 +1,7 @@
 package com.codebloom.cineman.service;
 
 
+import com.codebloom.cineman.common.enums.InvoiceStatus;
 import com.codebloom.cineman.controller.request.InvoiceCreateRequest;
 import com.codebloom.cineman.controller.request.InvoiceUpdateRequest;
 import com.codebloom.cineman.controller.response.InvoiceDetailPageResponse;
@@ -31,7 +32,7 @@ public interface InvoiceService {
 
     InvoiceDetailResponse findByQrCode(String qrCode);
 
-    List<InvoiceDetailResponse> findByUserId(Long userId);
+    List<InvoiceDetailResponse> findByUserId(Long userId, InvoiceStatus status);
 
     InvoiceDetailPageResponse findAllInvoicesByShowDateAndMovieTheater(Date showDate, Integer pageNo, Integer pageSize, Integer... movieTheaterId);
 
