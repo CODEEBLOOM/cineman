@@ -6,6 +6,7 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.util.ByteArrayDataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,6 +24,12 @@ import java.util.List;
 @Slf4j(topic = "JAVA_MAIL_SENDER")
 @RequiredArgsConstructor
 public class MailServiceImpl implements MailService {
+
+    @Value("${app.mail.from-address:${spring.mail.username:no-reply@localhost}}")
+    private String fromAddress;
+
+    @Value("${app.mail.from-name:Poly Cinemas}")
+    private String fromName;
 
     private final JavaMailSender mailSender;
     private final QRCodeService qrCodeService;
@@ -49,7 +56,7 @@ public class MailServiceImpl implements MailService {
 
     @Scheduled(fixedDelay = 2000)
     public void run() {
-        while(!queue.isEmpty()) {
+        while (!queue.isEmpty()) {
             MailModel mail = queue.remove(0);
             try {
                 sendMail(mail);
@@ -61,43 +68,35 @@ public class MailServiceImpl implements MailService {
         }
     }
 
-
     private void sendMail(MailModel mail) {
         try {
-            // 1. Tạo Mail
             MimeMessage message = mailSender.createMimeMessage();
-
-            // 2. Tạo đối tượng hỗ trợ ghi nội dung Mail
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "utf-8");
 
-            // 2.1. Ghi thông tin người gửi
-            helper.setFrom(mail.getFrom());
-            helper.setReplyTo(mail.getFrom());
-
-            // 2.2. Ghi thông tin người nhận
+            String from = isNullOrEmpty(mail.getFrom()) ? buildDefaultFrom() : mail.getFrom();
+            helper.setFrom(from);
+            helper.setReplyTo(from);
             helper.setTo(mail.getTo());
 
-            if(!this.isNullOrEmpty(mail.getCc())) {
+            if (!this.isNullOrEmpty(mail.getCc())) {
                 helper.setCc(mail.getCc());
             }
 
-            if(!this.isNullOrEmpty(mail.getBcc())) {
+            if (!this.isNullOrEmpty(mail.getBcc())) {
                 helper.setBcc(mail.getBcc());
             }
-            // 2.3. Ghi tiêu đề và nội dung
+
             helper.setSubject(mail.getSubject());
             helper.setText(mail.getBody(), true);
 
-            // 2.4. Đính kèm file
             String filenames = mail.getFilenames();
-            if(!this.isNullOrEmpty(filenames)) {
-                for(String filename: filenames.split("[,;]+")) {
+            if (!this.isNullOrEmpty(filenames)) {
+                for (String filename : filenames.split("[,;]+")) {
                     File file = new File(filename.trim());
                     helper.addAttachment(file.getName(), file);
                 }
             }
 
-            // 2.5. Đính kèm QR Code
             if (mail.getQrCodeImage() != null) {
                 ByteArrayOutputStream os = new ByteArrayOutputStream();
                 ImageIO.write(mail.getQrCodeImage(), "png", os);
@@ -105,7 +104,6 @@ public class MailServiceImpl implements MailService {
                 helper.addInline("qrImage", dataSource);
             }
 
-            //3. Gửi Mail
             mailSender.send(message);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -113,7 +111,10 @@ public class MailServiceImpl implements MailService {
     }
 
     private boolean isNullOrEmpty(String text) {
-        return (text == null || text.trim().isEmpty());
+        return text == null || text.trim().isEmpty();
     }
 
+    private String buildDefaultFrom() {
+        return String.format("%s <%s>", fromName, fromAddress);
+    }
 }

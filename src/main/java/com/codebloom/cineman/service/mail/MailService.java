@@ -9,6 +9,7 @@ import java.io.IOException;
 
 public interface MailService {
     void send(MailModel mailModel);
+
     default void send(String to, String subject, String body) {
         MailModel mail = MailModel
                 .builder()
@@ -23,10 +24,14 @@ public interface MailService {
 
     @Builder
     @Data
-    public static class MailModel{
-        @Builder.Default
-        String from = "Hệ thống rạp chiếu Cineman <admin@em7802.cineman.io.vn>";
-        String to, cc, bcc, subject, body, filenames;
+    class MailModel {
+        String from;
+        String to;
+        String cc;
+        String bcc;
+        String subject;
+        String body;
+        String filenames;
         BufferedImage qrCodeImage;
     }
 }

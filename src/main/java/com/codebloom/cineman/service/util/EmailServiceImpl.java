@@ -1,126 +1,70 @@
 package com.codebloom.cineman.service.util;
 
-import com.sendgrid.Method;
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
-import com.sendgrid.helpers.mail.objects.Email;
-import com.sendgrid.helpers.mail.objects.Personalization;
+import com.codebloom.cineman.service.JwtService;
+import com.codebloom.cineman.service.mail.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.*;
-
-import com.codebloom.cineman.service.JwtService;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "EMAIL-SERVICE")
 public class EmailServiceImpl implements EmailService {
 
-
-
-    @Value("${spring.sendgrid.from-email}")
-    private String from;
-
-    @Value("${spring.sendgrid.template-id}")
-    private String templateId;
-
-    @Value("${spring.sendgrid.verification-link}")
+    @Value("${app.mail.verification-link:http://localhost:${server.port}${api.path}/auth/confirm-email}")
     private String verificationLink;
 
-
-    private final SendGrid sendGrid;
+    private final MailService mailService;
     private final JwtService jwtService;
 
-    /**
-     * Send email by send grid
-     *
-     * @param to:      send email to someone
-     * @param subject:
-     * @param text:
-     */
     @Override
     public void send(String to, String subject, String text) {
-        Email fromEmail = new Email(from);
-        Email toEmail = new Email(to);
-
-        Content content = new Content("text/plain", text);
-        Mail mail = new Mail(fromEmail, subject, toEmail, content);
-
-        Request request = new Request();
-        try {
-            request.setMethod(Method.POST);
-            request.setEndpoint("mail/send");
-            request.setBody(mail.build());
-
-            Response response = sendGrid.api(request);
-
-            // ACCEPTED //
-            if (response.getStatusCode() == 202) {
-                log.info("Email sent successfully");
-            } else {
-                log.error("Email sent failed. statusCode={}, body={}", response.getStatusCode(), response.getBody());
-            }
-        } catch (IOException e) {
-            log.error("Error occurred while sending email, error: {}", e.getMessage());
-        }
-
+        mailService.send(to, subject, text);
+        log.info("Email queued successfully to {}", to);
     }
 
-    /**
-     * Email verification by sendgrid
-     *
-     * @param to:
-     * @param name:
-     */
     @Override
     public void emailVerification(String to, String phoneNumber, String name) throws IOException {
         log.info("Email verification started with email to: {}", to);
 
-        Email fromEmail = new Email(from, "Phòng dịch vụ Poly Cinemas");
-        Email toEmail = new Email(to);
-
-        /* Tạo token verify OTP có thời gian hết hạn 10 phút */
-        String subject = "Xác thực tài khoản";
+        String subject = "Xac thuc tai khoan";
         String tokenVerify = jwtService.generateTokenToVerify(phoneNumber, to);
-        String secretCode = String.format("?secretCode=%s", tokenVerify);
+        String verifyUrl = buildVerificationUrl(tokenVerify);
+        String html = buildVerificationHtml(name, verifyUrl);
 
-        /* Thêm thông tin dynamic vào template */
-        Map<String, String> map = new HashMap<>();
-        map.put("name", name);
-        map.put("verification_link", verificationLink + secretCode);
-        map.put("subject", subject);
+        mailService.send(to, subject, html);
+        log.info("Verification email queued successfully to {}", to);
+    }
 
-        Mail mail = new Mail();
-        mail.setFrom(fromEmail);
-        mail.setSubject(subject);
+    private String buildVerificationUrl(String tokenVerify) {
+        String delimiter = verificationLink.contains("?") ? "&" : "?";
+        return verificationLink + delimiter + "secretCode="
+                + URLEncoder.encode(tokenVerify, StandardCharsets.UTF_8);
+    }
 
-        Personalization personalization = new Personalization();
-        personalization.addTo(toEmail);
-        map.forEach(personalization::addDynamicTemplateData);
-        mail.addPersonalization(personalization);
-        mail.setTemplateId(templateId);
-
-        Request request = new Request();
-        request.setMethod(Method.POST);
-        request.setEndpoint("mail/send");
-        request.setBody(mail.build());
-
-        Response response = sendGrid.api(request);
-
-        // 202 - ACCEPTED //
-        if (response.getStatusCode() == 202) {
-            log.info("Verification sent successfully");
-        } else {
-            log.error("Verification sent failed. statusCode={}, body={}", response.getStatusCode(), response.getBody());
-        }
-
-
+    private String buildVerificationHtml(String name, String verifyUrl) {
+        String safeName = name == null || name.isBlank() ? "ban" : name;
+        return """
+                <html>
+                <body style="font-family:Arial,sans-serif;color:#1f2937;line-height:1.6;">
+                    <h2 style="margin-bottom:16px;">Xac thuc tai khoan Poly Cinemas</h2>
+                    <p>Xin chao %s,</p>
+                    <p>Cam on ban da dang ky tai khoan. Vui long xac thuc email de kich hoat tai khoan.</p>
+                    <p style="margin:24px 0;">
+                        <a href="%s"
+                           style="background:#b91c1c;color:#ffffff;padding:12px 20px;text-decoration:none;border-radius:6px;display:inline-block;">
+                            Xac thuc email
+                        </a>
+                    </p>
+                    <p>Neu khong bam duoc nut, hay sao chep lien ket sau vao trinh duyet:</p>
+                    <p><a href="%s">%s</a></p>
+                </body>
+                </html>
+                """.formatted(safeName, verifyUrl, verifyUrl, verifyUrl);
     }
 }

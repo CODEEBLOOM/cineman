@@ -106,14 +106,6 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
-		<!--Dependency sendgrid -->
-		<dependency>
-			<groupId>com.sendgrid</groupId>
-			<artifactId>sendgrid-java</artifactId>
-			<version>4.10.3</version>
-		</dependency>
-
-
 		<!-- Google API Client -->
 		<dependency>
 			<groupId>com.google.api-client</groupId>
