@@ -12,6 +12,7 @@ import com.codebloom.cineman.model.TicketEntity;
 import com.codebloom.cineman.model.UserEntity;
 import com.codebloom.cineman.model.UserPointHistoryEntity;
 import com.codebloom.cineman.repository.InvoiceRepository;
+import com.codebloom.cineman.repository.MembershipRankRepository;
 import com.codebloom.cineman.repository.UserPointHistoryRepository;
 import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.service.UserPointHistoryService;
@@ -30,6 +31,7 @@ public class UserPointHistoryServiceImpl implements UserPointHistoryService {
     private final UserPointHistoryRepository userPointHistoryRepository;
     private final InvoiceRepository invoiceRepository;
     private final UserRepository userRepository;
+    private final MembershipRankRepository membershipRankRepository;
 
     @Override
     @Transactional
@@ -96,7 +98,17 @@ public class UserPointHistoryServiceImpl implements UserPointHistoryService {
     @Override
     public UserPointHistoryResponse earnPoints(InvoiceEntity invoice) {
         log.info("Earn points with invoice id:{}", invoice.getId());
-        MembershipRankEntity membershipRank = invoice.getCustomer().getMembershipRank();
+        UserEntity customer = invoice.getCustomer();
+        if (customer == null) {
+            log.warn("Skip earning points because invoice {} has no customer", invoice.getId());
+            return null;
+        }
+
+        MembershipRankEntity membershipRank = resolveMembershipRank(customer);
+        if (membershipRank == null) {
+            log.warn("Skip earning points because customer {} has no membership rank configured", customer.getUserId());
+            return null;
+        }
 
         Double totalMoneyTicket = invoice.getTickets().stream()
                 .mapToDouble(TicketEntity::getPrice)
@@ -115,14 +127,15 @@ public class UserPointHistoryServiceImpl implements UserPointHistoryService {
         UserPointHistoryEntity userPointHistory = UserPointHistoryEntity.builder()
                 .changePoint(totalPoint)
                 .reason("Tich diem hoa don cho khach hang")
-                .user(invoice.getCustomer())
+                .user(customer)
                 .invoice(invoice)
                 .build();
         userPointHistoryRepository.save(userPointHistory);
 
-        int newPoint = invoice.getCustomer().getSavePoint() + totalPoint;
-        invoice.getCustomer().setSavePoint(newPoint);
-        userRepository.save(invoice.getCustomer());
+        int currentPoint = customer.getSavePoint() == null ? 0 : customer.getSavePoint();
+        int newPoint = currentPoint + totalPoint;
+        customer.setSavePoint(newPoint);
+        userRepository.save(customer);
         log.info("Earn points success with invoice id:{} and point:{}", invoice.getId(), totalPoint);
         return null;
     }
@@ -149,5 +162,18 @@ public class UserPointHistoryServiceImpl implements UserPointHistoryService {
                 .createdAt(userPointHistory.getCreatedAt())
                 .updatedAt(userPointHistory.getUpdatedAt())
                 .build();
+    }
+
+    private MembershipRankEntity resolveMembershipRank(UserEntity customer) {
+        if (customer.getMembershipRank() != null) {
+            return customer.getMembershipRank();
+        }
+
+        return membershipRankRepository.findByNameAndStatus("Normal", Boolean.TRUE)
+                .map(defaultRank -> {
+                    customer.setMembershipRank(defaultRank);
+                    return defaultRank;
+                })
+                .orElse(null);
     }
 }

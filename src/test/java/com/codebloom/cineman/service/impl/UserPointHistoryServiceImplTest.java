@@ -4,9 +4,13 @@ import com.codebloom.cineman.common.enums.UserStatus;
 import com.codebloom.cineman.controller.request.UserPointHistoryRequest;
 import com.codebloom.cineman.controller.response.UserPointHistoryResponse;
 import com.codebloom.cineman.exception.ConflictException;
+import com.codebloom.cineman.model.InvoiceEntity;
+import com.codebloom.cineman.model.MembershipRankEntity;
+import com.codebloom.cineman.model.TicketEntity;
 import com.codebloom.cineman.model.UserEntity;
 import com.codebloom.cineman.model.UserPointHistoryEntity;
 import com.codebloom.cineman.repository.InvoiceRepository;
+import com.codebloom.cineman.repository.MembershipRankRepository;
 import com.codebloom.cineman.repository.UserPointHistoryRepository;
 import com.codebloom.cineman.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -36,6 +40,9 @@ class UserPointHistoryServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private MembershipRankRepository membershipRankRepository;
 
     @InjectMocks
     private UserPointHistoryServiceImpl userPointHistoryService;
@@ -85,5 +92,39 @@ class UserPointHistoryServiceImplTest {
         when(userRepository.findByUserIdAndStatus(1L, UserStatus.ACTIVE)).thenReturn(Optional.of(user));
 
         assertThrows(ConflictException.class, () -> userPointHistoryService.createTransaction(request));
+    }
+
+    @Test
+    void earnPointsShouldAssignDefaultRankWhenCustomerCreatedFromAdminHasNoRank() {
+        MembershipRankEntity normalRank = MembershipRankEntity.builder()
+                .id(1)
+                .name("Normal")
+                .requiredPoint(0)
+                .returnPointsTicket(0.01)
+                .returnPointsSnack(0.02)
+                .priorityLevel(1)
+                .status(Boolean.TRUE)
+                .build();
+        UserEntity customer = UserEntity.builder()
+                .userId(5L)
+                .savePoint(10)
+                .status(UserStatus.ACTIVE)
+                .membershipRank(null)
+                .build();
+        InvoiceEntity invoice = InvoiceEntity.builder()
+                .id(9L)
+                .customer(customer)
+                .detailBookingSnacks(java.util.Collections.emptyList())
+                .build();
+        invoice.setTickets(java.util.List.of(TicketEntity.builder().id(1L).price(100_000.0).build()));
+
+        when(membershipRankRepository.findByNameAndStatus("Normal", Boolean.TRUE)).thenReturn(Optional.of(normalRank));
+
+        userPointHistoryService.earnPoints(invoice);
+
+        assertEquals(normalRank, customer.getMembershipRank());
+        assertEquals(1010, customer.getSavePoint());
+        verify(userPointHistoryRepository).save(any(UserPointHistoryEntity.class));
+        verify(userRepository).save(customer);
     }
 }

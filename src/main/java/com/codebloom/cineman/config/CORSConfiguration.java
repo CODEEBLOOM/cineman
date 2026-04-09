@@ -15,7 +15,7 @@ public class CORSConfiguration {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:4200","http://localhost:8081", "https://grimy-chung-nonimaginational.ngrok-free.dev"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:4200","http://localhost:8081"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type","x-auth-token"));
         configuration.setExposedHeaders(List.of("x-auth-token"));

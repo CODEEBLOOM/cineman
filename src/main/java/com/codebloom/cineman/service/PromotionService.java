@@ -1,6 +1,5 @@
 package com.codebloom.cineman.service;
 
-
 import com.codebloom.cineman.common.enums.StatusPromotion;
 import com.codebloom.cineman.controller.request.PromotionRequest;
 import com.codebloom.cineman.controller.response.ApplyPromotionResponse;
@@ -28,9 +27,11 @@ public interface PromotionService {
 
     PromotionEntity validateToApplyPromotion(Long id);
 
-    void cancelPromotion(@NotNull(message = "Id giảm giá không được phép null !") Long id);
+    PromotionEntity validateToApplyPromotion(Long id, Long userId);
+
+    void cancelPromotion(@NotNull(message = "Id giam gia khong duoc phep null !") Long id);
 
     Integer returnQuantityPromotion(String vnp_TxnRef);
 
-    List<PromotionResponse> findAllPromotionByUserId(Long userId, StatusPromotion status);
+    List<PromotionResponse> findAllPromotionByUserId(Long userId, StatusPromotion status, Long promotionTypeId, Boolean expiringSoon);
 }

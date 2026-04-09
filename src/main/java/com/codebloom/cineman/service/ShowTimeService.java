@@ -1,5 +1,6 @@
 package com.codebloom.cineman.service;
 
+import com.codebloom.cineman.controller.request.AutoShowTimeRequest;
 import com.codebloom.cineman.controller.request.MoviePageQueryRequest;
 import com.codebloom.cineman.controller.request.ShowTimeDetailResponseNew;
 import com.codebloom.cineman.controller.request.ShowTimeRequest;
@@ -16,6 +17,7 @@ import java.util.List;
 public interface ShowTimeService {
 
     ShowTimeResponse create(ShowTimeRequest request);
+    List<ShowTimeResponse> autoCreate(AutoShowTimeRequest request);
     ShowTimeResponse update(Long id, ShowTimeRequest request);
     List<ShowTimeResponse> findAll();
     ShowTimeResponse findById(Long id);

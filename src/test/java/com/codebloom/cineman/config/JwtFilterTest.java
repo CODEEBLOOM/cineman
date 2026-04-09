@@ -12,6 +12,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -62,6 +64,11 @@ class JwtFilterTest {
     @InjectMocks
     private JwtFilter jwtFilter;
 
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(jwtFilter, "authorizationEnabled", true);
+    }
+
     @AfterEach
     void tearDown() {
         SecurityContextHolder.clearContext();
@@ -89,6 +96,21 @@ class JwtFilterTest {
         verify(filterChain, never()).doFilter(request, response);
         verifyNoInteractions(permissionService);
         verify(userRepository, never()).findByEmailAndStatus("inactive@cineman.test", UserStatus.ACTIVE);
+    }
+
+    @Test
+    void doFilterInternalShouldRejectMissingBearerTokenForProtectedEndpoint() throws Exception {
+        ReflectionTestUtils.setField(jwtFilter, "authorizationEnabled", false);
+
+        when(request.getMethod()).thenReturn("PUT");
+        when(request.getRequestURI()).thenReturn("/api/v01/promotion/57D608B3/amount/880000/apply");
+        when(request.getServletPath()).thenReturn("/api/v01/promotion/57D608B3/amount/880000/apply");
+        when(request.getHeader("Authorization")).thenReturn(null);
+
+        jwtFilter.doFilterInternal(request, response, filterChain);
+
+        verify(filterChain).doFilter(request, response);
+        verifyNoInteractions(jwtService, context, userRepository, permissionService);
     }
 
     @Test

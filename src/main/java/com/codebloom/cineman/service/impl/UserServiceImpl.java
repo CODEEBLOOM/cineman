@@ -123,6 +123,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public long save(UserCreationRequest request) {
         log.info("Saving user {}", request);
+        Set<RoleEntity> requestedRoles = resolveRequestedRoles(request.getRoleIds());
         UserEntity user = UserEntity.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -136,7 +137,7 @@ public class UserServiceImpl implements UserService {
                 .googleId(request.getGoogleId())
                 .savePoint(0)
                 .build();
-        Set<RoleEntity> requestedRoles = resolveRequestedRoles(request.getRoleIds());
+        assignDefaultMembershipRankIfNeeded(user, requestedRoles);
         user.setStatus(UserStatus.ACTIVE);
         checkNewUser(user.getEmail(), user.getPhoneNumber());
         user = userRepository.save(user);
@@ -168,7 +169,9 @@ public class UserServiceImpl implements UserService {
         existingUser.setAvatar(user.getAvatar());
 
         if (user.getRoleIds() != null) {
-            syncUserRoles(existingUser, resolveRequestedRoles(user.getRoleIds()), "");
+            Set<RoleEntity> requestedRoles = resolveRequestedRoles(user.getRoleIds());
+            assignDefaultMembershipRankIfNeeded(existingUser, requestedRoles);
+            syncUserRoles(existingUser, requestedRoles, "");
         }
 
         return convertToUserResponse(userRepository.save(existingUser));
@@ -512,11 +515,31 @@ public class UserServiceImpl implements UserService {
                     throw new DataExistingException("Email already exists at least one user!");
                 });
         userRepository.findByPhoneNumber(phoneNumber)
-                .forEach(existingUser -> {
-                    if(existingUser.getFacebookId() != null && existingUser.getGoogleId() != null) {{
-                        throw new DataExistingException("Phone number already exists at least one user!");
-                    }}
-                });
+                  .forEach(existingUser -> {
+                      if(existingUser.getFacebookId() != null && existingUser.getGoogleId() != null) {{
+                          throw new DataExistingException("Phone number already exists at least one user!");
+                      }}
+                  });
+    }
+
+    private void assignDefaultMembershipRankIfNeeded(UserEntity user, Set<RoleEntity> roles) {
+        if (user.getMembershipRank() != null) {
+            return;
+        }
+
+        boolean hasCustomerRole = roles.stream()
+                .map(RoleEntity::getRoleId)
+                .anyMatch(roleId -> UserType.USER.name().equalsIgnoreCase(roleId));
+        if (!hasCustomerRole) {
+            return;
+        }
+
+        user.setMembershipRank(getActiveDefaultMembershipRank());
+    }
+
+    private MembershipRankEntity getActiveDefaultMembershipRank() {
+        return membershipRankRepository.findByNameAndStatus("Normal", Boolean.TRUE)
+                .orElseThrow(() -> new DataNotFoundException("Membership rank not found with name: Normal"));
     }
 
     private Set<RoleEntity> resolveRequestedRoles(Set<String> roleIds) {

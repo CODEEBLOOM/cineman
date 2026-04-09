@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -20,5 +22,9 @@ public class PromotionResponse {
     private Integer quantity;
     private Double limitAmount;
     private StatusPromotion status;
+    private PromotionTypeResponse promotionType;
+    private Boolean applicableForAllRanks;
+    private List<Integer> membershipRankIds;
+    private List<String> membershipRankNames;
 
 }

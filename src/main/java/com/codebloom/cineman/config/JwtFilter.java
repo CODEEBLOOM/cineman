@@ -35,151 +35,169 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-
-
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "JWT-FILTER")
 public class JwtFilter extends OncePerRequestFilter {
 
-
     private final JwtService jwtService;
     private final ApplicationContext context;
-//    private final PermissionRepository permissionRepository;
     private final UserRepository userRepository;
     private final PermissionService permissionService;
 
     @Value("${api.path}")
     private String apiPath;
 
+    @Value("${security.authorization.enabled:false}")
+    private boolean authorizationEnabled;
 
-    /**
-     * Hàm filter đứng trước spring security để thực hiện check access token và authority
-     * @param request request
-     * @param response response
-     * @param filterChain cho phép đi tiếp
-     * @throws ServletException ném lỗi
-     * @throws IOException ném lỗi
-     */
     @Override
-    protected void doFilterInternal(HttpServletRequest request , HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         log.info("{} {}", request.getMethod(), request.getRequestURI());
-//        List<PermissionEntity> guestPermissions = permissionRepository.findAllByRoleGuest();
-//        List<Pair<String, Method>> bypassTokens = guestPermissions.stream()
-//                .map(p -> Pair.of(p.getUrl(), p.getMethod()))
-//                .collect(Collectors.toList());
 
-        if(isBypassToken(request)) {
-            filterChain.doFilter(request, response); //enable bypass
+        if (isBypassToken(request)) {
+            filterChain.doFilter(request, response);
             return;
         }
 
         final String authHeader = request.getHeader("Authorization");
-        String token = null;
-        String username = null;
-
-        // Nếu có Authorization header và bắt đầu bằng "Bearer " thì extract username từ token //
-        if(authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-            try {
-                username = jwtService.extractUsername(token, TokenType.ACCESS_TOKEN);
-            } catch (Exception e) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.getWriter().write(errorResponse(
-                        e.getMessage(),
-                        HttpServletResponse.SC_UNAUTHORIZED,
-                        "Unauthorized"
-                ));
-                return;
-            }
+        if (!authorizationEnabled) {
+            authenticateIfPresent(authHeader, request);
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            writeErrorResponse(
+                    response,
+                    "Yeu cau dang nhap de truy cap tai nguyen nay",
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    "Unauthorized"
+            );
+            return;
+        }
+
+        if (!authenticateAndAuthorize(authHeader, request, response)) {
+            return;
+        }
+
+        filterChain.doFilter(request, response);
+    }
+
+    private boolean authenticateAndAuthorize(String authHeader, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String token = authHeader.substring(7);
+        String username;
+        try {
+            username = jwtService.extractUsername(token, TokenType.ACCESS_TOKEN);
+        } catch (Exception e) {
+            writeErrorResponse(
+                    response,
+                    e.getMessage(),
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    "Unauthorized"
+            );
+            return false;
+        }
+
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
 
             if (!userDetails.isEnabled() || !jwtService.validateToken(token, TokenType.ACCESS_TOKEN, userDetails)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.getWriter().write(errorResponse(
+                writeErrorResponse(
+                        response,
                         "Tai khoan khong con hoat dong hoac token khong hop le",
                         HttpServletResponse.SC_UNAUTHORIZED,
                         "Unauthorized"
-                ));
-                return;
+                );
+                return false;
             }
 
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
 
-            // đã qua bước authentication //
-            // Authority check
             UserEntity userEntity = userRepository.findByEmailAndStatus(username, UserStatus.ACTIVE)
                     .orElseThrow(() -> new DataNotFoundException("Active user not found"));
-            Long userId = userEntity.getUserId();
 
-            // Gọi hàm kiểm tra permission
             boolean allowed = permissionService.hasPermission(
-                    userId,
+                    userEntity.getUserId(),
                     Method.valueOf(request.getMethod()),
                     request.getRequestURI()
             );
 
             if (!allowed) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.getWriter().write(errorResponse(
-                        "Không có quyền truy cập vào tài nguyên này!",
+                writeErrorResponse(
+                        response,
+                        "Khong co quyen truy cap vao tai nguyen nay!",
                         HttpServletResponse.SC_FORBIDDEN,
                         "Forbidden"
-                ));
-                return;
+                );
+                return false;
             }
         }
-        filterChain.doFilter(request, response);
+
+        return true;
     }
 
+    private void authenticateIfPresent(String authHeader, HttpServletRequest request) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return;
+        }
 
-    /* Những request sau không cần check token*/
+        try {
+            String token = authHeader.substring(7);
+            String username = jwtService.extractUsername(token, TokenType.ACCESS_TOKEN);
+            if (SecurityContextHolder.getContext().getAuthentication() != null) {
+                return;
+            }
+
+            UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
+            if (!userDetails.isEnabled() || !jwtService.validateToken(token, TokenType.ACCESS_TOKEN, userDetails)) {
+                return;
+            }
+
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+        } catch (Exception e) {
+            log.warn("Skip JWT enforcement for {} {}: {}", request.getMethod(), request.getRequestURI(), e.getMessage());
+        }
+    }
+
     private boolean isBypassToken(@NonNull HttpServletRequest request) {
         List<Pair<String, Method>> bypassTokens = Arrays.asList(
-                Pair.of(String.format("%s/auth/login",apiPath),Method.POST),
-                Pair.of(String.format("%s/auth/logout",apiPath),Method.POST),
-                Pair.of(String.format("%s/auth/register",apiPath),Method.POST),
-                Pair.of(String.format("%s/auth/user",apiPath),Method.GET),
-                Pair.of(String.format("%s/auth/refresh-token",apiPath),Method.POST),
-                Pair.of(String.format("%s/auth/confirm-email",apiPath),Method.GET),
-                Pair.of(String.format("%s/auth/social-login",apiPath),Method.GET),
-                Pair.of(String.format("%s/auth/social/callback",apiPath),Method.GET),
+                Pair.of(String.format("%s/auth/login", apiPath), Method.POST),
+                Pair.of(String.format("%s/auth/logout", apiPath), Method.POST),
+                Pair.of(String.format("%s/auth/register", apiPath), Method.POST),
+                Pair.of(String.format("%s/auth/user", apiPath), Method.GET),
+                Pair.of(String.format("%s/auth/refresh-token", apiPath), Method.POST),
+                Pair.of(String.format("%s/auth/confirm-email", apiPath), Method.GET),
+                Pair.of(String.format("%s/auth/social-login", apiPath), Method.GET),
+                Pair.of(String.format("%s/auth/social/callback", apiPath), Method.GET),
 
-                // API for customer
-                Pair.of(String.format("%s/movie/movie-theater/**",apiPath),Method.GET),
-                Pair.of(String.format("%s/movie-theater/all",apiPath),Method.GET),
-                Pair.of(String.format("%s/show-times/movie/**/movie-theater/**",apiPath),Method.GET),
-                Pair.of(String.format("%s/movie/all",apiPath),Method.GET),
-                Pair.of(String.format("%s/movie/**",apiPath),Method.GET),
-                Pair.of(String.format("%s/admin/province/all", apiPath),Method.GET),
-                Pair.of(String.format("%s/admin/movie-theater/province/**/all", apiPath),Method.GET),
+                Pair.of(String.format("%s/movie/movie-theater/**", apiPath), Method.GET),
+                Pair.of(String.format("%s/movie-theater/all", apiPath), Method.GET),
+                Pair.of(String.format("%s/show-times/movie/**/movie-theater/**", apiPath), Method.GET),
+                Pair.of(String.format("%s/movie/all", apiPath), Method.GET),
+                Pair.of(String.format("%s/movie/**", apiPath), Method.GET),
+                Pair.of(String.format("%s/admin/province/all", apiPath), Method.GET),
+                Pair.of(String.format("%s/admin/movie-theater/province/**/all", apiPath), Method.GET),
 
-                // API for cinema
-                Pair.of(String.format("%s/show-times/cinema-theater/**",apiPath),Method.GET),
-                Pair.of(String.format("%s/show-times/cinema-theater/**/show-date/**",apiPath),Method.GET),
+                Pair.of(String.format("%s/show-times/cinema-theater/**", apiPath), Method.GET),
+                Pair.of(String.format("%s/show-times/cinema-theater/**/show-date/**", apiPath), Method.GET),
 
-                // file upload
                 Pair.of(String.format("%s/storages/**", apiPath), Method.GET),
 
-                // Swagger
-                Pair.of("/api-docs",Method.GET),
-                Pair.of("/api-docs/**",Method.GET),
-                Pair.of("/swagger-resources",Method.GET),
-                Pair.of("/swagger-resources/**",Method.GET),
-                Pair.of("/configuration/ui",Method.GET),
-                Pair.of("/configuration/security",Method.GET),
-                Pair.of("/swagger-ui/**",Method.GET),
+                Pair.of("/api-docs", Method.GET),
+                Pair.of("/api-docs/**", Method.GET),
+                Pair.of("/swagger-resources", Method.GET),
+                Pair.of("/swagger-resources/**", Method.GET),
+                Pair.of("/configuration/ui", Method.GET),
+                Pair.of("/configuration/security", Method.GET),
+                Pair.of("/swagger-ui/**", Method.GET),
                 Pair.of("/swagger-ui.html", Method.GET),
                 Pair.of("/swagger-ui/index.html", Method.GET)
         );
@@ -190,7 +208,6 @@ public class JwtFilter extends OncePerRequestFilter {
         for (Pair<String, Method> token : bypassTokens) {
             String path = token.getFirst();
             Method method = token.getSecond();
-            // Check if the request path and method match any pair in the bypassTokens list
             if (requestPath.matches(path.replace("**", ".*"))
                     && requestMethod.equalsIgnoreCase(method.name())) {
                 return true;
@@ -199,12 +216,6 @@ public class JwtFilter extends OncePerRequestFilter {
         return false;
     }
 
-
-    /**
-     * Create error response with pretty template
-     * @param message nội dung lỗi
-     * @return chuỗi gson
-     */
     private String errorResponse(String message, int status, String error) {
         try {
             ErrorResponse err = new ErrorResponse();
@@ -218,6 +229,13 @@ public class JwtFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             return "";
         }
+    }
+
+    private void writeErrorResponse(HttpServletResponse response, String message, int status, String error) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(errorResponse(message, status, error));
     }
 
     @Setter

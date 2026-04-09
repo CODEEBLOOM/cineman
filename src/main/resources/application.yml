@@ -18,3 +18,7 @@ logging:
     root: INFO
     web: INFO
 
+security:
+  authorization:
+    enabled: false
+

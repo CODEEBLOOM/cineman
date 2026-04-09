@@ -9,6 +9,7 @@ import com.codebloom.cineman.controller.response.UserPaginationResponse;
 import com.codebloom.cineman.controller.response.UserResponse;
 import com.codebloom.cineman.exception.DataNotFoundException;
 import com.codebloom.cineman.exception.InvalidDataException;
+import com.codebloom.cineman.model.MembershipRankEntity;
 import com.codebloom.cineman.model.InvoiceEntity;
 import com.codebloom.cineman.model.RoleEntity;
 import com.codebloom.cineman.model.UserEntity;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -165,10 +167,56 @@ class UserServiceImplTest {
                 .gender(GenderUser.MALE)
                 .build();
 
-        when(passwordEncoder.encode("secret")).thenReturn("encoded-secret");
-
         assertThrows(InvalidDataException.class, () -> userService.save(request));
         verifyNoInteractions(userRepository, roleRepository, userRoleRepository);
+    }
+
+    @Test
+    void saveShouldAssignNormalMembershipRankWhenAdminCreatesCustomer() {
+        UserCreationRequest request = UserCreationRequest.builder()
+                .email("customer@cineman.test")
+                .password("secret")
+                .fullName("Customer User")
+                .phoneNumber("0123456789")
+                .address("Ho Chi Minh")
+                .dateOfBirth(new java.util.Date())
+                .gender(GenderUser.MALE)
+                .roleIds(Set.of("USER"))
+                .build();
+        RoleEntity userRole = RoleEntity.builder()
+                .roleId("USER")
+                .name("Customer")
+                .status(Boolean.TRUE)
+                .build();
+        MembershipRankEntity normalRank = MembershipRankEntity.builder()
+                .id(1)
+                .name("Normal")
+                .returnPointsTicket(0.01)
+                .returnPointsSnack(0.01)
+                .requiredPoint(0)
+                .priorityLevel(1)
+                .status(Boolean.TRUE)
+                .build();
+
+        when(passwordEncoder.encode("secret")).thenReturn("encoded-secret");
+        when(roleRepository.findAllById(Set.of("USER"))).thenReturn(List.of(userRole));
+        when(membershipRankRepository.findByNameAndStatus("Normal", Boolean.TRUE)).thenReturn(Optional.of(normalRank));
+        when(userRepository.findByEmail("customer@cineman.test")).thenReturn(Optional.empty());
+        when(userRepository.findByPhoneNumber("0123456789")).thenReturn(List.of());
+        when(userRepository.save(org.mockito.ArgumentMatchers.any(UserEntity.class))).thenAnswer(invocation -> {
+            UserEntity savedUser = invocation.getArgument(0);
+            if (savedUser.getUserId() == null) {
+                savedUser.setUserId(100L);
+            }
+            return savedUser;
+        });
+        when(userRoleRepository.findAllByUser_UserId(100L)).thenReturn(List.of());
+
+        long userId = userService.save(request);
+
+        assertEquals(100L, userId);
+        verify(userRepository).save(org.mockito.ArgumentMatchers.argThat(user ->
+                normalRank.equals(user.getMembershipRank()) && "encoded-secret".equals(user.getPassword())));
     }
 
     private UserEntity buildUser(Long id, String email, UserStatus status) {
