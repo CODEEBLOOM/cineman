@@ -30,6 +30,8 @@ public interface UserService {
     UserResponse getInfoUserByAccessToken(String token);
     void updateRefreshToken(String refreshToken, boolean isLogout);
     void confirmEmail(String secretCode);
+    void requestPasswordReset(String email);
+    void resetPassword(ResetPasswordRequest request);
     LoginRequest loginSocial(UserCreationRequest userLoginDTO);
 
     UserResponse updateInfoUser(Long userId, UserUpdateRequest request);

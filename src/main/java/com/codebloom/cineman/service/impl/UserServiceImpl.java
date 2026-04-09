@@ -16,17 +16,21 @@ import com.codebloom.cineman.controller.response.UserResponse;
 import com.codebloom.cineman.repository.RoleRepository;
 import com.codebloom.cineman.repository.UserRepository;
 import com.codebloom.cineman.repository.UserRoleRepository;
+import com.codebloom.cineman.service.mail.MailService;
 import com.codebloom.cineman.service.UserService;
 import com.codebloom.cineman.service.util.EmailService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,10 +43,14 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
     private final EmailService emailService;
+    private final MailService mailService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RoleService roleService;
     private final MembershipRankRepository membershipRankRepository;
+
+    @Value("${app.mail.reset-password-link:http://localhost:3000/auth/reset-password}")
+    private String resetPasswordLink;
 
 
     /**
@@ -361,6 +369,41 @@ public class UserServiceImpl implements UserService {
     public void confirmEmail(String secretCode) {
         UserEntity user = this.getUserFromToken(secretCode, TokenType.VERIFY_EMAIL);
         user.setStatus(UserStatus.ACTIVE);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void requestPasswordReset(String email) {
+        userRepository.findByEmailAndStatus(email, UserStatus.ACTIVE)
+                .ifPresent(user -> {
+                    String token = jwtService.generateResetPasswordToken(user.getEmail());
+                    String link = String.format(
+                            "%s?token=%s",
+                            resetPasswordLink,
+                            URLEncoder.encode(token, StandardCharsets.UTF_8)
+                    );
+                    String subject = "Dat lai mat khau Cineman";
+                    String body = """
+                            <p>Xin chao %s,</p>
+                            <p>Ban vua yeu cau dat lai mat khau cho tai khoan Cineman.</p>
+                            <p>Nhan vao lien ket sau de dat lai mat khau:</p>
+                            <p><a href="%s">%s</a></p>
+                            <p>Lien ket se het han sau 15 phut.</p>
+                            <p>Neu ban khong thuc hien yeu cau nay, co the bo qua email.</p>
+                            """.formatted(user.getFullName(), link, link);
+                    mailService.send(user.getEmail(), subject, body);
+                });
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest request) {
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new ConfirmPasswordException("Password not match confirm password");
+        }
+
+        UserEntity user = this.getUserFromToken(request.getToken(), TokenType.RESET_PASSWORD);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRefreshToken(null);
         userRepository.save(user);
     }
 

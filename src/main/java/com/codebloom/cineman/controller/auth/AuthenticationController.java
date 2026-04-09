@@ -3,7 +3,9 @@ package com.codebloom.cineman.controller.auth;
 
 import com.codebloom.cineman.common.enums.GenderUser;
 import com.codebloom.cineman.controller.request.ChangePasswordRequest;
+import com.codebloom.cineman.controller.request.ForgotPasswordRequest;
 import com.codebloom.cineman.controller.request.LoginRequest;
+import com.codebloom.cineman.controller.request.ResetPasswordRequest;
 import com.codebloom.cineman.controller.request.UserCreationRequest;
 import com.codebloom.cineman.controller.request.UserRegisterRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
@@ -127,6 +129,32 @@ public class AuthenticationController {
                 ApiResponse.builder()
                         .status(OK.value())
                         .message("Change Password Success")
+                        .data(null)
+                        .build()
+        );
+    }
+
+    @Operation(summary = "Forgot Password", description = "API gui yeu cau dat lai mat khau qua email")
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
+        userService.requestPasswordReset(request.getEmail());
+        return ResponseEntity.status(OK).body(
+                ApiResponse.builder()
+                        .status(OK.value())
+                        .message("Neu email ton tai trong he thong, lien ket dat lai mat khau da duoc gui")
+                        .data(null)
+                        .build()
+        );
+    }
+
+    @Operation(summary = "Reset Password", description = "API dat lai mat khau bang token reset")
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+        userService.resetPassword(request);
+        return ResponseEntity.status(OK).body(
+                ApiResponse.builder()
+                        .status(OK.value())
+                        .message("Reset Password Success")
                         .data(null)
                         .build()
         );
