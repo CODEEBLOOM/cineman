@@ -19,4 +19,6 @@ public interface JwtService {
     boolean isTokenExpired(String token, TokenType type);
 
     String generateTokenToVerify(String phoneNumber, String email);
+
+    String generateResetPasswordToken(String email);
 }

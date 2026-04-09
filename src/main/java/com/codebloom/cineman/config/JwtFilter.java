@@ -174,6 +174,8 @@ public class JwtFilter extends OncePerRequestFilter {
                 Pair.of(String.format("%s/auth/register", apiPath), Method.POST),
                 Pair.of(String.format("%s/auth/user", apiPath), Method.GET),
                 Pair.of(String.format("%s/auth/refresh-token", apiPath), Method.POST),
+                Pair.of(String.format("%s/auth/forgot-password", apiPath), Method.POST),
+                Pair.of(String.format("%s/auth/reset-password", apiPath), Method.POST),
                 Pair.of(String.format("%s/auth/confirm-email", apiPath), Method.GET),
                 Pair.of(String.format("%s/auth/social-login", apiPath), Method.GET),
                 Pair.of(String.format("%s/auth/social/callback", apiPath), Method.GET),

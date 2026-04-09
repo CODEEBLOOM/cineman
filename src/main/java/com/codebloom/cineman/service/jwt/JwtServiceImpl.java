@@ -47,6 +47,9 @@ public class JwtServiceImpl implements JwtService {
     @Value("${jwt.expirationVerify}")
     private long expirationVerify;
 
+    @Value("${jwt.expirationReset:15}")
+    private long expirationReset;
+
 
     @Override
     public String generateAccessToken(long userId, String username, Collection<? extends GrantedAuthority> authorities) {
@@ -111,6 +114,21 @@ public class JwtServiceImpl implements JwtService {
         }
     }
 
+    private String generateResetPasswordToken(Map<String, Object> claims, String email) {
+        try {
+            return Jwts.builder()
+                    .setClaims(claims)
+                    .setSubject(email)
+                    .setIssuedAt(new Date(System.currentTimeMillis()))
+                    .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * expirationReset))
+                    .signWith(getKey(RESET_PASSWORD), SignatureAlgorithm.HS256)
+                    .compact();
+        } catch (InvalidKeyException e) {
+            log.error("{}", e.getMessage());
+            return null;
+        }
+    }
+
     private String generateRefreshToken(Map<String, Object> claims, String username) {
         try {
             return Jwts.builder()
@@ -139,6 +157,9 @@ public class JwtServiceImpl implements JwtService {
                 return Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshKey));
             }
             case VERIFY_EMAIL -> {
+                return Keys.hmacShaKeyFor(Decoders.BASE64.decode(verifyKey));
+            }
+            case RESET_PASSWORD -> {
                 return Keys.hmacShaKeyFor(Decoders.BASE64.decode(verifyKey));
             }
             default -> {
@@ -201,6 +222,13 @@ public class JwtServiceImpl implements JwtService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("phone", phoneNumber);
         return generateVerifyToken(claims, email);
+    }
+
+    @Override
+    public String generateResetPasswordToken(String email) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("purpose", "reset_password");
+        return generateResetPasswordToken(claims, email);
     }
 
     /**
