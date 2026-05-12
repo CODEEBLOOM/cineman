@@ -102,6 +102,25 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
+     * Phát access/refresh token cho user đã xác thực ngoài luồng password.
+     * Dùng cho social login (Google) — vì user có thể có mật khẩu hệ thống khác
+     * accountId của Google nên không thể (và không nên) authenticate qua password.
+     */
+    @Override
+    public TokenResponse getAccessTokenForUser(UserEntity user) {
+        if (user == null) {
+            throw new DataNotFoundException("Email or password is incorrect");
+        }
+        UserPrincipal userPrincipal = new UserPrincipal(user);
+        String accessToken = jwtService.generateAccessToken(user.getUserId(), user.getEmail(), userPrincipal.getAuthorities());
+        String refreshToken = jwtService.generateRefreshToken(user.getUserId(), user.getEmail(), userPrincipal.getAuthorities());
+        return TokenResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
+
+    /**
      * Hàm refresh token: tạo ra accessToken mới và refresh toke mới
      * @param refreshToken : accessToken
      * @return access token và refresh token

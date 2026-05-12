@@ -32,7 +32,7 @@ public interface UserService {
     void confirmEmail(String secretCode);
     void requestPasswordReset(String email);
     void resetPassword(ResetPasswordRequest request);
-    LoginRequest loginSocial(UserCreationRequest userLoginDTO);
+    UserEntity loginSocial(UserCreationRequest userLoginDTO);
 
     UserResponse updateInfoUser(Long userId, UserUpdateRequest request);
 }

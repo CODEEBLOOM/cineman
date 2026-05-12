@@ -409,79 +409,85 @@ public class UserServiceImpl implements UserService {
 
 
     /**
-     * Đăng nhập người dùng bằng google
-     * @param userLoginDTO thống tin người dùng
-     * @return LoginRequest
+     * Đăng nhập người dùng bằng tài khoản mạng xã hội (Google).
+     * - Nếu tìm thấy user theo googleId: sử dụng user đó.
+     * - Nếu chưa có googleId nhưng email đã tồn tại trong hệ thống: liên kết googleId vào
+     *   user hiện có để cho phép user vừa đăng nhập bằng mật khẩu hệ thống vừa đăng nhập
+     *   bằng Google. Mật khẩu cũ được giữ nguyên.
+     * - Nếu không tìm thấy: tạo mới user.
+     * @param userLoginDTO thông tin người dùng lấy từ Google
+     * @return UserEntity đã sẵn sàng phát token
      */
     @Override
     @Transactional
-    public LoginRequest loginSocial(UserCreationRequest userLoginDTO) {
-        Optional<UserEntity> optionalUser = Optional.empty();
+    public UserEntity loginSocial(UserCreationRequest userLoginDTO) {
+        if (!userLoginDTO.isGoogleAccountIdValid()) {
+            throw new InvalidDataException("Google account id không hợp lệ !");
+        }
+
         RoleEntity roleUser = roleService.findById(UserType.USER);
 
+        UserEntity user = userRepository.findByGoogleId(userLoginDTO.getGoogleId())
+                .or(() -> userRepository.findByEmail(userLoginDTO.getEmail()))
+                .orElse(null);
 
-        // Kiểm tra Google Account ID
-        if (userLoginDTO.isGoogleAccountIdValid()) {
-            optionalUser = userRepository.findByGoogleId(userLoginDTO.getGoogleId());
-            if (optionalUser.isPresent() && !UserStatus.ACTIVE.equals(optionalUser.get().getStatus())) {
-                throw new ForBiddenException("Tai khoan khong con hoat dong");
+        if (user == null) {
+            user = createSocialUser(userLoginDTO, roleUser);
+        } else if (user.getGoogleId() == null || user.getGoogleId().isBlank()) {
+            user.setGoogleId(userLoginDTO.getGoogleId());
+            if (UserStatus.PENDING.equals(user.getStatus())) {
+                user.setStatus(UserStatus.ACTIVE);
             }
-
-            // Tạo người dùng mới nếu không tìm thấy
-            if (optionalUser.isEmpty()) {
-                checkNewUser(userLoginDTO.getEmail(), userLoginDTO.getPhoneNumber());
-                String password = passwordEncoder.encode(userLoginDTO.getPassword());
-                MembershipRankEntity membershipRankEntity = membershipRankRepository.findByNameAndStatus("Normal", Boolean.TRUE)
-                        .orElseThrow(() -> new DataNotFoundException("Membership rank not found with name: Normal"));
-
-                UserEntity newUser = UserEntity.builder()
-                        .email(userLoginDTO.getEmail())
-                        .password(password)
-                        .fullName(userLoginDTO.getFullName())
-                        .dateOfBirth(userLoginDTO.getDateOfBirth())
-                        .gender(userLoginDTO.getGender())
-                        .savePoint(0)
-                        .facebookId(userLoginDTO.getFacebookId())
-                        .googleId(userLoginDTO.getGoogleId())
-                        .status(UserStatus.ACTIVE)
-                        .phoneNumber(userLoginDTO.getPhoneNumber())
-                        .address(userLoginDTO.getAddress())
-                        .avatar(userLoginDTO.getAvatar())
-                        .membershipRank(membershipRankEntity)
-                        .build();
-
-                // Lưu người dùng mới
-                newUser = userRepository.save(newUser);
-
-                // Add role user for account //
-                UserRoleEntity userRoleEntity = new UserRoleEntity();
-                userRoleEntity.setRole(roleUser);
-                userRoleEntity.setUser(newUser);
-                userRoleEntity.setName(roleUser.getName());
-                userRoleEntity.setDescription("Tài khoản dành cho khách hàng đăng kí tại nhà ( online )");
-                userRoleRepository.save(userRoleEntity);
-
-                // GÁN NGƯỢC LẠI VÀO user (bộ nhớ)
-                Set<UserRoleEntity> userRoles = new HashSet<>();
-                userRoles.add(userRoleEntity);
-                newUser.setUserRoles(userRoles);
-                optionalUser = Optional.of(newUser);
-            }
+            user = userRepository.save(user);
         }
 
-        UserEntity user = optionalUser
-                .orElseThrow(() -> new DataNotFoundException("User not found with google id: " + userLoginDTO.getGoogleId()));
-
-        // Kiểm tra nếu tài khoản bị khóa
-        if (user.getStatus().equals(UserStatus.LOCKED)) {
-            throw new DataNotFoundException("Tài khoản đã bị khóa!");
+        if (UserStatus.LOCKED.equals(user.getStatus())) {
+            throw new ForBiddenException("Tài khoản đã bị khóa !");
         }
+        if (!UserStatus.ACTIVE.equals(user.getStatus())) {
+            throw new ForBiddenException("Tài khoản không còn hoạt động !");
+        }
+        return user;
+    }
 
-        return LoginRequest.builder()
-                .email(user.getEmail())
-                .password(userLoginDTO.getPassword())
+    /**
+     * Tạo mới user khi đăng nhập Google lần đầu và email chưa tồn tại.
+     */
+    private UserEntity createSocialUser(UserCreationRequest userLoginDTO, RoleEntity roleUser) {
+        checkNewUser(userLoginDTO.getEmail(), userLoginDTO.getPhoneNumber());
+        String password = passwordEncoder.encode(userLoginDTO.getPassword());
+        MembershipRankEntity membershipRankEntity = membershipRankRepository.findByNameAndStatus("Normal", Boolean.TRUE)
+                .orElseThrow(() -> new DataNotFoundException("Membership rank not found with name: Normal"));
+
+        UserEntity newUser = UserEntity.builder()
+                .email(userLoginDTO.getEmail())
+                .password(password)
+                .fullName(userLoginDTO.getFullName())
+                .dateOfBirth(userLoginDTO.getDateOfBirth())
+                .gender(userLoginDTO.getGender())
+                .savePoint(0)
+                .facebookId(userLoginDTO.getFacebookId())
+                .googleId(userLoginDTO.getGoogleId())
+                .status(UserStatus.ACTIVE)
+                .phoneNumber(userLoginDTO.getPhoneNumber())
+                .address(userLoginDTO.getAddress())
+                .avatar(userLoginDTO.getAvatar())
+                .membershipRank(membershipRankEntity)
                 .build();
 
+        newUser = userRepository.save(newUser);
+
+        UserRoleEntity userRoleEntity = new UserRoleEntity();
+        userRoleEntity.setRole(roleUser);
+        userRoleEntity.setUser(newUser);
+        userRoleEntity.setName(roleUser.getName());
+        userRoleEntity.setDescription("Tài khoản dành cho khách hàng đăng kí tại nhà ( online )");
+        userRoleRepository.save(userRoleEntity);
+
+        Set<UserRoleEntity> userRoles = new HashSet<>();
+        userRoles.add(userRoleEntity);
+        newUser.setUserRoles(userRoles);
+        return newUser;
     }
 
     /**

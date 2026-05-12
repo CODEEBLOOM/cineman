@@ -1,6 +1,6 @@
 package com.codebloom.cineman.model;
 
-
+import com.codebloom.cineman.common.converter.MethodCodeConverter;
 import com.codebloom.cineman.common.enums.Method;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -31,7 +31,7 @@ public class PermissionEntity implements Serializable {
     @Column(name = "description", length = 500)
     String description;
 
-    @Enumerated(EnumType.ORDINAL)
+    @Convert(converter = MethodCodeConverter.class)
     @Column(name = "method", nullable = false)
     Method method;
 
