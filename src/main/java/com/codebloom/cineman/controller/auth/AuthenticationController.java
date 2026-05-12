@@ -11,6 +11,7 @@ import com.codebloom.cineman.controller.request.UserRegisterRequest;
 import com.codebloom.cineman.controller.response.ApiResponse;
 import com.codebloom.cineman.controller.response.TokenResponse;
 import com.codebloom.cineman.controller.response.UserResponse;
+import com.codebloom.cineman.model.UserEntity;
 import com.codebloom.cineman.service.AuthService;
 import com.codebloom.cineman.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -218,9 +219,19 @@ public class AuthenticationController {
     private ResponseEntity<TokenResponse> loginSocial(
             @Valid @RequestBody UserCreationRequest userLoginDTO
     ) {
-        // Gọi hàm loginSocial từ UserService cho đăng nhập mạng xã hội
-        LoginRequest loginRequest = userService.loginSocial(userLoginDTO);
-        return this.getAccessToken(loginRequest);
+        // Tìm/tạo/liên kết user theo googleId; cho phép user đã có trong hệ thống
+        // (đăng kí bằng mật khẩu trước đó) đăng nhập bằng Google mà không bị chặn.
+        UserEntity user = userService.loginSocial(userLoginDTO);
+        TokenResponse tokenResponse = authService.getAccessTokenForUser(user);
+        userService.updateRefreshToken(tokenResponse.getRefreshToken(), false);
+        ResponseCookie responseCookie = ResponseCookie.from("refreshToken", tokenResponse.getRefreshToken())
+                .httpOnly(true)
+                .path("/")
+                .maxAge(1000L * 60 * 60 * 24 * expirationDay)
+                .build();
+        return ResponseEntity.status(OK)
+                .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+                .body(tokenResponse);
     }
 
     @GetMapping("/social/callback")
