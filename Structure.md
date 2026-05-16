@@ -160,18 +160,24 @@ Current profile defaults:
 - test DB: `cineman_test`
 - default local port: `5432`
 
-Hibernate is configured with `ddl-auto=update`.
+Hibernate is configured with `ddl-auto=none`. Schema is owned by Flyway.
 
 ### Flyway
 
-Flyway is still present in the codebase but is currently disabled for PostgreSQL and Docker profiles.
+Flyway is enabled and authoritative for schema. Hibernate does not create or alter tables.
 
-Reason:
+How it runs:
 
-- existing migration files are incomplete for full bootstrap
-- several scripts still use SQL Server specific syntax
+- `config/FlywayConfiguration.java` declares a `Flyway` bean and calls `flyway.migrate()` at startup
+- The bean is gated by `@ConditionalOnProperty(prefix = "spring.flyway", name = "enabled", havingValue = "true")`
+- `application-dev.yml` sets `spring.flyway.enabled: true` and `baseline-on-migrate: true`
 
-So the current PostgreSQL setup relies on Hibernate schema update instead of Flyway migration.
+Migration locations (`spring.flyway.locations` in `application-dev.yml`):
+
+- `src/main/resources/dev/db/migration` — older scripts `V1..V6`, all PostgreSQL-compatible
+- `src/main/resources/db/migration` — active migrations from `V7` onwards
+
+When adding migrations, place them in `db/migration`, bump to the next `V{n}__name.sql`, and use idempotent PostgreSQL syntax (`IF EXISTS` / `IF NOT EXISTS`) to match the existing style.
 
 ### Docker Profile
 
@@ -338,7 +344,6 @@ Actual flow:
 
 ## Current Caveats
 
-- Legacy Flyway SQL files are still SQL Server-specific.
-- The repository still does not contain a complete clean-room schema bootstrap for a fresh database.
-- PostgreSQL startup currently depends on Hibernate update mode.
-- A later cleanup pass should replace legacy migrations with proper PostgreSQL migrations.
+- Migrations live in two directories (`db/migration` and `dev/db/migration`). The second is legacy but still active; consolidate into one location on a future cleanup pass.
+- `application-secret.yml` is empty in the repo, while `application-dev.yml` still ships with committed credentials and API keys. Move sensitive values into `application-secret.yml` or environment variables instead of extending the committed-credentials pattern.
+- `PermissionServiceImpl` caches permissions in memory and does not evict on role/permission changes — restart the app after editing role/permission assignments.

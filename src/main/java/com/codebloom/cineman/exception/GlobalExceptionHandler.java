@@ -10,12 +10,14 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.format.DateTimeParseException;
 import java.util.Date;
@@ -191,6 +193,30 @@ public class GlobalExceptionHandler {
         errorResponse.setError(BAD_REQUEST.getReasonPhrase());
         errorResponse.setMessage(e.getMessage());
 
+        return errorResponse;
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(NOT_FOUND)
+    public ErrorResponse handleNoResourceFound(NoResourceFoundException e, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        errorResponse.setStatus(NOT_FOUND.value());
+        errorResponse.setError(NOT_FOUND.getReasonPhrase());
+        errorResponse.setMessage("No endpoint " + e.getHttpMethod() + " " + e.getResourcePath());
+        return errorResponse;
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseStatus(METHOD_NOT_ALLOWED)
+    public ErrorResponse handleMethodNotSupported(HttpRequestMethodNotSupportedException e, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        errorResponse.setStatus(METHOD_NOT_ALLOWED.value());
+        errorResponse.setError(METHOD_NOT_ALLOWED.getReasonPhrase());
+        errorResponse.setMessage(e.getMessage());
         return errorResponse;
     }
 

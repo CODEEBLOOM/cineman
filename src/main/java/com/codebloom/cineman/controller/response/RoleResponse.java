@@ -8,6 +8,8 @@ import java.util.Set;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class RoleResponse {
     private String roleId;
     private String name;

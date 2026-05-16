@@ -45,6 +45,12 @@ public class UserEntity implements  Serializable {
     @Column(name = "address", length = 200)
     private String address;
 
+    @Column(name = "ward", length = 100)
+    private String ward;
+
+    @Column(name = "province", length = 100)
+    private String province;
+
     @Column(name = "avatar", length = 250)
     private String avatar;
 

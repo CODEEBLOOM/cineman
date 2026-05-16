@@ -172,7 +172,9 @@ public class UserServiceImpl implements UserService {
         existingUser.setFullName(user.getFullName());
         existingUser.setPhoneNumber(user.getPhoneNumber());
         existingUser.setDateOfBirth(user.getDateOfBirth());
-        existingUser.setAddress(user.getAddress());
+        existingUser.setWard(user.getWard());
+        existingUser.setProvince(user.getProvince());
+        existingUser.setAddress(resolveAddress(user.getAddress(), user.getWard(), user.getProvince()));
         existingUser.setGender(user.getGender());
         existingUser.setAvatar(user.getAvatar());
 
@@ -512,12 +514,32 @@ public class UserServiceImpl implements UserService {
         user.setEmail(request.getEmail());
         user.setFullName(request.getFullName());
         user.setPhoneNumber(request.getPhoneNumber());
-        user.setAddress(request.getAddress());
+        user.setWard(request.getWard());
+        user.setProvince(request.getProvince());
+        user.setAddress(resolveAddress(request.getAddress(), request.getWard(), request.getProvince()));
         user.setDateOfBirth(request.getDateOfBirth());
         user.setGender(request.getGender());
         user.setAvatar(request.getAvatar());
         userRepository.save(user);
         return convertToUserResponse(user);
+    }
+
+    private String resolveAddress(String address, String ward, String province) {
+        if (address != null && !address.isBlank()) {
+            return address;
+        }
+        boolean hasWard = ward != null && !ward.isBlank();
+        boolean hasProvince = province != null && !province.isBlank();
+        if (hasWard && hasProvince) {
+            return ward + " - " + province;
+        }
+        if (hasWard) {
+            return ward;
+        }
+        if (hasProvince) {
+            return province;
+        }
+        return address;
     }
 
 
@@ -534,6 +556,8 @@ public class UserServiceImpl implements UserService {
                 .fullName(user.getFullName())
                 .phoneNumber(user.getPhoneNumber())
                 .address(user.getAddress())
+                .ward(user.getWard())
+                .province(user.getProvince())
                 .dateOfBirth(user.getDateOfBirth())
                 .gender(user.getGender().name())
                 .savePoint(user.getSavePoint())

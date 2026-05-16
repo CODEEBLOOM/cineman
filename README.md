@@ -61,8 +61,8 @@ Important notes:
 
 - `application-dev.yml` uses `jdbc:postgresql://localhost:5432/cineman`
 - `application-test.yml` uses `jdbc:postgresql://localhost:5432/cineman_test`
-- Hibernate is set to `ddl-auto=update`
-- Flyway is currently disabled in PostgreSQL profiles because the legacy migration scripts still contain SQL Server syntax
+- Hibernate is set to `ddl-auto=none` — schema is owned by Flyway
+- Flyway runs on startup and applies migrations from `db/migration` and `dev/db/migration`
 
 Before running, make sure:
 
@@ -110,18 +110,29 @@ Notes:
 - the backend runs with profiles `dev,docker`
 - PostgreSQL data is stored in the `postgres_data` volume
 - uploaded files are stored in the `uploads_data` volume and mapped to `/app/uploads`
-- Flyway stays disabled in Docker because the legacy SQL scripts are still SQL Server-specific
+- Flyway runs the same migrations as on local dev
 
 ## Flyway Status
 
-Flyway is still present in the project, but it is disabled in the PostgreSQL profiles.
+Flyway is enabled and owns the PostgreSQL schema. `ddl-auto` is set to `none`, so all schema changes must go through migration files.
 
-Reason:
+Migration locations:
 
-- existing migration files under `src/main/resources/dev/db/migration`
-- those scripts still use SQL Server specific syntax such as `GETDATE()`, `sysobjects`, and other SQL Server-only constructs
+- `src/main/resources/dev/db/migration` — older scripts `V1..V6` (all PostgreSQL-compatible)
+- `src/main/resources/db/migration` — current scripts from `V7` onwards
 
-At the moment, PostgreSQL schema bootstrap relies on Hibernate update mode rather than Flyway.
+How it runs:
+
+- `config/FlywayConfiguration.java` defines a `Flyway` bean and calls `flyway.migrate()` at startup
+- It is gated by `@ConditionalOnProperty(prefix = "spring.flyway", name = "enabled", havingValue = "true")`
+- `spring.flyway.enabled: true` and `baseline-on-migrate: true` are set in `application-dev.yml`
+
+Adding a new migration:
+
+1. Pick the next version after the highest existing `V{n}__...sql` in `db/migration`
+2. Use idempotent PostgreSQL syntax such as `IF EXISTS` / `IF NOT EXISTS` (see `V11`, `V16` for examples)
+3. Restart the app — `flyway.migrate()` runs automatically
+4. Verify with `SELECT version, description, success, installed_on FROM flyway_schema_history ORDER BY installed_rank DESC`
 
 ## RBAC Summary
 

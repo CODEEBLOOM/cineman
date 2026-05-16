@@ -34,8 +34,14 @@ public class UserUpdateRequest {
     @Pattern(regexp = "^0[0-9]{9,10}$", message = "User's phone number invalid !")
     private String phoneNumber;
 
-    @Size (min = 1, max = 200, message = "Địa chỉ khách hàng tối đa 200 kí tự !")
+    @Size(max = 200, message = "Địa chỉ khách hàng tối đa 200 kí tự !")
     private String address;
+
+    @Size(max = 100, message = "Phường/Xã tối đa 100 kí tự !")
+    private String ward;
+
+    @Size(max = 100, message = "Tỉnh/Thành phố tối đa 100 kí tự !")
+    private String province;
 
     @Past(message = "Ngày sinh phải nhỏ hơn ngày hôm nay !")
     private Date dateOfBirth;

@@ -37,8 +37,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @Slf4j(topic = "PROMOTION_SERVICE")
@@ -218,35 +216,36 @@ public class PromotionServiceImpl implements PromotionService {
     public List<PromotionResponse> findAllPromotionByUserId(Long userId, StatusPromotion status, Long promotionTypeId, Boolean expiringSoon) {
         UserEntity userEntity = findActiveUser(userId);
 
-        List<PromotionResponse> usedPromotions = promotionRepository.findAllPromotionByCustomerUsed(StatusPromotion.ACTIVE, userId)
-                .stream()
-                .filter(promotionEntity -> matchesPromotionType(promotionEntity, promotionTypeId))
-                .filter(promotionEntity -> matchesExpiringSoon(promotionEntity, expiringSoon))
-                .map(promotionEntity -> toPromotionResponse(promotionEntity, StatusPromotion.USED))
-                .toList();
+        // status=USED: tra ve lich su voucher da xai (khong loc kha dung)
+        if (status == StatusPromotion.USED) {
+            return promotionRepository.findAllPromotionByCustomerUsed(StatusPromotion.ACTIVE, userId)
+                    .stream()
+                    .filter(promotionEntity -> matchesPromotionType(promotionEntity, promotionTypeId))
+                    .filter(promotionEntity -> matchesExpiringSoon(promotionEntity, expiringSoon))
+                    .map(promotionEntity -> toPromotionResponse(promotionEntity, StatusPromotion.USED))
+                    .toList();
+        }
 
-        List<PromotionResponse> availablePromotions = promotionRepository.findAllPromotionByCustomerNotUse(StatusPromotion.ACTIVE, userId)
+        // Default (null) va status=ACTIVE: chi tra voucher user thuc su dung duoc
+        return promotionRepository.findAllPromotionByCustomerNotUse(StatusPromotion.ACTIVE, userId)
                 .stream()
+                .filter(this::isPromotionUsableNow)
                 .filter(promotionEntity -> isPromotionApplicableForUser(promotionEntity, userEntity))
                 .filter(promotionEntity -> matchesPromotionType(promotionEntity, promotionTypeId))
                 .filter(promotionEntity -> matchesExpiringSoon(promotionEntity, expiringSoon))
                 .map(promotionEntity -> toPromotionResponse(promotionEntity, StatusPromotion.ACTIVE))
                 .toList();
+    }
 
-        if (status == null) {
-            return Stream.concat(usedPromotions.stream(), availablePromotions.stream())
-                    .collect(Collectors.toList());
+    private boolean isPromotionUsableNow(PromotionEntity promotionEntity) {
+        LocalDateTime now = LocalDateTime.now();
+        if (promotionEntity.getStartDay() != null && promotionEntity.getStartDay().isAfter(now)) {
+            return false;
         }
-
-        if (status == StatusPromotion.USED) {
-            return usedPromotions;
+        if (promotionEntity.getEndDay() != null && promotionEntity.getEndDay().isBefore(now)) {
+            return false;
         }
-
-        if (status == StatusPromotion.ACTIVE) {
-            return availablePromotions;
-        }
-
-        return List.of();
+        return promotionEntity.getQuantity() != null && promotionEntity.getQuantity() > 0;
     }
 
     private PromotionResponse toPromotionResponse(PromotionEntity promotionEntity, StatusPromotion responseStatus) {
