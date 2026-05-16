@@ -11,6 +11,8 @@ import java.util.Set;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PermissionResponse {
     private Integer permissionId;
     private String title;

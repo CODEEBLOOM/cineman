@@ -12,12 +12,16 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserResponse implements Serializable {
     private Long userId;
     private String email;
     private String fullName;
     private String phoneNumber;
     private String address;
+    private String ward;
+    private String province;
     private Date dateOfBirth;
     private String gender;
     private Integer savePoint;

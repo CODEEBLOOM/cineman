@@ -3,13 +3,6 @@ package com.codebloom.cineman.common.enums;
 import java.util.Arrays;
 
 public enum Method {
-<<<<<<< Updated upstream
-    GET,
-    POST,
-    PUT,
-    PATCH,
-    DELETE,
-=======
     GET(0),
     POST(1),
     PUT(2),
@@ -37,5 +30,4 @@ public enum Method {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unsupported method code: " + code));
     }
->>>>>>> Stashed changes
 }
